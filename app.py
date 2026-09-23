@@ -1,5 +1,12 @@
 import streamlit as st
 
+from ui.dashboard import render_dashboard
+from ui.styles import load_custom_css
+
+
+# ---------------------------------------------------------
+# PAGE CONFIGURATION
+# ---------------------------------------------------------
 
 st.set_page_config(
     page_title="ResumeAI | AI Resume Analyzer",
@@ -9,47 +16,64 @@ st.set_page_config(
 )
 
 
-st.title("📄 ResumeAI")
-st.subheader("AI Resume & Job Match Analyzer")
+# ---------------------------------------------------------
+# CUSTOM STYLING
+# ---------------------------------------------------------
 
-st.write(
-    "Analyze your resume, compare it with a job description, "
-    "and discover opportunities to improve your profile."
-)
+load_custom_css()
 
-st.divider()
 
-col1, col2 = st.columns(2)
+# ---------------------------------------------------------
+# SIDEBAR
+# ---------------------------------------------------------
 
-with col1:
-    st.info(
-        """
-        ### 📄 Resume Analysis
+with st.sidebar:
 
-        Upload your resume PDF to extract:
+    st.markdown("## 📄 ResumeAI")
 
-        - Skills
-        - Education
-        - Experience
-        - Projects
-        - Certifications
-        """
+    st.caption(
+        "AI Resume & Job Match Analyzer"
     )
 
-with col2:
-    st.info(
-        """
-        ### 🎯 Job Matching
+    st.divider()
 
-        Compare your resume against a job description to discover:
+    st.markdown("### Navigation")
 
-        - Match percentage
-        - Matching skills
-        - Missing skills
-        - Improvement opportunities
-        """
+    st.radio(
+        "Go to",
+        [
+            "🏠 Dashboard",
+            "📊 Analysis",
+            "💡 Recommendations",
+        ],
+        index=0,
     )
 
-st.divider()
+    st.divider()
 
-st.success("Phase 1 environment is ready.")
+    st.markdown("### Project")
+
+    st.caption(
+        "MCA (AIML) Minor Project"
+    )
+
+    st.caption(
+        "Oriental University, Indore"
+    )
+
+    st.caption(
+        "Academic Session: 2026–2027"
+    )
+
+    st.divider()
+
+    st.caption(
+        "Phase 2 • Professional UI"
+    )
+
+
+# ---------------------------------------------------------
+# MAIN DASHBOARD
+# ---------------------------------------------------------
+
+render_dashboard()
