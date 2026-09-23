@@ -35,6 +35,20 @@ UNICODE_REPLACEMENTS = {
     "\u25e6": "-",
     "\u2043": "-",
     "\u00a0": " ",
+
+    # Common UTF-8 mojibake sequences that may appear when PDF text
+    # has been decoded incorrectly before reaching the parser.
+    "â€¢": "-",
+    "â—": "-",
+    "â–ª": "-",
+    "â—¦": "-",
+    "â€£": "-",
+    "âƒ": "-",
+    "â€“": "-",
+    "â€”": "-",
+    "âˆ’": "-",
+    "Â·": "-",
+    "Â ": " ",
 }
 
 
@@ -53,7 +67,7 @@ PAGE_MARKER_PATTERN = re.compile(
 # ------------------------------------------------------------------
 
 BULLET_PATTERN = re.compile(
-    r"^\s*(?:[-*•●▪◦‣⁃])\s+"
+    r"^\s*(?:[-*•●▪◦⁃]|\u00e2\u20ac\u00a2|\u00e2\u2014|\u00e2\u2013\u00aa|\u00e2\u2014\u00a6|\u00e2\u20ac\u00a3|\u00e2\u0192)\s+"
 )
 
 
@@ -144,6 +158,9 @@ def normalize_bullets(text: str | None) -> str:
     """
     Normalize common bullet characters to a standard dash.
 
+    Both normal Unicode bullets and common UTF-8 mojibake
+    representations are supported.
+
     Only bullets at the beginning of a line are modified so that
     technical content containing punctuation is preserved.
     """
@@ -153,9 +170,20 @@ def normalize_bullets(text: str | None) -> str:
 
     normalized_lines: List[str] = []
 
+    bullet_pattern = re.compile(
+        r"^\s*(?:"
+        r"[-*•●▪◦⁃]"
+        r"|â€¢"
+        r"|â—"
+        r"|â–ª"
+        r"|â—¦"
+        r"|â€£"
+        r"|âƒ"
+        r")\s+"
+    )
+
     for line in text.splitlines():
-        normalized_line = re.sub(
-            r"^\s*(?:[-*•●▪◦‣⁃])\s+",
+        normalized_line = bullet_pattern.sub(
             "- ",
             line,
         )
