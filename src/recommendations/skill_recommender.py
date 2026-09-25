@@ -1,14 +1,15 @@
 """
-Deterministic Job Role Recommendation Engine
+Deterministic Job Role Recommendation and Target Job Matching Engine
+--------------------------------------------------------------------
 
-This module maps an extracted resume skill profile to a curated set of
-common software, data, AI, and technology roles.
+Provides two related capabilities:
 
-The engine is intentionally local and deterministic. It does not require
-an external API or LLM.
+1. Recommend suitable predefined job roles from a resume skill profile.
+2. Compare a resume directly against a user-provided target job
+   description and identify matched and missing skills.
 
-The recommendation score represents application-specific skill alignment.
-It is not a probability of employment and is not a hiring prediction.
+All processing is local and deterministic. No external API, LLM,
+database, or additional dependency is required.
 """
 
 from __future__ import annotations
@@ -16,20 +17,27 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Dict, List, Sequence, Tuple
 
-from src.job.job_analyzer import SKILL_ALIASES
-from src.nlp.skill_extractor import categorize_skills, extract_skills
+from src.job.job_analyzer import (
+    SKILL_ALIASES,
+    analyze_job_description,
+)
+from src.matching.keyword_matcher import (
+    match_skills,
+    normalize_term,
+)
+from src.nlp.skill_extractor import (
+    categorize_skills,
+    extract_skills,
+)
 
 
 # ------------------------------------------------------------------
-# JOB ROLE PROFILE
+# JOB ROLE PROFILES
 # ------------------------------------------------------------------
-
 
 @dataclass(frozen=True)
 class JobRoleProfile:
-    """
-    Curated skill profile for one target job role.
-    """
+    """Curated skill profile for a predefined technology role."""
 
     name: str
     required_skills: Tuple[str, ...]
@@ -37,16 +45,9 @@ class JobRoleProfile:
     description: str = ""
 
 
-# ------------------------------------------------------------------
-# JOB ROLE RECOMMENDATION RESULT
-# ------------------------------------------------------------------
-
-
 @dataclass
 class JobRoleRecommendation:
-    """
-    Stores the recommendation result for one job role.
-    """
+    """Recommendation result for one predefined job role."""
 
     role: str
     alignment: str
@@ -64,9 +65,7 @@ class JobRoleRecommendation:
 
 @dataclass
 class JobRoleRecommendationResult:
-    """
-    Stores the complete resume-to-job-role recommendation result.
-    """
+    """Complete result returned by the role recommendation engine."""
 
     success: bool
     resume_skills: List[str] = field(default_factory=list)
@@ -77,11 +76,40 @@ class JobRoleRecommendationResult:
 
 
 # ------------------------------------------------------------------
-# JOB ROLE CATALOG
+# TARGET JOB MATCHING RESULT
 # ------------------------------------------------------------------
 
-# These profiles are application-design profiles.
-# They are not labor-market statistics or official hiring standards.
+@dataclass
+class TargetJobMatchResult:
+    """
+    Structured result for direct resume-to-target-job skill matching.
+
+    The score represents skill coverage only. It is not a hiring
+    probability, employment prediction, or validated assessment.
+    """
+
+    success: bool
+    resume_skills: List[str] = field(default_factory=list)
+    job_skills: List[str] = field(default_factory=list)
+    matched_skills: List[str] = field(default_factory=list)
+    missing_skills: List[str] = field(default_factory=list)
+    extra_resume_skills: List[str] = field(
+        default_factory=list
+    )
+    skill_match_percentage: float = 0.0
+    job_keywords: List[str] = field(default_factory=list)
+    experience_requirements: List[str] = field(
+        default_factory=list
+    )
+    education_requirements: List[str] = field(
+        default_factory=list
+    )
+    message: str = ""
+
+
+# ------------------------------------------------------------------
+# CURATED ROLE CATALOG
+# ------------------------------------------------------------------
 
 JOB_ROLE_PROFILES: Tuple[JobRoleProfile, ...] = (
     JobRoleProfile(
@@ -100,7 +128,8 @@ JOB_ROLE_PROFILES: Tuple[JobRoleProfile, ...] = (
             "Docker",
         ),
         description=(
-            "Builds backend or application software using Python."
+            "Develops Python-based applications, APIs, and "
+            "backend services."
         ),
     ),
     JobRoleProfile(
@@ -119,7 +148,8 @@ JOB_ROLE_PROFILES: Tuple[JobRoleProfile, ...] = (
             "Tableau",
         ),
         description=(
-            "Analyzes data and communicates actionable findings."
+            "Analyzes structured data and communicates "
+            "business or operational insights."
         ),
     ),
     JobRoleProfile(
@@ -139,7 +169,8 @@ JOB_ROLE_PROFILES: Tuple[JobRoleProfile, ...] = (
             "Git",
         ),
         description=(
-            "Develops and integrates machine-learning systems."
+            "Builds, evaluates, and deploys machine learning "
+            "models and pipelines."
         ),
     ),
     JobRoleProfile(
@@ -159,8 +190,8 @@ JOB_ROLE_PROFILES: Tuple[JobRoleProfile, ...] = (
             "PyTorch",
         ),
         description=(
-            "Uses statistics, data analysis, and machine learning "
-            "to solve problems."
+            "Uses statistics, programming, and machine learning "
+            "to extract insights from data."
         ),
     ),
     JobRoleProfile(
@@ -179,8 +210,8 @@ JOB_ROLE_PROFILES: Tuple[JobRoleProfile, ...] = (
             "REST API",
         ),
         description=(
-            "Builds AI-powered applications and machine-learning "
-            "solutions."
+            "Develops artificial intelligence systems and "
+            "machine learning applications."
         ),
     ),
     JobRoleProfile(
@@ -200,8 +231,8 @@ JOB_ROLE_PROFILES: Tuple[JobRoleProfile, ...] = (
             "REST API",
         ),
         description=(
-            "Builds applications around generative AI and "
-            "language models."
+            "Builds applications using generative AI, "
+            "large language models, and related NLP systems."
         ),
     ),
     JobRoleProfile(
@@ -221,7 +252,8 @@ JOB_ROLE_PROFILES: Tuple[JobRoleProfile, ...] = (
             "Microservices",
         ),
         description=(
-            "Develops server-side services, APIs, and backend systems."
+            "Builds server-side applications, APIs, and "
+            "backend infrastructure."
         ),
     ),
     JobRoleProfile(
@@ -241,21 +273,27 @@ JOB_ROLE_PROFILES: Tuple[JobRoleProfile, ...] = (
             "Unit Testing",
         ),
         description=(
-            "Develops and maintains general-purpose software systems."
+            "Designs, implements, tests, and maintains "
+            "software systems."
         ),
     ),
 )
 
 
 # ------------------------------------------------------------------
-# INTERNAL HELPERS
+# SKILL NORMALIZATION
 # ------------------------------------------------------------------
-
 
 def _canonicalize_skill(skill: str) -> str:
     """
-    Return the canonical representation of a skill.
+    Convert a skill or alias to its canonical form.
+
+    This helper is used by the predefined role recommender.
+    Direct target-job matching is delegated to keyword_matcher,
+    which provides its own canonical comparison layer.
     """
+    if not isinstance(skill, str):
+        return ""
 
     normalized = " ".join(
         skill.strip().lower().split()
@@ -264,19 +302,19 @@ def _canonicalize_skill(skill: str) -> str:
     if not normalized:
         return ""
 
-    return SKILL_ALIASES.get(
-        normalized,
-        skill.strip(),
-    )
+    if normalized in SKILL_ALIASES:
+        return SKILL_ALIASES[normalized]
+
+    return skill.strip()
 
 
 def _normalized_skill_set(
     skills: Sequence[str] | None,
 ) -> Dict[str, str]:
     """
-    Create a normalized skill lookup dictionary.
+    Create a normalized lookup dictionary while preserving
+    readable canonical skill names.
     """
-
     result: Dict[str, str] = {}
 
     if not skills:
@@ -288,22 +326,25 @@ def _normalized_skill_set(
         if not canonical:
             continue
 
-        result.setdefault(
-            canonical.lower(),
-            canonical,
-        )
+        key = canonical.lower().strip()
+
+        if key not in result:
+            result[key] = canonical
 
     return result
 
 
+# ------------------------------------------------------------------
+# ROLE MATCHING HELPERS
+# ------------------------------------------------------------------
+
 def _coverage(
     resume_skills: Dict[str, str],
     target_skills: Sequence[str],
-) -> Tuple[List[str], List[str]]:
+) -> tuple[List[str], List[str]]:
     """
-    Split target skills into matched and missing skills.
+    Return matched and missing skills for a predefined role.
     """
-
     matched: List[str] = []
     missing: List[str] = []
 
@@ -313,8 +354,10 @@ def _coverage(
         if not canonical:
             continue
 
-        if canonical.lower() in resume_skills:
-            matched.append(canonical)
+        key = canonical.lower().strip()
+
+        if key in resume_skills:
+            matched.append(resume_skills[key])
         else:
             missing.append(canonical)
 
@@ -323,9 +366,8 @@ def _coverage(
 
 def _alignment(score: float) -> str:
     """
-    Convert a numeric alignment score into a descriptive band.
+    Convert a numeric role-alignment score to a descriptive label.
     """
-
     if score >= 75:
         return "High"
 
@@ -340,53 +382,52 @@ def _category_coverage(
     required_skills: Sequence[str],
 ) -> Dict[str, float]:
     """
-    Calculate required-skill coverage grouped by skill category.
+    Calculate required-skill coverage by skill category.
     """
-
-    categories = categorize_skills(
+    resume_categories = categorize_skills(
         list(resume_skills)
     )
-
-    resume_by_category = {
-        category: {
-            skill.lower()
-            for skill in skills
-        }
-        for category, skills in categories.items()
-    }
-
-    result: Dict[str, float] = {}
 
     required_categories = categorize_skills(
         list(required_skills)
     )
 
-    for category, skills in required_categories.items():
-        if not skills:
+    if not required_categories:
+        return {}
+
+    coverage: Dict[str, float] = {}
+
+    for category, target_skills in required_categories.items():
+        resume_category_skills = {
+            skill.lower().strip()
+            for skill in resume_categories.get(
+                category,
+                [],
+            )
+        }
+
+        if not target_skills:
             continue
 
-        matched = sum(
+        matched_count = sum(
             1
-            for skill in skills
-            if skill.lower()
-            in resume_by_category.get(
-                category,
-                set(),
-            )
+            for skill in target_skills
+            if skill.lower().strip()
+            in resume_category_skills
         )
 
-        result[category] = round(
-            (matched / len(skills)) * 100,
+        coverage[category] = round(
+            (matched_count / len(target_skills))
+            * 100,
             2,
         )
 
-    return result
+    return coverage
 
 
 # ------------------------------------------------------------------
-# MAIN RECOMMENDATION ENGINE
+# PREDEFINED ROLE RECOMMENDATION
 # ------------------------------------------------------------------
-
 
 def recommend_job_roles(
     skills: Sequence[str] | None,
@@ -394,30 +435,24 @@ def recommend_job_roles(
     top_n: int = 5,
 ) -> JobRoleRecommendationResult:
     """
-    Recommend job roles from an extracted resume skill list.
+    Recommend predefined job roles from a resume skill profile.
 
-    The score uses:
+    Scoring model
+    -------------
+    Required skills:
+        80%
 
-    - 80% required/core skill coverage
-    - 20% preferred skill coverage
+    Preferred skills:
+        20%
 
-    This score is an application-specific skill-alignment score.
-    It is not a probability of employment or a hiring prediction.
-
-    Parameters
-    ----------
-    skills:
-        Resume skills, preferably obtained from extract_skills()
-        or parse_resume().
-
-    top_n:
-        Maximum number of recommendations to return.
-
-    Returns
-    -------
-    JobRoleRecommendationResult
-        Deterministic job-role recommendations.
+    This is an application-specific skill-alignment score. It is not
+    an employment probability or hiring prediction.
     """
+    if top_n <= 0:
+        return JobRoleRecommendationResult(
+            success=False,
+            message="top_n must be greater than 0.",
+        )
 
     if not skills:
         return JobRoleRecommendationResult(
@@ -425,82 +460,99 @@ def recommend_job_roles(
             message="Resume skills are empty.",
         )
 
-    if top_n <= 0:
+    resume_skill_lookup = _normalized_skill_set(
+        skills
+    )
+
+    if not resume_skill_lookup:
         return JobRoleRecommendationResult(
             success=False,
-            message="top_n must be greater than 0.",
+            message="No usable resume skills were provided.",
         )
-
-    resume_skills = _normalized_skill_set(skills)
 
     recommendations: List[
         JobRoleRecommendation
     ] = []
 
     for profile in JOB_ROLE_PROFILES:
-
         matched_required, missing_required = _coverage(
-            resume_skills,
+            resume_skill_lookup,
             profile.required_skills,
         )
 
         matched_preferred, _ = _coverage(
-            resume_skills,
+            resume_skill_lookup,
             profile.preferred_skills,
         )
 
-        required_coverage = (
-            len(matched_required)
-            / len(profile.required_skills)
-            if profile.required_skills
+        required_count = len(
+            profile.required_skills
+        )
+
+        preferred_count = len(
+            profile.preferred_skills
+        )
+
+        required_score = (
+            (
+                len(matched_required)
+                / required_count
+            )
+            * 100
+            if required_count
             else 0.0
         )
 
-        preferred_coverage = (
-            len(matched_preferred)
-            / len(profile.preferred_skills)
-            if profile.preferred_skills
+        preferred_score = (
+            (
+                len(matched_preferred)
+                / preferred_count
+            )
+            * 100
+            if preferred_count
             else 0.0
         )
 
         score = round(
             (
-                (required_coverage * 0.80)
-                + (preferred_coverage * 0.20)
+                required_score * 0.80
             )
-            * 100,
+            + (
+                preferred_score * 0.20
+            ),
             2,
         )
 
+        if score <= 0:
+            continue
+
+        alignment = _alignment(score)
+
         category_coverage = _category_coverage(
-            list(resume_skills.values()),
+            list(resume_skill_lookup.values()),
             profile.required_skills,
         )
 
-        if matched_required:
+        if missing_required:
             rationale = (
-                f"Matches {len(matched_required)} of "
-                f"{len(profile.required_skills)} core skills"
+                f"{len(matched_required)} of "
+                f"{required_count} required skills "
+                f"were detected. "
+                f"{len(missing_required)} required "
+                f"skill"
+                f"{'s' if len(missing_required) != 1 else ''} "
+                f"still need attention."
             )
-
-            if matched_preferred:
-                rationale += (
-                    f" and {len(matched_preferred)} "
-                    "preferred skills."
-                )
-            else:
-                rationale += "."
-
         else:
             rationale = (
-                "No core skills from this role profile "
-                "were detected."
+                "All required skills for this predefined "
+                "role were detected in the resume."
             )
 
         recommendations.append(
             JobRoleRecommendation(
                 role=profile.name,
-                alignment=_alignment(score),
+                alignment=alignment,
                 score=score,
                 matched_skills=matched_required,
                 missing_skills=missing_required,
@@ -510,15 +562,6 @@ def recommend_job_roles(
             )
         )
 
-    # Do not display roles with zero skill overlap.
-    recommendations = [
-        recommendation
-        for recommendation in recommendations
-        if recommendation.score > 0
-    ]
-
-    # Highest skill alignment first.
-    # Ties are resolved deterministically.
     recommendations.sort(
         key=lambda item: (
             -item.score,
@@ -527,25 +570,21 @@ def recommend_job_roles(
         )
     )
 
-    limited_recommendations = recommendations[:top_n]
+    recommendations = recommendations[:top_n]
 
     return JobRoleRecommendationResult(
         success=True,
         resume_skills=list(
-            resume_skills.values()
+            resume_skill_lookup.values()
         ),
-        recommendations=limited_recommendations,
+        recommendations=recommendations,
         message=(
-            f"Generated {len(limited_recommendations)} "
-            "job-role recommendations from the "
-            "resume skill profile."
+            f"Identified {len(recommendations)} "
+            f"suitable role"
+            f"{'s' if len(recommendations) != 1 else ''} "
+            "from the detected resume skills."
         ),
     )
-
-
-# ------------------------------------------------------------------
-# RESUME TEXT CONVENIENCE FUNCTION
-# ------------------------------------------------------------------
 
 
 def recommend_job_roles_from_resume(
@@ -554,21 +593,27 @@ def recommend_job_roles_from_resume(
     top_n: int = 5,
 ) -> JobRoleRecommendationResult:
     """
-    Extract skills from resume text and recommend job roles.
+    Extract skills from resume text and recommend predefined roles.
     """
-
-    if not resume_text or not resume_text.strip():
+    if not isinstance(resume_text, str):
         return JobRoleRecommendationResult(
             success=False,
             message="Resume text is empty.",
         )
 
-    skills = extract_skills(resume_text)
-
-    if not skills:
+    if not resume_text.strip():
         return JobRoleRecommendationResult(
             success=False,
-            resume_skills=[],
+            message="Resume text is empty.",
+        )
+
+    resume_skills = extract_skills(
+        resume_text
+    )
+
+    if not resume_skills:
+        return JobRoleRecommendationResult(
+            success=False,
             message=(
                 "No recognized skills were found "
                 "in the resume."
@@ -576,6 +621,247 @@ def recommend_job_roles_from_resume(
         )
 
     return recommend_job_roles(
-        skills,
+        resume_skills,
         top_n=top_n,
+    )
+
+
+# ------------------------------------------------------------------
+# TARGET JOB MATCHING
+# ------------------------------------------------------------------
+
+def _restore_canonical_match_names(
+    matched_items: Sequence[str],
+    canonical_items: Sequence[str],
+) -> List[str]:
+    """
+    Restore canonical display names after keyword matching.
+
+    keyword_matcher intentionally normalizes display strings for
+    generic matching. The target-job UI, however, should display
+    the canonical names produced by the project's skill analyzer.
+
+    Example:
+        "Nlp"       -> "NLP"
+        "Rest Api"  -> "REST API"
+        "Postgresql"-> "PostgreSQL"
+    """
+    matched_normalized = {
+        normalize_term(item)
+        for item in matched_items
+    }
+
+    result: List[str] = []
+    seen = set()
+
+    for item in canonical_items:
+        normalized = normalize_term(item)
+
+        if (
+            normalized in matched_normalized
+            and normalized not in seen
+        ):
+            result.append(item)
+            seen.add(normalized)
+
+    return result
+
+
+def _restore_canonical_missing_names(
+    missing_items: Sequence[str],
+    canonical_items: Sequence[str],
+) -> List[str]:
+    """
+    Restore canonical names for missing target-job skills.
+    """
+    missing_normalized = {
+        normalize_term(item)
+        for item in missing_items
+    }
+
+    result: List[str] = []
+    seen = set()
+
+    for item in canonical_items:
+        normalized = normalize_term(item)
+
+        if (
+            normalized in missing_normalized
+            and normalized not in seen
+        ):
+            result.append(item)
+            seen.add(normalized)
+
+    return result
+
+
+def _restore_canonical_extra_resume_names(
+    extra_items: Sequence[str],
+    resume_skills: Sequence[str],
+) -> List[str]:
+    """
+    Restore canonical names for resume-only skills.
+    """
+    extra_normalized = {
+        normalize_term(item)
+        for item in extra_items
+    }
+
+    result: List[str] = []
+    seen = set()
+
+    for item in resume_skills:
+        normalized = normalize_term(item)
+
+        if (
+            normalized in extra_normalized
+            and normalized not in seen
+        ):
+            result.append(item)
+            seen.add(normalized)
+
+    return result
+
+
+def match_resume_to_target_job(
+    resume_text: str | None,
+    job_description: str | None,
+) -> TargetJobMatchResult:
+    """
+    Compare a resume directly against a target job description.
+
+    The job description is analyzed with the existing job analyzer.
+    Resume skills are extracted with the existing resume skill
+    extractor. Skill comparison is delegated to the existing
+    keyword matching engine so alias normalization remains
+    consistent with the project's matching tests.
+
+    The returned percentage represents the percentage of detected
+    target-job skills also detected in the resume.
+    """
+    if not isinstance(resume_text, str):
+        return TargetJobMatchResult(
+            success=False,
+            message="Resume text is empty.",
+        )
+
+    if not resume_text.strip():
+        return TargetJobMatchResult(
+            success=False,
+            message="Resume text is empty.",
+        )
+
+    if not isinstance(job_description, str):
+        return TargetJobMatchResult(
+            success=False,
+            message="Target job description is empty.",
+        )
+
+    if not job_description.strip():
+        return TargetJobMatchResult(
+            success=False,
+            message="Target job description is empty.",
+        )
+
+    resume_skills = extract_skills(
+        resume_text
+    )
+
+    if not resume_skills:
+        return TargetJobMatchResult(
+            success=False,
+            message=(
+                "No recognized skills were found "
+                "in the resume."
+            ),
+        )
+
+    job_analysis = analyze_job_description(
+        job_description
+    )
+
+    if not job_analysis.success:
+        return TargetJobMatchResult(
+            success=False,
+            resume_skills=resume_skills,
+            message=(
+                job_analysis.message
+                or "Target job analysis failed."
+            ),
+        )
+
+    job_skills = job_analysis.skills
+
+    if not job_skills:
+        return TargetJobMatchResult(
+            success=False,
+            resume_skills=resume_skills,
+            job_keywords=job_analysis.keywords,
+            experience_requirements=(
+                job_analysis.experience_requirements
+            ),
+            education_requirements=(
+                job_analysis.education_requirements
+            ),
+            message=(
+                "No recognized skills were found "
+                "in the target job description."
+            ),
+        )
+
+    # --------------------------------------------------------------
+    # Existing matching engine performs the actual comparison.
+    # --------------------------------------------------------------
+
+    skill_match = match_skills(
+        resume_skills=resume_skills,
+        job_skills=job_skills,
+    )
+
+    # --------------------------------------------------------------
+    # Restore canonical names for UI/test output.
+    # --------------------------------------------------------------
+
+    matched_skills = (
+        _restore_canonical_match_names(
+            skill_match.matched_items,
+            job_skills,
+        )
+    )
+
+    missing_skills = (
+        _restore_canonical_missing_names(
+            skill_match.missing_items,
+            job_skills,
+        )
+    )
+
+    extra_resume_skills = (
+        _restore_canonical_extra_resume_names(
+            skill_match.extra_items,
+            resume_skills,
+        )
+    )
+
+    return TargetJobMatchResult(
+        success=True,
+        resume_skills=resume_skills,
+        job_skills=job_skills,
+        matched_skills=matched_skills,
+        missing_skills=missing_skills,
+        extra_resume_skills=extra_resume_skills,
+        skill_match_percentage=(
+            skill_match.match_percentage
+        ),
+        job_keywords=job_analysis.keywords,
+        experience_requirements=(
+            job_analysis.experience_requirements
+        ),
+        education_requirements=(
+            job_analysis.education_requirements
+        ),
+        message=(
+            "Resume-to-target-job skill matching "
+            "completed successfully."
+        ),
     )

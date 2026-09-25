@@ -1,8 +1,10 @@
 import streamlit as st
 
 from src.pdf.extractor import extract_text_from_pdf
+
 from src.recommendations.skill_recommender import (
     JOB_ROLE_PROFILES,
+    match_resume_to_target_job,
     recommend_job_roles_from_resume,
 )
 
@@ -21,7 +23,6 @@ def render_extraction_result(extraction_result) -> None:
     """
     Display the result of resume PDF extraction.
     """
-
     st.markdown(
         '<div class="section-title">📄 Resume Extraction</div>',
         unsafe_allow_html=True,
@@ -65,8 +66,9 @@ def render_extraction_result(extraction_result) -> None:
 
     st.caption(
         "This is the raw text extracted from the uploaded PDF. "
-        "The extracted text is now passed to the NLP skill "
-        "extraction and job-role recommendation engine."
+        "The extracted text is passed to the NLP skill "
+        "extraction, target-job matching, and job-role "
+        "recommendation engines."
     )
 
 
@@ -74,7 +76,6 @@ def render_resume_skills(resume_skills) -> None:
     """
     Display the skills detected in the uploaded resume.
     """
-
     st.markdown(
         '<div class="section-title">🧠 Detected Resume Skills</div>',
         unsafe_allow_html=True,
@@ -106,11 +107,121 @@ def render_resume_skills(resume_skills) -> None:
             )
 
 
+def render_target_job_match(match_result) -> None:
+    """
+    Display direct resume-to-target-job skill matching.
+    """
+    st.markdown(
+        '<div class="section-title">'
+        "🎯 Target Job Match"
+        "</div>",
+        unsafe_allow_html=True,
+    )
+
+    if not match_result.success:
+        st.warning(match_result.message)
+        return
+
+    metric_col1, metric_col2, metric_col3 = st.columns(3)
+
+    with metric_col1:
+        st.metric(
+            "Skill Match",
+            f"{match_result.skill_match_percentage:.2f}%",
+        )
+
+    with metric_col2:
+        st.metric(
+            "Job Skills",
+            len(match_result.job_skills),
+        )
+
+    with metric_col3:
+        st.metric(
+            "Matched Skills",
+            len(match_result.matched_skills),
+        )
+
+    st.caption(
+        "Skill Match shows the percentage of recognized target-job "
+        "skills that were also detected in the resume. It is a "
+        "skill-coverage measure, not a hiring probability."
+    )
+
+    matched_col, missing_col = st.columns(2)
+
+    with matched_col:
+        st.markdown("### ✅ Matched Skills")
+
+        if match_result.matched_skills:
+            for skill in match_result.matched_skills:
+                st.markdown(f"- ✅ {skill}")
+        else:
+            st.info(
+                "No detected target-job skills matched "
+                "the resume."
+            )
+
+    with missing_col:
+        st.markdown("### ❌ Missing Skills")
+
+        if match_result.missing_skills:
+            for skill in match_result.missing_skills:
+                st.markdown(f"- ❌ {skill}")
+        else:
+            st.success(
+                "All detected target-job skills are present "
+                "in the resume."
+            )
+
+    with st.expander("📋 Target Job Skills", expanded=True):
+        if match_result.job_skills:
+            skill_columns = st.columns(4)
+
+            for index, skill in enumerate(
+                match_result.job_skills
+            ):
+                with skill_columns[index % 4]:
+                    st.markdown(f"- {skill}")
+
+    if match_result.extra_resume_skills:
+        with st.expander(
+            "➕ Additional Resume Skills",
+            expanded=False,
+        ):
+            st.caption(
+                "These skills were detected in the resume but "
+                "were not detected in the target job description."
+            )
+
+            for skill in match_result.extra_resume_skills:
+                st.markdown(f"- {skill}")
+
+    if match_result.experience_requirements:
+        with st.expander(
+            "🕒 Detected Experience Requirements",
+            expanded=False,
+        ):
+            for requirement in (
+                match_result.experience_requirements
+            ):
+                st.markdown(f"- {requirement}")
+
+    if match_result.education_requirements:
+        with st.expander(
+            "🎓 Detected Education Requirements",
+            expanded=False,
+        ):
+            for requirement in (
+                match_result.education_requirements
+            ):
+                st.markdown(f"- {requirement}")
+
+
 def render_role_recommendation(recommendation) -> None:
     """
     Display one recommended job role in detail.
     """
-
     st.markdown(
         f"### 💼 {recommendation.role}"
     )
@@ -175,27 +286,36 @@ def render_role_recommendation(recommendation) -> None:
             None,
         )
 
-        if profile is not None and profile.preferred_skills:
+        if (
+            profile is not None
+            and profile.preferred_skills
+        ):
             st.markdown("**Role preference profile:**")
 
             for skill in profile.preferred_skills:
                 st.markdown(f"- {skill}")
 
     if recommendation.category_coverage:
-        st.markdown("#### 📊 Required Skill Coverage by Category")
+        st.markdown(
+            "#### 📊 Required Skill Coverage by Category"
+        )
 
         coverage_columns = st.columns(
             len(recommendation.category_coverage)
         )
 
-        for index, (category, coverage) in enumerate(
+        for index, (
+            category,
+            coverage,
+        ) in enumerate(
             recommendation.category_coverage.items()
         ):
             with coverage_columns[index]:
-                display_name = category.replace(
-                    "_",
-                    " ",
-                ).title()
+                display_name = (
+                    category
+                    .replace("_", " ")
+                    .title()
+                )
 
                 st.metric(
                     display_name,
@@ -203,11 +323,12 @@ def render_role_recommendation(recommendation) -> None:
                 )
 
 
-def render_job_recommendations(recommendation_result) -> None:
+def render_job_recommendations(
+    recommendation_result,
+) -> None:
     """
     Display resume-to-job-role recommendations.
     """
-
     st.markdown(
         '<div class="section-title">💼 Suitable Job Roles</div>',
         unsafe_allow_html=True,
@@ -219,7 +340,9 @@ def render_job_recommendations(recommendation_result) -> None:
         )
         return
 
-    recommendations = recommendation_result.recommendations
+    recommendations = (
+        recommendation_result.recommendations
+    )
 
     if not recommendations:
         st.info(
@@ -250,7 +373,6 @@ def render_dashboard() -> None:
     """
     Render the complete ResumeAI dashboard.
     """
-
     render_header()
 
     st.markdown(
@@ -258,9 +380,9 @@ def render_dashboard() -> None:
         <div class="section-title">
             Analyze your resume and discover suitable job roles
         </div>
-
         <div class="section-description">
-            Upload your resume to extract skills and identify
+            Upload your resume to extract skills, compare them
+            against a target job description, and identify
             suitable technology roles based on your current
             skill profile.
         </div>
@@ -275,7 +397,6 @@ def render_dashboard() -> None:
     # ---------------------------------------------------------
     # INPUT SECTION
     # ---------------------------------------------------------
-
     st.markdown(
         '<div class="section-title">📥 Project Inputs</div>',
         unsafe_allow_html=True,
@@ -284,9 +405,8 @@ def render_dashboard() -> None:
     st.markdown(
         """
         <div class="section-description">
-            Upload your resume PDF. A job description can also
-            be provided for the later job-specific matching
-            functionality.
+            Upload your resume PDF. You can also provide a target
+            job description to identify matched and missing skills.
         </div>
         """,
         unsafe_allow_html=True,
@@ -300,10 +420,13 @@ def render_dashboard() -> None:
         uploaded_file = render_resume_uploader()
 
         if uploaded_file is not None:
-            file_size_kb = uploaded_file.size / 1024
+            file_size_kb = (
+                uploaded_file.size / 1024
+            )
 
             st.success(
-                f"Resume uploaded: **{uploaded_file.name}**"
+                f"Resume uploaded: "
+                f"**{uploaded_file.name}**"
             )
 
             st.caption(
@@ -313,7 +436,9 @@ def render_dashboard() -> None:
     with right_col:
         st.markdown("### 💼 Target Job")
 
-        job_description = render_job_description_input()
+        job_description = (
+            render_job_description_input()
+        )
 
         if job_description.strip():
             st.caption(
@@ -326,7 +451,6 @@ def render_dashboard() -> None:
     # ---------------------------------------------------------
     # STATUS
     # ---------------------------------------------------------
-
     render_upload_status(
         uploaded_file=uploaded_file,
         job_description=job_description,
@@ -337,15 +461,15 @@ def render_dashboard() -> None:
     # ---------------------------------------------------------
     # ANALYSIS
     # ---------------------------------------------------------
-
     st.markdown(
         '<div class="section-title">🚀 Start Analysis</div>',
         unsafe_allow_html=True,
     )
 
     st.caption(
-        "Phase 6.4 analyzes the resume independently of the "
-        "job description and recommends suitable job roles."
+        "Phase 6.4 extracts resume skills, matches them against "
+        "the optional target job, and recommends suitable "
+        "predefined job roles."
     )
 
     analyze_clicked = render_analysis_button()
@@ -355,7 +479,6 @@ def render_dashboard() -> None:
         # -----------------------------------------------------
         # Resume validation
         # -----------------------------------------------------
-
         if uploaded_file is None:
             st.error(
                 "Please upload a resume PDF before starting "
@@ -366,20 +489,20 @@ def render_dashboard() -> None:
         # -----------------------------------------------------
         # Read uploaded PDF
         # -----------------------------------------------------
-
         with st.spinner(
             "Reading and extracting your resume..."
         ):
             file_bytes = uploaded_file.getvalue()
 
-            extraction_result = extract_text_from_pdf(
-                file_bytes
+            extraction_result = (
+                extract_text_from_pdf(
+                    file_bytes
+                )
             )
 
         # -----------------------------------------------------
         # Display extraction result
         # -----------------------------------------------------
-
         render_extraction_result(
             extraction_result
         )
@@ -387,32 +510,37 @@ def render_dashboard() -> None:
         # -----------------------------------------------------
         # Stop if extraction failed
         # -----------------------------------------------------
-
         if not extraction_result.success:
             return
 
         # -----------------------------------------------------
         # Store successful extraction in session state
         # -----------------------------------------------------
-
         st.session_state["resume_uploaded"] = True
+
         st.session_state["resume_name"] = (
             uploaded_file.name
         )
+
         st.session_state["resume_text"] = (
             extraction_result.text
         )
+
         st.session_state["resume_page_count"] = (
             extraction_result.page_count
         )
+
         st.session_state["resume_word_count"] = (
             extraction_result.word_count
+        )
+
+        st.session_state["target_job_description"] = (
+            job_description
         )
 
         # -----------------------------------------------------
         # Resume skill extraction + job-role recommendation
         # -----------------------------------------------------
-
         with st.spinner(
             "Analyzing resume skills and identifying "
             "suitable job roles..."
@@ -427,15 +555,40 @@ def render_dashboard() -> None:
         # -----------------------------------------------------
         # Store recommendation result
         # -----------------------------------------------------
-
         st.session_state[
             "job_role_recommendation_result"
         ] = recommendation_result
 
         # -----------------------------------------------------
-        # Display detected skills
+        # Target-job matching
         # -----------------------------------------------------
+        target_job_match_result = None
 
+        if job_description.strip():
+            with st.spinner(
+                "Analyzing the target job and comparing "
+                "required skills..."
+            ):
+                target_job_match_result = (
+                    match_resume_to_target_job(
+                        extraction_result.text,
+                        job_description,
+                    )
+                )
+
+            st.session_state[
+                "target_job_match_result"
+            ] = target_job_match_result
+
+        else:
+            st.session_state.pop(
+                "target_job_match_result",
+                None,
+            )
+
+        # -----------------------------------------------------
+        # Display detected resume skills
+        # -----------------------------------------------------
         render_resume_skills(
             recommendation_result.resume_skills
         )
@@ -443,9 +596,18 @@ def render_dashboard() -> None:
         st.divider()
 
         # -----------------------------------------------------
+        # Display target-job matching
+        # -----------------------------------------------------
+        if target_job_match_result is not None:
+            render_target_job_match(
+                target_job_match_result
+            )
+
+            st.divider()
+
+        # -----------------------------------------------------
         # Display suitable job roles
         # -----------------------------------------------------
-
         render_job_recommendations(
             recommendation_result
         )
@@ -453,27 +615,41 @@ def render_dashboard() -> None:
     # ---------------------------------------------------------
     # DISPLAY PREVIOUS RESULTS
     # ---------------------------------------------------------
-
     elif (
         "job_role_recommendation_result"
         in st.session_state
     ):
-        recommendation_result = st.session_state[
-            "job_role_recommendation_result"
-        ]
+        recommendation_result = (
+            st.session_state[
+                "job_role_recommendation_result"
+            ]
+        )
 
         st.divider()
 
         st.markdown(
             '<div class="section-title">'
-            '📌 Previous Resume Analysis'
-            '</div>',
+            "📌 Previous Resume Analysis"
+            "</div>",
             unsafe_allow_html=True,
         )
 
         render_resume_skills(
             recommendation_result.resume_skills
         )
+
+        previous_target_match = (
+            st.session_state.get(
+                "target_job_match_result"
+            )
+        )
+
+        if previous_target_match is not None:
+            st.divider()
+
+            render_target_job_match(
+                previous_target_match
+            )
 
         st.divider()
 
@@ -484,7 +660,6 @@ def render_dashboard() -> None:
     # ---------------------------------------------------------
     # PROJECT STATUS
     # ---------------------------------------------------------
-
     st.divider()
 
     st.markdown(
@@ -492,9 +667,12 @@ def render_dashboard() -> None:
         unsafe_allow_html=True,
     )
 
-    status_col1, status_col2, status_col3, status_col4 = (
-        st.columns(4)
-    )
+    (
+        status_col1,
+        status_col2,
+        status_col3,
+        status_col4,
+    ) = st.columns(4)
 
     with status_col1:
         st.metric(
@@ -516,7 +694,7 @@ def render_dashboard() -> None:
 
     with status_col4:
         st.metric(
-            "Job Recommendations",
+            "Job Matching",
             "Ready",
         )
 
