@@ -6,12 +6,12 @@ from app.database.connection import connect
 from app.database.resumes import get_resume
 from app.services.job_matcher import compare_resume_to_job
 
-def save_job_match(actor_id,resume_id,title,description,*,db_path=None,required_weight=0.75):
+def save_job_match(actor_id,resume_id,title,description,*,db_path=None,required_weight=0.75,use_local_ai=False,ollama_model="llama3.2"):
     require_role(actor_id,'user',db_path=db_path)
     if not 2<=len(title.strip())<=150:raise ValueError('Job title must be between 2 and 150 characters')
     resume=get_resume(actor_id,resume_id,db_path=db_path)
     if resume is None:raise ValueError('Resume not found')
-    result=compare_resume_to_job(resume['extracted_text'],description,db_path=db_path,required_weight=required_weight)
+    result=compare_resume_to_job(resume['extracted_text'],description,db_path=db_path,required_weight=required_weight,job_title=title,use_local_ai=use_local_ai,ollama_model=ollama_model)
     with connect(db_path) as db:
         cur=db.execute('INSERT INTO job_matches(owner_id,resume_id,job_title,job_description,result_json) VALUES (?,?,?,?,?)',
             (actor_id,resume_id,title.strip(),description,json.dumps(result,ensure_ascii=False)))

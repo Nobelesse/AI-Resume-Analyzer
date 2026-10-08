@@ -8,6 +8,10 @@ def render_html_report(result):
     title=escape(result['job_title'])
     lines=[f'<h1>Job Match — {title}</h1>',f"<p>Estimated match: {result['match_score']}/100</p>",
       f"<p>Text similarity: {result['similarity_score']}/100</p>"]
+    if result.get('suggested_role_skills'):
+        lines.append('<h2>Suggested occupation skills (not verified employer requirements)</h2><ul>')
+        lines.extend(f'<li>{escape(str(item))}</li>' for item in result['suggested_role_skills'])
+        lines.append('</ul>')
     for key,label in [('matched_required','Matched required skills'),('missing_required','Missing required skills'),('matched_preferred','Matched preferred skills'),('missing_preferred','Missing preferred skills')]:
         lines.append(f'<h2>{label}</h2><ul>')
         lines.extend(f'<li>{escape(str(s))}</li>' for s in result[key])
@@ -32,6 +36,9 @@ def render_pdf_report(result):
     line('Job: '+result['job_title'])
     line('Estimated match: '+str(result['match_score'])+'/100')
     line('Text similarity: '+str(result['similarity_score'])+'/100')
+    if result.get('suggested_role_skills'):
+        y-=7;line('Typical role skills (not employer-confirmed)',True)
+        for skill in result['suggested_role_skills']:line(' - '+skill)
     for key,label in [('matched_required','Matched required skills'),('missing_required','Missing required skills'),('matched_preferred','Matched preferred skills'),('missing_preferred','Missing preferred skills')]:
         y-=7;line(label,True)
         for skill in result[key]:line(' - '+skill)

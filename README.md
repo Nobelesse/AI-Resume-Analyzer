@@ -50,3 +50,16 @@ Private `data/`, `.env` and `.venv/` must never be committed.
 ## Phase 6 — Job matching
 
 User portal: **Job Match Studio** and **Job Match History**. Requires a previously uploaded resume. Required/preferred sections may use `Required:` and `Preferred:` headings. Comparison results are saved in SQLite; PDF and HTML downloads are available. Run `python -m pytest -q` after installing `requirements-dev.txt` (which installs requirements.txt). See `docs/phase6.md`.
+
+
+## Phase 6.1 correction — job title or description
+
+Job Match Studio now accepts a job title with no description (for example,
+`Data Analyst`, `Accountant`, `Nurse`, `Python Developer`) and displays typical
+occupation skills. These suggestions are **not verified employer requirements**.
+A full job description produces explicit extracted required/preferred skills.
+For uncommon roles, optionally run an Ollama model locally (for example
+`ollama pull llama3.2`) and tick **Use optional local Ollama AI**.
+The app never sends resume contents to Ollama; only the entered job title
+is used in the optional local-model request. Ollama is not required for standard operation.
+Restart Streamlit after applying this patch.

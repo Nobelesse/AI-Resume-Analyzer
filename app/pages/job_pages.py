@@ -15,6 +15,14 @@ def _user():
 def _display(result):
     st.metric('Estimated job match',f"{result['match_score']} / 100")
     st.caption(result['disclaimer'])
+    if result.get('requirements_status') == 'title-suggestions':
+        st.info('These are typical skills suggested for this role, NOT confirmed requirements from an employer.')
+    elif result.get('requirements_status') == 'unrecognized-role':
+        st.warning('Role not found in the offline role library. Paste a job description or enable local Ollama for broader role suggestions.')
+    with st.expander('Suggested role skills ('+str(len(result.get('suggested_role_skills',[])))+')', expanded=True):
+        st.write(', '.join(result.get('suggested_role_skills',[])) or 'No occupation suggestions available')
+        st.caption('Matched in your resume: '+(', '.join(result.get('matched_suggested',[])) or 'None'))
+        st.caption('Not detected in your resume: '+(', '.join(result.get('missing_suggested',[])) or 'None'))
     st.bar_chart({'Text similarity':[result['similarity_score']], 'Skills score':[result['skill_match_score'] or 0]})
     for field,title in [('matched_required','Matched required'),('missing_required','Missing required'),('matched_preferred','Matched preferred'),('missing_preferred','Missing preferred')]:
         with st.expander(f"{title} ({len(result[field])})",expanded=('missing_required'==field)):
@@ -26,18 +34,20 @@ def _display(result):
 
 def job_match():
     user=_user();st.title('Job Match Studio')
-    st.caption('Compare your uploaded resume against a job description without external AI APIs.')
+    st.caption('Enter a job title only, paste a job description, or both. Standard mode runs fully offline.')
     resumes=list_user_resumes(user['id'])
     if not resumes:st.warning('Upload your resume first.');return
     ids=[r['id'] for r in resumes]
     selected=st.selectbox('Select your resume',ids,format_func=lambda k:next(r['original_filename'] for r in resumes if r['id']==k))
     with st.form('job_compare_form'):
         title=st.text_input('Job title',max_chars=150)
-        description=st.text_area('Job description (30–30,000 characters)',height=230,max_chars=30000)
+        description=st.text_area('Job description (optional; up to 30,000 characters)',height=230,max_chars=30000)
+        local_ai=st.checkbox('Use optional local Ollama AI to suggest skills for any job title (requires installed Ollama and model)',value=False)
+        ollama_model=st.text_input('Installed Ollama model',value='llama3.2') if local_ai else 'llama3.2'
         weight=st.slider('Required skill weight',min_value=0.50,max_value=0.95,value=0.75,step=0.05)
         submit=st.form_submit_button('Compare and save',type='primary')
     if submit:
-        try:st.session_state['phase6_match']=save_job_match(user['id'],selected,title,description,required_weight=round(weight,2))
+        try:st.session_state['phase6_match']=save_job_match(user['id'],selected,title,description,required_weight=round(weight,2),use_local_ai=local_ai,ollama_model=ollama_model)
         except (ValueError,PermissionError) as exc:st.error(str(exc));return
     result=st.session_state.get('phase6_match')
     if result: _display(result)
