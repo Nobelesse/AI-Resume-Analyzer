@@ -1,0 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+:root { --accent: #a98eff; }
+html, body, [class*="css"], [data-testid="stAppViewContainer"] {font-family: 'DM Sans', Arial, sans-serif;}
+[data-testid="stAppViewContainer"] {background: radial-gradient(ellipse at 80% 6%, rgba(109,60,220,.18), transparent 35%), radial-gradient(ellipse at 10% 90%, rgba(16,113,170,.13), transparent 45%), #080d1a;}
+[data-testid="stSidebar"] {background: #0d1527; border-right: 1px solid rgba(174,156,255,.13);}
+.block-container {max-width: 1180px; padding-top: 3rem;}
+.sidebar-brand {font-family: 'Space Grotesk',sans-serif; font-weight:700; font-size:1.36rem; letter-spacing:.05em; color:#fff;}
+.sidebar-brand span {color:var(--accent);}
+.eyebrow {font-size:.72rem; letter-spacing:.20em; font-weight:700; color:#b9a6ff; margin: 1rem 0 1.4rem;}
+.hero-title {font-family:'Space Grotesk',sans-serif; font-size:clamp(2.5rem,5vw,4.75rem); line-height:1.1; letter-spacing:-.055em; max-width:850px; margin:0 0 1.25rem; color:#f5f4ff;}
+.hero-title span {background:linear-gradient(95deg,#bdaaff,#7cb9ff);color:transparent;background-clip:text;-webkit-background-clip:text;}
+.hero-copy {max-width:790px; color:#b6c2df; font-size:1.08rem; line-height:1.85; margin-bottom:2.5rem;}
+.feature-card {border:1px solid rgba(173,159,253,.22); border-radius:20px; padding:23px; min-height:215px; background:linear-gradient(140deg,rgba(34,42,76,.88),rgba(14,24,43,.88));box-shadow:0 10px 34px rgba(0,0,0,.13); transition: transform .22s ease,border-color .22s ease,box-shadow .22s ease;}
+.feature-card:hover {transform:translateY(-6px) perspective(900px) rotateX(2deg);border-color:rgba(191,166,255,.76);box-shadow:0 20px 45px rgba(77,53,140,.26);}
+.feature-card h3 {font-family:'Space Grotesk',sans-serif;font-size:1.1rem;color:#f7f6ff;margin:.7rem 0;}
+.feature-card p {color:#b2bdd7;line-height:1.65;font-size:.92rem;}
+.feature-icon {font-size:2rem;color:#b39bff;}
+@media (prefers-reduced-motion:reduce){.feature-card {transition:none;}.feature-card:hover {transform:none;}}
