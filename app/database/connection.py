@@ -3,7 +3,7 @@ import sqlite3
 from pathlib import Path
 from app.config import DATABASE_PATH
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 
 def connect(path=None):
     db_path = Path(path) if path is not None else DATABASE_PATH
@@ -72,6 +72,16 @@ def initialize_database(path=None):
           created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
         CREATE INDEX IF NOT EXISTS idx_analyses_owner ON analyses(owner_id,id DESC);
+        CREATE TABLE IF NOT EXISTS job_matches (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          owner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          resume_id INTEGER NOT NULL REFERENCES resumes(id) ON DELETE CASCADE,
+          job_title TEXT NOT NULL,
+          job_description TEXT NOT NULL,
+          result_json TEXT NOT NULL,
+          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS idx_matches_owner ON job_matches(owner_id,id DESC);
         """)
         from app.services.skills import seed_skills
         seed_skills(path)

@@ -46,3 +46,7 @@ git push origin main
 ```
 
 Private `data/`, `.env` and `.venv/` must never be committed.
+
+## Phase 6 — Job matching
+
+User portal: **Job Match Studio** and **Job Match History**. Requires a previously uploaded resume. Required/preferred sections may use `Required:` and `Preferred:` headings. Comparison results are saved in SQLite; PDF and HTML downloads are available. Run `python -m pytest -q` after installing `requirements-dev.txt` (which installs requirements.txt). See `docs/phase6.md`.
