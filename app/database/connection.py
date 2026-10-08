@@ -3,7 +3,7 @@ import sqlite3
 from pathlib import Path
 from app.config import DATABASE_PATH
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 def connect(path=None):
     db_path = Path(path) if path is not None else DATABASE_PATH
@@ -50,5 +50,29 @@ def initialize_database(path=None):
           created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
         CREATE INDEX IF NOT EXISTS idx_resumes_owner ON resumes(owner_id, id DESC);
+        CREATE TABLE IF NOT EXISTS skills (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          normalized TEXT NOT NULL UNIQUE,
+          category TEXT NOT NULL,
+          source TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_skills_category ON skills(category);
+        CREATE TABLE IF NOT EXISTS skill_aliases (
+          alias TEXT PRIMARY KEY,
+          skill_id INTEGER NOT NULL REFERENCES skills(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_alias_skill ON skill_aliases(skill_id);
+        CREATE TABLE IF NOT EXISTS analyses (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          resume_id INTEGER NOT NULL REFERENCES resumes(id) ON DELETE CASCADE,
+          owner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          score INTEGER NOT NULL CHECK(score BETWEEN 0 AND 100),
+          result_json TEXT NOT NULL,
+          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS idx_analyses_owner ON analyses(owner_id,id DESC);
         """)
+        from app.services.skills import seed_skills
+        seed_skills(path)
         conn.execute(f'PRAGMA user_version={SCHEMA_VERSION}')

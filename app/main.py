@@ -15,7 +15,7 @@ if str(ROOT) not in sys.path:
 
 from app.config import APP_NAME, APP_VERSION
 from app.database.connection import initialize_database
-from app.pages import architecture, auth_pages, design_lab, home, roadmap, secure_pages, resume_pages
+from app.pages import architecture, auth_pages, design_lab, home, roadmap, secure_pages, resume_pages, analysis_pages
 from app.ui.components import sidebar_identity
 from app.ui.session import logout, session_user
 from app.ui.theme import inject_theme
@@ -75,6 +75,8 @@ def main() -> None:
             st.Page(secure_pages.user_dashboard, title="User Dashboard", icon="👤", url_path="user-dashboard"),
             st.Page(resume_pages.upload_resume, title="Upload Resume", icon="📤", url_path="upload-resume"),
             st.Page(resume_pages.user_library, title="My Resumes", icon="📄", url_path="my-resumes"),
+            st.Page(analysis_pages.resume_analysis, title="AI Resume Analysis", icon="🧠", url_path="resume-analysis"),
+            st.Page(analysis_pages.analysis_history, title="Analysis History", icon="📊", url_path="analysis-history"),
         ]
     else:
         # Unknown roles must never receive a privileged navigation entry.
@@ -95,7 +97,7 @@ def main() -> None:
         st.divider()
         st.markdown(
             '<div class="sidebar-status"><span class="status-dot"></span>'
-            " SQLite & authentication · Phase 04</div>",
+            " SQLite & authentication · Phase 05</div>",
             unsafe_allow_html=True,
         )
         st.caption(f"v{APP_VERSION} · Python 3.11 · Streamlit")

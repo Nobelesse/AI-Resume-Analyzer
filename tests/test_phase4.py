@@ -65,7 +65,7 @@ def test_upgrade_preserves_accounts(actors):
     initialize_database(db)
     with connect(db) as c:
         assert c.execute('select count(*) from users').fetchone()[0]==3
-        assert c.execute('pragma user_version').fetchone()[0]==2
+        assert c.execute('pragma user_version').fetchone()[0]==3
 
 def test_unique_streamlit_page_urls():
     source=__import__('pathlib').Path('app/main.py').read_text(encoding='utf8')
