@@ -1,10 +1,11 @@
-# Architecture — Phase 1
+# Phase 2 architecture
 
-- Frontend/runtime: Streamlit, running within local browser.
-- Backend: Python modules inside `app/`.
-- Local SQLite and server-side role checks: scheduled for Phase 3.
-- 2 MiB upload validation: scheduled for Phase 4.
-- Extensible skill catalog targeting 10,000+ skills: Phase 5.
-- Job comparison/report generation: Phase 6.
+- `app/main.py`: Streamlit entry point and page registry.
+- `app/pages/`: four render functions for home, interaction studio, roadmap and architecture.
+- `app/ui/components.py`: HTML-escaped presentational component helpers.
+- `app/ui/theme.py`, `app/assets/styles.css`: first-party CSS theme.
+- `app/ui/motion.py`: isolated Streamlit HTML component renderer.
+- `app/ui/web/motion.html`: first-party local HTML/CSS/JavaScript pointer tilt effect with reduced-motion and touch safeguards.
+- `app/config.py`: upload and taxonomy targets (not implemented backend operations).
 
-Do not use Phase 1 with real applicant documents because no account controls exist yet.
+All metrics displayed in Phase 2 are configured project specifications, not production resume records. Phase 3 establishes SQLite and role-based authorization before any private data is accepted.

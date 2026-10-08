@@ -1,22 +1,17 @@
-"""Project roadmap display."""
+"""Roadmap with truthful milestone statuses."""
 import streamlit as st
-
+from app.ui.components import section_heading
 PHASES = [
-    ("01", "Foundation", "Active: environment, Streamlit shell, theme and Git tooling"),
-    ("02", "Interactive interface", "Polished UI components and cursor-reactive effects"),
-    ("03", "Security and database", "Separate logins, role checks and local SQLite"),
-    ("04", "Resume parser", "2 MiB validation and safe five-format extraction"),
-    ("05", "Skills and analysis", "Expandable 10,000+ skills catalog and explainable ATS readiness"),
-    ("06", "Job matching", "Skill gaps, job alignment and PDF reports"),
-    ("07", "Dashboards", "Private histories and secured admin analytics"),
-    ("08", "Testing and release", "Automated tests, security review and documentation"),
+    ("01", "Foundation", "COMPLETE", "Streamlit shell, packaging and configuration"),
+    ("02", "Interactive interface", "CURRENT", "Command center, responsive components and isolated pointer-reactive 3D preview"),
+    ("03", "Security and database", "NEXT", "Admin/User logins, permissions and SQLite persistence"),
+    ("04", "Resume parser", "PLANNED", "2 MiB validation, safe multi-format parsing and storage"),
+    ("05", "Skills and analysis", "PLANNED", "10,000+ skills taxonomy, normalization, skill extraction and ATS review"),
+    ("06", "Job matching", "PLANNED", "Match explanations, missing skills and downloadable reports"),
+    ("07", "Dashboards", "PLANNED", "Private histories and admin insights"),
+    ("08", "Testing and release", "PLANNED", "Security checks, final polish and university documentation"),
 ]
-
-
 def render() -> None:
-    st.title("Development roadmap")
-    st.caption("The eight milestones planned for the university project")
-    for number, title, description in PHASES:
-        with st.container(border=True):
-            st.markdown(f"**Phase {number} — {title}**")
-            st.write(description)
+    section_heading("PROJECT EXECUTION", "Eight-phase delivery plan", "Two visual foundation milestones are packaged; backend capabilities are upcoming.")
+    for number, title, status, description in PHASES:
+        st.markdown(f'<div class="roadmap-row"><span class="phase-number">{number}</span><div><strong>{title}</strong><p>{description}</p></div><span class="phase-status">{status}</span></div>',unsafe_allow_html=True)

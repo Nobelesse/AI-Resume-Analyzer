@@ -1,12 +1,14 @@
-"""A truthful summary of implemented and upcoming components."""
+"""Accurate Phase 2 architecture description."""
 import streamlit as st
 from app.config import APP_VERSION
-
+from app.ui.components import section_heading
 
 def render() -> None:
-    st.title("System architecture")
-    st.caption(f"Application version {APP_VERSION} · Foundation milestone")
-    st.markdown("**Current execution path:** Browser → Streamlit → Python page functions → custom CSS.")
-    st.markdown("**Planned data path:** Resume → file validation → parser → skill extraction → local SQLite → user-specific analysis.")
-    st.markdown("**Planned administrator path:** Admin login → server-side permission checks → secured database queries.")
-    st.warning("No production authentication, resume upload, or admin data access is available in Phase 1. These require the security milestones before real resumes should be used.")
+    section_heading("SYSTEM BLUEPRINT", "Architecture at a glance", f"Version {APP_VERSION} · Streamlit visual layer implemented")
+    st.markdown("""**Implemented now:** Browser → Streamlit pages → Python presentation helpers → CSS theme and an isolated first-party HTML/JavaScript motion component.
+
+**Next:** Admin/User authentication → server-side role permissions → SQLite models and repositories.
+
+**Later:** Validated resume upload → multi-format parsing → skills taxonomy with aliases → explainable analysis → job matching → protected reporting.
+""")
+    st.warning("Do not upload real resumes or assume account protection yet. There is no live upload, user database, or authentication in Phase 2.")
