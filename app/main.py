@@ -78,6 +78,7 @@ def main() -> None:
             st.Page(analysis_pages.resume_analysis, title="AI Resume Analysis", icon="🧠", url_path="resume-analysis"),
             st.Page(analysis_pages.analysis_history, title="Analysis History", icon="📊", url_path="analysis-history"),
             st.Page(job_pages.job_match, title="Job Match Studio", icon="🎯", url_path="job-match"),
+            st.Page(job_pages.career_finder, title="AI Career Finder", icon="🧭", url_path="career-finder"),
             st.Page(job_pages.job_history, title="Job Match History", icon="📑", url_path="job-history"),
         ]
     else:

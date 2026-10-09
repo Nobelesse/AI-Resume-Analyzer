@@ -63,3 +63,12 @@ For uncommon roles, optionally run an Ollama model locally (for example
 The app never sends resume contents to Ollama; only the entered job title
 is used in the optional local-model request. Ollama is not required for standard operation.
 Restart Streamlit after applying this patch.
+
+
+## Phase 6.2 customer care + Ollama
+
+Customer Care Executive and common variants are included in the offline role library. See `docs/phase6_ollama.md` for optional Ollama setup.
+
+
+## Phase 6.3
+Automatic offline Ollama job intelligence for any title or job description, with `llama3.2:3b` / `llama3.2:1b` fallback and a separate **AI Career Finder** page. See `docs/phase6_3.md`.

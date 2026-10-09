@@ -39,7 +39,7 @@ def split_requirements(description: str) -> tuple[str,str]:
         (preferred if current=='preferred' else required).append(content)
     return '\n'.join(required),'\n'.join(preferred)
 
-def compare_resume_to_job(resume_text: str, description: str, *,db_path=None,required_weight:float=0.75, job_title:str="", use_local_ai:bool=False, ollama_model:str="llama3.2") -> dict:
+def compare_resume_to_job(resume_text: str, description: str, *,db_path=None,required_weight:float=0.75, job_title:str="", use_local_ai:bool=False, ollama_model:str="llama3.2", occupation_profile=None) -> dict:
     if not resume_text.strip():raise ValueError('Resume has no extractable text')
     if len(description)>30000:raise ValueError('Job description cannot exceed 30,000 characters')
     if not (description.strip() or job_title.strip()):raise ValueError('Enter a job title or job description')
@@ -56,7 +56,7 @@ def compare_resume_to_job(resume_text: str, description: str, *,db_path=None,req
     preferred=set(extract_skills(preferred_text,db_path=db_path))-required
     # If there are no explicitly stated skills, provide *suggestions*, never
     # falsely label generic role-based suggestions as employer requirements.
-    suggested=set(role['skills'])
+    suggested=set(occupation_profile['skills']) if occupation_profile is not None else set(role['skills'])
     candidate=set(extract_skills(resume_text,db_path=db_path))
     suggested_matched=sorted(suggested & candidate)
     suggested_missing=sorted(suggested - candidate)
@@ -90,5 +90,5 @@ def compare_resume_to_job(resume_text: str, description: str, *,db_path=None,req
       'required_weight':required_weight,'resume_skills':sorted(candidate),'required_skills':sorted(required),'preferred_skills':sorted(preferred),
       'matched_required':matched_required,'missing_required':missing_required,'matched_preferred':matched_preferred,'missing_preferred':missing_preferred,
       'suggested_role_skills':sorted(suggested),'matched_suggested':suggested_matched,'missing_suggested':suggested_missing,
-      'inference_source':role['source'],'inference_confidence':role['confidence'],'requirements_status':status,
-      'explanations':explanations,'disclaimer':'Heuristic estimate. Suggested role skills are not employer-confirmed requirements; not a hiring decision or certified ATS score.'}
+      'inference_source':occupation_profile['source'] if occupation_profile else role['source'],'inference_confidence':role['confidence'],'requirements_status':status,
+      'occupation_profile':occupation_profile or {},'explanations':explanations,'disclaimer':'Heuristic estimate. Suggested role skills are not employer-confirmed requirements; not a hiring decision or certified ATS score.'}

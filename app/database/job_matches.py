@@ -6,17 +6,19 @@ from app.database.connection import connect
 from app.database.resumes import get_resume
 from app.services.job_matcher import compare_resume_to_job
 
-def save_job_match(actor_id,resume_id,title,description,*,db_path=None,required_weight=0.75,use_local_ai=False,ollama_model="llama3.2"):
+def save_job_match(actor_id,resume_id,title,description,*,db_path=None,required_weight=0.75,use_local_ai=False,ollama_model="llama3.2", occupation_profile=None):
     require_role(actor_id,'user',db_path=db_path)
-    if not 2<=len(title.strip())<=150:raise ValueError('Job title must be between 2 and 150 characters')
+    if not title.strip() and not description.strip():raise ValueError('Enter a job title or a job description')
+    if title.strip() and not 2<=len(title.strip())<=150:raise ValueError('Job title must be between 2 and 150 characters')
+    display_title = title.strip() or 'Job description comparison'
     resume=get_resume(actor_id,resume_id,db_path=db_path)
     if resume is None:raise ValueError('Resume not found')
-    result=compare_resume_to_job(resume['extracted_text'],description,db_path=db_path,required_weight=required_weight,job_title=title,use_local_ai=use_local_ai,ollama_model=ollama_model)
+    result=compare_resume_to_job(resume['extracted_text'],description,db_path=db_path,required_weight=required_weight,job_title=title,use_local_ai=use_local_ai,ollama_model=ollama_model,occupation_profile=occupation_profile)
     with connect(db_path) as db:
         cur=db.execute('INSERT INTO job_matches(owner_id,resume_id,job_title,job_description,result_json) VALUES (?,?,?,?,?)',
-            (actor_id,resume_id,title.strip(),description,json.dumps(result,ensure_ascii=False)))
+            (actor_id,resume_id,display_title,description,json.dumps(result,ensure_ascii=False)))
         db.execute('INSERT INTO activity_logs(actor_id,event) VALUES (?,?)',(actor_id,'job.compare'))
-        result.update({'match_id':cur.lastrowid,'job_title':title.strip(),'resume_id':resume_id})
+        result.update({'match_id':cur.lastrowid,'job_title':display_title,'resume_id':resume_id})
     return result
 
 def list_job_matches(actor_id,*,db_path=None):
