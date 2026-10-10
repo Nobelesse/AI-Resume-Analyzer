@@ -19,6 +19,7 @@ from app.pages import architecture, auth_pages, design_lab, home, roadmap, secur
 from app.ui.components import sidebar_identity
 from app.ui.session import logout, session_user
 from app.ui.theme import inject_theme
+from app.ui.navigation import ROUTE_LABELS
 
 
 def render_user_login() -> None:
@@ -55,7 +56,7 @@ def main() -> None:
             st.caption("Guest · Choose a dedicated login portal")
 
     workspace_pages = [
-        st.Page(home.render, title="Command Center", icon="🏠", url_path="home", default=True),
+        st.Page(home.render, title="Overview", icon="🏠", url_path="home", default=True),
         st.Page(design_lab.render, title="Interaction Studio", icon="✨", url_path="interaction-studio"),
     ]
 
@@ -89,7 +90,7 @@ def main() -> None:
         account_pages = []
 
     project_pages = [
-        st.Page(roadmap.render, title="Build Roadmap", icon="🗺️", url_path="build-roadmap"),
+        st.Page(roadmap.render, title="Project Milestones", icon="🗺️", url_path="build-roadmap"),
         st.Page(architecture.render, title="Architecture", icon="🧩", url_path="architecture"),
     ]
 
@@ -97,13 +98,18 @@ def main() -> None:
     if account_pages:
         pages["ACCOUNT"] = account_pages
 
+    all_pages = workspace_pages + account_pages + project_pages
+    # The same page objects used by Streamlit navigation are used by click-to-open tiles.
+    st.session_state["_ara_registered_pages"] = {
+        page.url_path: page for page in all_pages
+    }
     st.navigation(pages).run()
 
     with st.sidebar:
         st.divider()
         st.markdown(
             '<div class="sidebar-status"><span class="status-dot"></span>'
-            " SQLite & authentication · Phase 08</div>",
+            " Local storage protected · System ready</div>",
             unsafe_allow_html=True,
         )
         st.caption(f"v{APP_VERSION} · Python 3.11 · Streamlit")

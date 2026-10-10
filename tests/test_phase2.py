@@ -10,8 +10,8 @@ def get_phases():
     return ast.literal_eval(next(n.value for n in tree.body if isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id == "PHASES" for t in n.targets)))
 
 def test_version_and_contract():
-    assert APP_VERSION == "0.8.0"
-    assert MAX_RESUME_BYTES == 2 * 1024 * 1024
+    assert APP_VERSION == "0.9.0"
+    assert MAX_RESUME_BYTES == 2_000_000
     assert len(SUPPORTED_EXTENSIONS) == 5
 
 def test_roadmap_has_eight_milestones():

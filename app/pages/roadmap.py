@@ -1,17 +1,19 @@
-"""Roadmap with truthful milestone statuses."""
+"""Release history of completed university project milestones."""
 import streamlit as st
 from app.ui.components import section_heading
+
 PHASES = [
-    ("01", "Foundation", "COMPLETE", "Streamlit shell, packaging and configuration"),
-    ("02", "Interactive interface", "CURRENT", "Command center, responsive components and isolated pointer-reactive 3D preview"),
-    ("03", "Security and database", "NEXT", "Admin/User logins, permissions and SQLite persistence"),
-    ("04", "Resume parser", "PLANNED", "2 MiB validation, safe multi-format parsing and storage"),
-    ("05", "Skills and analysis", "PLANNED", "10,000+ skills taxonomy, normalization, skill extraction and ATS review"),
-    ("06", "Job matching", "PLANNED", "Match explanations, missing skills and downloadable reports"),
-    ("07", "Dashboards", "PLANNED", "Private histories and admin insights"),
-    ("08", "Testing and release", "PLANNED", "Security checks, final polish and university documentation"),
+    ("01", "Foundation", "Streamlit project, configuration and version control"),
+    ("02", "Interactive experience", "Responsive interface, motion and accessibility"),
+    ("03", "Authentication & database", "Admin/User permissions and local SQLite"),
+    ("04", "Document processing", "2 MB PDF, DOCX, TXT, RTF and ODT uploads"),
+    ("05", "Resume intelligence", "ATS-readiness review and skill extraction"),
+    ("06", "Career matching", "Job matching, Ollama and Career Finder"),
+    ("07", "Workspace dashboards", "Admin management, analytics and audit logs"),
+    ("08", "Validation & release", "Regression tests, hardening and documentation"),
 ]
+
 def render() -> None:
-    section_heading("PROJECT EXECUTION", "Eight-phase delivery plan", "Two visual foundation milestones are packaged; backend capabilities are upcoming.")
-    for number, title, status, description in PHASES:
-        st.markdown(f'<div class="roadmap-row"><span class="phase-number">{number}</span><div><strong>{title}</strong><p>{description}</p></div><span class="phase-status">{status}</span></div>',unsafe_allow_html=True)
+    section_heading("PROJECT MILESTONES", "Built, tested, and delivered.", "All eight planned development milestones have been completed. The application continues to evolve through UI and maintenance releases.")
+    for number, title, description in PHASES:
+        st.markdown(f'<div class="roadmap-row"><span class="phase-number">{number}</span><div><strong>{title}</strong><p>{description}</p></div><span class="phase-status phase-complete">✓ COMPLETED</span></div>', unsafe_allow_html=True)

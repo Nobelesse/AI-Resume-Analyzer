@@ -21,3 +21,21 @@ html,body,[data-testid="stAppViewContainer"]{font-family:'DM Sans',Arial,sans-se
 .roadmap-row{display:flex;align-items:center;gap:20px;padding:18px 20px;margin:12px 0;border:1px solid #8273aa33;border-radius:15px;background:#18223a9c}.roadmap-row strong{color:#f1f1ff}.roadmap-row p{color:#a9b8d5;font-size:.86rem;margin:6px 0 0}.phase-number{font-family:'Space Grotesk',sans-serif;font-size:1.5rem;color:#b9a4ff}.phase-status{margin-left:auto;color:#b7aaff;font-size:.7rem;letter-spacing:.08em;white-space:nowrap}
 @media(max-width:650px){.block-container{padding-top:1.5rem}.hero-title{font-size:2.7rem}.feature-card{min-height:190px}.roadmap-row{gap:12px;padding:12px}.phase-status{font-size:.6rem}}
 @media(prefers-reduced-motion:reduce){.feature-card,.metric-tile{transition:none!important}.feature-card:hover,.metric-tile:hover{transform:none!important}}
+
+/* Version 0.9.0 immersive interface */
+[data-testid="stAppViewContainer"]{background:radial-gradient(ellipse at 79% -14%,rgba(118,52,238,.23),transparent 43%),radial-gradient(ellipse at 6% 85%,rgba(0,190,223,.09),transparent 42%),linear-gradient(125deg,#070a14,#0b1024 53%,#070a17)}
+[data-testid="stSidebar"]{background:linear-gradient(165deg,#11182c,#080d1b 83%);box-shadow:12px 0 50px rgba(0,0,0,.16)}
+[data-testid="stSidebarNav"] a{border-radius:12px;transition:background .2s,transform .2s}
+[data-testid="stSidebarNav"] a:hover{background:rgba(142,115,255,.12);transform:translateX(4px)}
+.block-container{max-width:1380px;padding-top:2.8rem}
+.hero-title{font-size:clamp(3.2rem,6vw,5.6rem);text-shadow:0 12px 55px rgba(127,96,255,.14)}
+.welcome-pill{width:fit-content;margin-bottom:2rem;padding:9px 17px;border-radius:100px;border:1px solid #49dbb64a;background:#38cfa519;color:#86f5d4;font-size:.81rem;letter-spacing:.04em}
+/* User-actionable tiles: styled native Streamlit buttons retain keyboard access and routing. */
+div[data-testid="stButton"] button[kind="secondary"]{white-space:pre-line;text-align:left;justify-content:flex-start;min-height:132px;padding:24px 27px;border-radius:21px;background:linear-gradient(130deg,rgba(37,44,85,.83),rgba(14,25,49,.95));border:1px solid rgba(165,143,255,.24);box-shadow:0 15px 28px rgba(2,4,12,.28),inset 0 1px rgba(255,255,255,.07);color:#f2f1ff;font-size:1.04rem;font-weight:650;line-height:1.65;transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease,background .25s ease;transform-style:preserve-3d;position:relative;overflow:hidden}
+div[data-testid="stButton"] button[kind="secondary"]:hover{transform:translateY(-6px) perspective(850px) rotateX(2deg);border-color:rgba(167,125,255,.88);background:linear-gradient(125deg,rgba(66,54,121,.89),rgba(18,33,66,.98));box-shadow:0 27px 48px rgba(60,37,146,.29),inset 0 1px rgba(255,255,255,.14)}
+div[data-testid="stButton"] button[kind="secondary"]:focus-visible{outline:3px solid #9e8cf8;outline-offset:3px}
+.metric-tile,.roadmap-row{backdrop-filter:blur(14px);box-shadow:0 16px 36px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.04)}
+.phase-complete{color:#7ff1c8;font-weight:800}
+[data-testid="stFileUploader"],[data-testid="stForm"],[data-testid="stExpander"]{border-radius:17px}
+[data-testid="stMetric"]{padding:18px;border:1px solid #8f81b53a;border-radius:14px;background:#151e346b}
+@media(prefers-reduced-motion:reduce){div[data-testid="stButton"] button[kind="secondary"]{transition:none!important}div[data-testid="stButton"] button[kind="secondary"]:hover{transform:none!important}}

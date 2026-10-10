@@ -10,7 +10,7 @@ sys.path.insert(0, str(ROOT))
 from app.config import APP_VERSION, SUPPORTED_EXTENSIONS, MAX_RESUME_BYTES
 
 def audit():
-    assert MAX_RESUME_BYTES == 2 * 1024 * 1024
+    assert MAX_RESUME_BYTES == 2_000_000
     assert set(SUPPORTED_EXTENSIONS) == {'pdf','docx','txt','rtf','odt'}
     code = (ROOT/'app/main.py').read_text(encoding='utf8')
     page_paths = re.findall(r'url_path=["\']([^"\']+)', code)

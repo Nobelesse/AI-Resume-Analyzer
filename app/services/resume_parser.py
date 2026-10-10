@@ -13,7 +13,7 @@ class ResumeValidationError(ValueError):
     """Invalid, unsupported, or unsafe document."""
 
 MAX_TEXT_LENGTH = 350_000
-MAX_ARCHIVE_TOTAL_BYTES = 12 * 1024 * 1024
+MAX_ARCHIVE_TOTAL_BYTES = 12_000_000
 MAX_ARCHIVE_ENTRIES = 150
 
 def _check_archive(data: bytes, required: str) -> None:
@@ -64,7 +64,7 @@ def _odt_text(data: bytes) -> str:
 
 def extract_resume(filename: str, data: bytes) -> str:
     if not isinstance(data,bytes) or not data or len(data)>MAX_RESUME_BYTES:
-        raise ResumeValidationError('Resume must be non-empty and at most 2 MiB (2,097,152 bytes).')
+        raise ResumeValidationError('Resume must be non-empty and at most 2 MB (2,000,000 bytes).')
     if not isinstance(filename,str) or not filename.strip() or len(filename)>255:
         raise ResumeValidationError('Invalid filename.')
     ext=filename.rsplit('.',1)[-1].lower() if '.' in filename else ''

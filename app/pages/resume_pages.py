@@ -17,7 +17,7 @@ def _actor(role):
 def upload_resume():
     user=_actor('user')
     st.title('Upload your resume')
-    st.caption('PDF · DOCX · TXT · RTF · ODT | Strict 2 MiB (2,097,152 bytes) per upload')
+    st.caption('PDF · DOCX · TXT · RTF · ODT | Strict 2 MB (2,000,000 bytes) per upload')
     with st.form('resume_upload',clear_on_submit=True):
         document=st.file_uploader('Choose your resume',type=['pdf','docx','txt','rtf','odt'],accept_multiple_files=False)
         submitted=st.form_submit_button('Validate & save resume',type='primary')
@@ -25,7 +25,7 @@ def upload_resume():
         if document is None:
             st.warning('Select a resume file first.')
         elif document.size>MAX_RESUME_BYTES:
-            st.error('File exceeds 2 MiB. Please upload a smaller document.')
+            st.error('File exceeds 2 MB. Please upload a smaller document.')
         else:
             try:
                 record_id=save_resume(user['id'],document.name,document.getvalue())
