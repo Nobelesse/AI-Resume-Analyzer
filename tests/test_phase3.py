@@ -52,7 +52,7 @@ def test_rate_limited_login(db):
 def test_database_initialized_twice(db):
     initialize_database(db)
     with connect(db) as conn:
-        assert conn.execute('PRAGMA user_version').fetchone()[0]==4
+        assert conn.execute('PRAGMA user_version').fetchone()[0]==5
 
 def test_inactive_user_rejected(db):
     uid=register_user('user@example.com','User Name','user-password-123',db_path=db)

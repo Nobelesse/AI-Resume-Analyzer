@@ -3,7 +3,7 @@ import sqlite3
 from pathlib import Path
 from app.config import DATABASE_PATH
 
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 
 def connect(path=None):
     db_path = Path(path) if path is not None else DATABASE_PATH

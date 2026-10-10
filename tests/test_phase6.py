@@ -59,7 +59,7 @@ def test_reports_safe(tmp_path):
 def test_unique_pages_and_schema(tmp_path):
     db,_,_,_,_=setup(tmp_path)
     with connect(db) as conn:
-        assert conn.execute('PRAGMA user_version').fetchone()[0]==4
+        assert conn.execute('PRAGMA user_version').fetchone()[0]==5
     paths=re.findall(r'url_path="([^"]+)"',Path('app/main.py').read_text(encoding='utf8'))
     assert len(paths)==len(set(paths))
     assert {'job-match','job-history'}.issubset(paths)

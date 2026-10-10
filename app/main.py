@@ -15,7 +15,7 @@ if str(ROOT) not in sys.path:
 
 from app.config import APP_NAME, APP_VERSION
 from app.database.connection import initialize_database
-from app.pages import architecture, auth_pages, design_lab, home, roadmap, secure_pages, resume_pages, analysis_pages, job_pages
+from app.pages import architecture, auth_pages, design_lab, home, roadmap, secure_pages, resume_pages, analysis_pages, job_pages, management_pages
 from app.ui.components import sidebar_identity
 from app.ui.session import logout, session_user
 from app.ui.theme import inject_theme
@@ -68,11 +68,14 @@ def main() -> None:
     elif current["role"] == "admin":
         account_pages = [
             st.Page(secure_pages.admin_dashboard, title="Admin Dashboard", icon="🛡️", url_path="admin-dashboard"),
-            st.Page(resume_pages.admin_library, title="All Resumes", icon="📚", url_path="admin-resumes"),
+            st.Page(management_pages.admin_resume_management, title="Resume Management", icon="📚", url_path="admin-resume-management"),
+            st.Page(management_pages.account_management, title="Account Management", icon="👥", url_path="account-management"),
+            st.Page(management_pages.audit_page, title="Activity Log", icon="📋", url_path="audit-log"),
         ]
     elif current["role"] == "user":
         account_pages = [
             st.Page(secure_pages.user_dashboard, title="User Dashboard", icon="👤", url_path="user-dashboard"),
+            st.Page(management_pages.my_record_management, title="Manage My Records", icon="🗂️", url_path="manage-my-records"),
             st.Page(resume_pages.upload_resume, title="Upload Resume", icon="📤", url_path="upload-resume"),
             st.Page(resume_pages.user_library, title="My Resumes", icon="📄", url_path="my-resumes"),
             st.Page(analysis_pages.resume_analysis, title="AI Resume Analysis", icon="🧠", url_path="resume-analysis"),
@@ -100,7 +103,7 @@ def main() -> None:
         st.divider()
         st.markdown(
             '<div class="sidebar-status"><span class="status-dot"></span>'
-            " SQLite & authentication · Phase 06</div>",
+            " SQLite & authentication · Phase 07</div>",
             unsafe_allow_html=True,
         )
         st.caption(f"v{APP_VERSION} · Python 3.11 · Streamlit")
