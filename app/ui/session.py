@@ -4,6 +4,7 @@ import streamlit as st
 from app.auth.service import get_user, audit_logout
 
 IDLE_LIMIT_SECONDS = 30 * 60
+PRIVATE_RESULT_KEYS = ("phase6_match", "career_results")
 
 def session_user():
     user_id = st.session_state.get("auth_user_id")
@@ -19,10 +20,13 @@ def session_user():
     return user
 
 def start_session(user):
+    clear_session()
     st.session_state["auth_user_id"] = user["id"]
     st.session_state["auth_seen_at"] = time.monotonic()
 
 def clear_session():
+    for key in PRIVATE_RESULT_KEYS:
+        st.session_state.pop(key, None)
     st.session_state.pop("auth_user_id",None)
     st.session_state.pop("auth_seen_at",None)
 

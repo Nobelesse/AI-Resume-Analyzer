@@ -1,4 +1,4 @@
-"""AI-Resume-Analyzer Streamlit entry point (Phase 3 navigation fix).
+"""AI-Resume-Analyzer Streamlit entry point (Phase 8 final).
 
 Run from the project root:
     python -m streamlit run app/main.py
@@ -103,7 +103,7 @@ def main() -> None:
         st.divider()
         st.markdown(
             '<div class="sidebar-status"><span class="status-dot"></span>'
-            " SQLite & authentication · Phase 07</div>",
+            " SQLite & authentication · Phase 08</div>",
             unsafe_allow_html=True,
         )
         st.caption(f"v{APP_VERSION} · Python 3.11 · Streamlit")

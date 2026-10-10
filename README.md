@@ -22,3 +22,8 @@ See `docs/phase7.md` for privacy/security notes; earlier phase documentation is 
 ## GitHub
 
 The `.gitignore` excludes `.venv`, `.env`, databases, generated files and uploads. Always review `git diff --cached --name-only` before committing. Keep private candidate data out of public repositories.
+
+
+## Phase 8 final checks
+
+Run `python scripts/final_audit.py` and `python -m pytest -q`. See `docs/FINAL_UNIVERSITY_GUIDE.md` and `docs/SECURITY_FINAL.md` for demonstration, risk disclosures and handover details.
