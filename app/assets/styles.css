@@ -216,3 +216,37 @@ div[data-testid="stButton"] button:hover,div[data-testid="stFormSubmitButton"] b
 .u12-sphere-frame{border:1px solid rgba(132,148,255,.22);border-radius:28px;overflow:hidden;background:linear-gradient(180deg, rgba(22,27,62,.65), rgba(14,17,46,.7));box-shadow:0 20px 60px rgba(6,10,32,.28), inset 0 1px rgba(255,255,255,.06)}
 .u12-sphere-frame iframe{border-radius:28px}
 @media(max-width:980px){.u12-lead{max-width:100%}.u12-headline{font-size:clamp(2.2rem,9vw,3.3rem)}.hero-shell [data-testid="stVerticalBlock"]{gap:1rem}}
+
+/* UI 1.3 — consistent product polish: restrained motion, legible controls, responsive layout */
+:root{--ara-radius:16px;--ara-line:rgba(147,169,245,.22);--ara-focus:#9bdeff}
+[data-testid="stAppViewContainer"]{background:radial-gradient(ellipse 70% 40% at 92% 6%,rgba(68,56,151,.16),transparent 73%),linear-gradient(165deg,#080e1e 0%,#0b1326 62%,#090f21 100%)}
+[data-testid="stSidebar"]{border-right:1px solid rgba(173,190,255,.14)}
+[data-testid="stSidebarNav"] a{border-radius:12px;transition:background-color .2s ease,color .2s ease,transform .2s ease}
+[data-testid="stSidebarNav"] a:hover{background:rgba(139,138,255,.12);transform:translateX(3px)}
+[data-testid="stForm"],[data-testid="stFileUploader"],[data-testid="stDataFrame"],[data-testid="stExpander"]{border-radius:var(--ara-radius)!important;border-color:var(--ara-line)!important}
+[data-testid="stTextInput"] input,[data-testid="stTextArea"] textarea,[data-testid="stSelectbox"] [data-baseweb="select"]{border-radius:12px;transition:border-color .18s,box-shadow .18s}
+[data-testid="stTextInput"] input:focus,[data-testid="stTextArea"] textarea:focus{box-shadow:0 0 0 2px rgba(125,192,255,.24);border-color:var(--ara-focus)}
+[data-testid="stButton"] button,[data-testid="stFormSubmitButton"] button,[data-testid="stDownloadButton"] button{min-height:2.45rem;max-width:100%;transition:box-shadow .18s ease,transform .18s ease,border-color .18s ease}
+[data-testid="stButton"] button:hover,[data-testid="stFormSubmitButton"] button:hover,[data-testid="stDownloadButton"] button:hover{box-shadow:0 7px 22px rgba(58,67,162,.17)}
+[data-testid="stButton"] button:focus-visible,[data-testid="stFormSubmitButton"] button:focus-visible,[data-testid="stDownloadButton"] button:focus-visible{outline:2px solid var(--ara-focus)!important;outline-offset:2px}
+[data-testid="stMetric"]{padding:14px;border:1px solid var(--ara-line);border-radius:var(--ara-radius);background:linear-gradient(160deg,rgba(36,49,95,.28),rgba(19,24,54,.16))}
+[data-testid="stDataFrame"]{overflow:hidden}
+[data-testid="stAlert"]{border-radius:12px}
+[data-testid="stFormSubmitButton"] button,[data-testid="stButton"] button{white-space:normal}
+@media(max-width:800px){[data-testid="stMainBlockContainer"]{padding-inline:1rem!important}.u12-headline{font-size:clamp(2rem,7.5vw,3.4rem)}[data-testid="stMetric"]{padding:10px}}
+@media(prefers-reduced-motion:reduce){[data-testid="stSidebarNav"] a,[data-testid="stButton"] button,[data-testid="stFormSubmitButton"] button,[data-testid="stDownloadButton"] button,[data-testid="stForm"],[data-testid="stMetric"]{animation:none!important;transition:none!important;transform:none!important}}
+
+/* UI 1.3.1 — matching compact and centered authentication buttons */
+.st-key-auth_shell [data-testid="stFormSubmitButton"] {text-align:center;}
+.st-key-auth_shell [data-testid="stFormSubmitButton"] button,
+[data-testid="stSidebar"] [data-testid="stButton"] button[kind="secondary"] {
+    width: auto !important;
+    min-width: 0 !important;
+    min-height: 2.35rem !important;
+    padding: .48rem .85rem !important;
+    margin: 0 auto !important;
+    border-radius: .7rem !important;
+    white-space: nowrap !important;
+}
+.st-key-auth_shell [data-testid="stFormSubmitButton"] button {display:block;}
+[data-testid="stSidebar"] [data-testid="stButton"] {text-align:center;}

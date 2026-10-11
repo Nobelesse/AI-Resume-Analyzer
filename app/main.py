@@ -49,7 +49,7 @@ def main() -> None:
         st.divider()
         if current:
             st.caption(f"Signed in as {current['display_name']} · {current['role']}")
-            signout_col, _ = st.columns([1, 1.65])
+            _, signout_col, _ = st.columns([1, 1, 1])
             with signout_col:
                 if st.button("Sign out", key="sidebar_signout", use_container_width=False):
                     logout()

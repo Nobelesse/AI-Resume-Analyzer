@@ -14,7 +14,9 @@ def login(role):
       with st.form(f"login_{role}",clear_on_submit=True):
           email=st.text_input("Email address",max_chars=254)
           password=st.text_input("Password",type="password")
-          submitted=st.form_submit_button("Sign in",use_container_width=False)
+          _, button_center, _ = st.columns([1, 1, 1])
+          with button_center:
+              submitted=st.form_submit_button("Sign in",use_container_width=False)
     if submitted:
         try:
             user=authenticate(email,password,role)
