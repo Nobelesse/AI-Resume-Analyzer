@@ -31,11 +31,12 @@ def render() -> None:
         st.markdown('<div class="welcome-pill">● &nbsp; Your private workspace is ready</div>', unsafe_allow_html=True)
         section_heading("EXPLORE", "Your AI workspace", "Choose any tool below. Each tile opens its actual workspace page.")
         cards = USER_CARDS if current["role"] == "user" else ADMIN_CARDS
-        for i in range(0, len(cards), 2):
-            cols = st.columns(2, gap="large")
-            for col, card in zip(cols, cards[i:i+2]):
-                with col:
-                    navigation_card(*card)
+        with st.container(key="workspace_cards"):
+            for i in range(0, len(cards), 2):
+                cols = st.columns(2, gap="large")
+                for col, card in zip(cols, cards[i:i+2]):
+                    with col:
+                        navigation_card(*card)
     else:
         section_heading("EXPLORE", "Built for clarity. Designed for progress.", "A private, local-first application with dedicated user and administrator sign-in.")
         c1,c2,c3 = st.columns(3)

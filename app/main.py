@@ -48,10 +48,12 @@ def main() -> None:
         st.caption("A private, explainable career intelligence system")
         st.divider()
         if current:
-            st.success(f"Signed in: {current['display_name']} ({current['role']})")
-            if st.button("Sign out", use_container_width=True):
-                logout()
-                st.rerun()
+            st.caption(f"Signed in as {current['display_name']} · {current['role']}")
+            signout_col, _ = st.columns([1, 1.65])
+            with signout_col:
+                if st.button("Sign out", key="sidebar_signout", use_container_width=False):
+                    logout()
+                    st.rerun()
         else:
             st.caption("Guest · Choose a dedicated login portal")
 

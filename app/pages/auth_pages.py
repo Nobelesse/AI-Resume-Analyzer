@@ -8,13 +8,14 @@ def login(role):
         st.info("You are already signed in. Sign out before switching accounts.")
         return
     title = "Admin access" if role == "admin" else "User sign in"
-    st.markdown('<div class="eyebrow">PRIVATE ACCOUNT ACCESS · PHASE 03</div>', unsafe_allow_html=True)
+    st.markdown('<div class="eyebrow">SECURE ACCOUNT ACCESS</div>', unsafe_allow_html=True)
     st.title(title)
     st.caption("Administrator credentials are never created through public registration." if role=="admin" else "Sign in to your personal workspace.")
-    with st.form(f"login_{role}",clear_on_submit=True):
-        email=st.text_input("Email address",max_chars=254)
-        password=st.text_input("Password",type="password")
-        submitted=st.form_submit_button("Sign in",use_container_width=True)
+    with st.container(key="auth_shell"):
+      with st.form(f"login_{role}",clear_on_submit=True):
+          email=st.text_input("Email address",max_chars=254)
+          password=st.text_input("Password",type="password")
+          submitted=st.form_submit_button("Sign in",use_container_width=False)
     if submitted:
         try:
             user=authenticate(email,password,role)
@@ -31,12 +32,13 @@ def register():
         return
     st.markdown('<div class="eyebrow">CREATE YOUR PRIVATE WORKSPACE</div>',unsafe_allow_html=True)
     st.title("Create user account")
-    with st.form("register",clear_on_submit=True):
-        name=st.text_input("Full name",max_chars=80)
-        email=st.text_input("Email",max_chars=254)
-        password=st.text_input("Password (12+ characters, letters and numbers)",type="password")
-        confirm=st.text_input("Confirm password",type="password")
-        submitted=st.form_submit_button("Register",use_container_width=True)
+    with st.container(key="auth_shell"):
+      with st.form("register",clear_on_submit=True):
+          name=st.text_input("Full name",max_chars=80)
+          email=st.text_input("Email",max_chars=254)
+          password=st.text_input("Password (12+ characters, letters and numbers)",type="password")
+          confirm=st.text_input("Confirm password",type="password")
+          submitted=st.form_submit_button("Create account",use_container_width=False)
     if submitted:
         if password != confirm:
             st.error("Passwords do not match.")
