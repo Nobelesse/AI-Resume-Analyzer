@@ -39,3 +39,7 @@ A new cohesive visual shell and dashboard have been integrated. See `docs/UI_1_0
 
 ## UI 1.0 — Milestone 2
 Professional styling is now consistent across authentication, resume upload, ATS reports, job comparison and AI Career Finder. See `docs/UI_1_0_MILESTONE_2.md`.
+
+
+## UI 1.0 Milestone 3
+Admin dashboard, account management, applicant records and activity log have a refreshed consistent design. See `docs/UI_1_0_MILESTONE_3.md`.

@@ -149,3 +149,22 @@ div[data-testid="stButton"] button:hover,div[data-testid="stFormSubmitButton"] b
 [data-testid="stDownloadButton"] button{min-height:40px;border:1px solid rgba(153,175,253,.29);border-radius:11px;background:rgba(103,91,200,.15)}
 @media(max-width:680px){.uim2-header{padding:24px 19px;border-radius:20px}.uim2-header:after{opacity:.35}.uim2-header h1{font-size:2.05rem}[data-testid="stForm"]{padding:13px}}
 @media(prefers-reduced-motion:reduce){[data-testid="stExpander"]{transition:none!important}[data-testid="stExpander"]:hover{transform:none}}
+
+
+/* UI 1.0 Milestone 3 — admin operations depth and responsive management */
+.st-key-admin_shell [data-testid="stMetric"], [data-testid="stMetric"] {
+  background:linear-gradient(148deg,rgba(39,48,82,.84),rgba(13,23,47,.92));
+  border:1px solid rgba(154,159,241,.25);border-radius:20px;
+  box-shadow:0 18px 42px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.08);
+  padding:20px 22px;transition:transform .25s ease,box-shadow .25s ease;
+}
+[data-testid="stMetric"]:hover{transform:translateY(-3px);box-shadow:0 24px 42px rgba(63,56,161,.20)}
+[data-testid="stDataFrame"]{border:1px solid rgba(150,173,255,.20);border-radius:16px;overflow:hidden;box-shadow:0 18px 42px rgba(1,4,15,.22)}
+[data-testid="stVerticalBlockBorderWrapper"]:has([data-testid="stDataFrame"]){border-radius:18px}
+[data-testid="stSelectbox"] > div,[data-testid="stTextInput"] > div{transition:filter .2s ease}
+[data-testid="stSelectbox"]:focus-within,[data-testid="stTextInput"]:focus-within{filter:drop-shadow(0 0 8px rgba(147,125,254,.18))}
+[data-testid="stForm"]{padding:1.1rem;border:1px solid rgba(172,145,255,.19);background:linear-gradient(150deg,rgba(31,37,72,.42),rgba(15,24,45,.55));}
+[data-testid="stDownloadButton"] button{border:1px solid rgba(124,208,255,.36);background:rgba(25,63,95,.34);border-radius:12px}
+[data-testid="stDownloadButton"] button:hover{border-color:#86dfff;box-shadow:0 7px 23px rgba(20,158,207,.19)}
+@media(max-width:800px){[data-testid="stMetric"]{padding:14px!important}.block-container{padding-left:1.1rem;padding-right:1.1rem}}
+@media(prefers-reduced-motion:reduce){[data-testid="stMetric"]{transition:none!important}[data-testid="stMetric"]:hover{transform:none!important}}

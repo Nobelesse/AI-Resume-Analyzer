@@ -3,6 +3,7 @@ import streamlit as st
 from app.auth.permissions import require_role, AccessDenied
 from app.database.dashboard import admin_overview, user_overview
 from app.ui.session import session_user
+from app.ui.workspace import page_header, section_heading
 
 
 def _get(role):
@@ -28,13 +29,13 @@ def user_dashboard():
 
 def admin_dashboard():
     actor=_get('admin');overview=admin_overview(actor['id'])
-    st.markdown('<div class="eyebrow">RESTRICTED ADMINISTRATION</div>',unsafe_allow_html=True)
-    st.title('Admin control center')
+    page_header('ADMINISTRATOR / OVERVIEW', 'Operations control center', 'Secure, real-time visibility into your applicant records, account activity and analysis pipeline.', '◈')
     counts=overview['counts']
     c1,c2,c3,c4=st.columns(4)
     for col,name,label in zip((c1,c2,c3,c4),('users','resumes','analyses','job_matches'),('Accounts','Resumes','ATS Analyses','Job Matches')):
         col.metric(label,counts[name])
-    st.caption(f"Active standard users: {counts['active_users']} | Indexed skills: {counts['skills']}")
+    st.caption(f"Active standard users: {counts['active_users']}  •  Indexed skills: {counts['skills']}")
+    section_heading('Platform intelligence', 'Recent upload patterns and document-type distribution')
     left,right=st.columns(2)
     with left:
         st.subheader('Resume uploads by day')
@@ -46,4 +47,11 @@ def admin_dashboard():
         if overview['file_types']:
             st.bar_chart({r['type']:r['count'] for r in overview['file_types']})
         else:st.info('No document data yet.')
-    st.caption('Use Resume Management, Account Management and Activity Log to inspect and manage saved records.')
+    section_heading('Administrative tools', 'Open a protected management page')
+    from app.ui.navigation import navigate
+    links=[('📁 Resume Management','admin-resume-management'),('👥 Account Management','account-management'),('🧾 Activity Log','activity-log')]
+    cols=st.columns(3)
+    for col,(label,path) in zip(cols,links):
+        with col:
+            if st.button(label,key=f'admin_quick_{path}',use_container_width=True):
+                navigate(path)

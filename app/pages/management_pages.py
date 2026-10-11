@@ -5,6 +5,7 @@ from app.database.dashboard import (admin_resumes, admin_activity, admin_set_use
                                     delete_resume, csv_export, user_overview)
 from app.database.resumes import list_user_resumes
 from app.ui.session import session_user
+from app.ui.workspace import page_header, section_heading, step_label
 
 
 def _actor(role):
@@ -16,17 +17,18 @@ def _actor(role):
 
 def admin_resume_management():
     actor=_actor('admin')
-    st.title('Resume Management')
-    st.caption('Search and manage applicant records. Extracted resume text is restricted to authenticated administrators.')
+    page_header('ADMINISTRATOR / DOCUMENTS', 'Applicant resume library', 'Search, filter and securely manage documents submitted to your private workspace.', '▣')
     col1,col2=st.columns([3,1])
     search=col1.text_input('Search filename or account email')
     kind=col2.selectbox('File type',['All','pdf','docx','txt','rtf','odt'])
     rows=admin_resumes(actor['id'],search=search,file_type=None if kind=='All' else kind)
-    st.metric('Matching resumes',len(rows))
+    st.metric('Matching documents',len(rows))
+    section_heading('Matching applicant records', 'Results are limited to the current filters')
     if rows:
         st.dataframe(rows,hide_index=True,use_container_width=True)
         fields=['id','owner_id','owner_email','original_filename','file_type','file_size','created_at']
         st.download_button('Export current records (CSV)',csv_export(rows,fields),'resume-records.csv','text/csv')
+        section_heading('Delete a resume', 'Permanent deletion also removes linked analysis and job comparisons')
         selected=st.selectbox('Choose resume ID for removal',[r['id'] for r in rows],format_func=lambda rid: f'#{rid} — '+next(r['original_filename'] for r in rows if r['id']==rid))
         with st.form('admin_delete_resume'):
             confirmation=st.checkbox('I understand this permanently removes the resume and its saved analyses/job comparisons.')
@@ -36,12 +38,16 @@ def admin_resume_management():
 
 
 def account_management():
-    actor=_actor('admin');st.title('Account Management')
+    actor=_actor('admin')
+    page_header('ADMINISTRATOR / ACCESS', 'Account management', 'Manage user availability without exposing passwords or private documents.', '◈')
     accounts=admin_list_accounts(actor['id'])
+    st.metric('Registered accounts',len(accounts))
+    section_heading('Account directory', 'Role and account status overview')
     st.dataframe(accounts,use_container_width=True,hide_index=True)
     st.download_button('Export account directory (CSV)',csv_export(accounts,['id','display_name','email','role','is_active','created_at']),'accounts.csv','text/csv')
     eligible=[a for a in accounts if a['role']=='user']
     if eligible:
+        section_heading('Standard-user access', 'Deactivate or reactivate a selected standard account')
         selected=st.selectbox('Select standard user',[a['id'] for a in eligible],format_func=lambda uid:next(a['email'] for a in eligible if a['id']==uid))
         record=next(a for a in eligible if a['id']==selected)
         st.caption('Deactivated users cannot authenticate or access records. Their information is preserved.')
@@ -51,18 +57,22 @@ def account_management():
 
 
 def audit_page():
-    actor=_actor('admin');st.title('Activity Log')
+    actor=_actor('admin')
+    page_header('ADMINISTRATOR / SECURITY', 'Activity log', 'Review auditable account and document events in your local workspace.', '◎')
     events=admin_activity(actor['id'],limit=500)
     kinds=sorted(set(r['event'] for r in events))
     selected=st.selectbox('Filter event',['All']+kinds)
     rows=[r for r in events if selected=='All' or r['event']==selected]
+    st.metric('Events in view',len(rows))
+    section_heading('Recorded events', 'Up to 500 recent events, metadata only')
     st.dataframe(rows,hide_index=True,use_container_width=True)
     st.download_button('Export activity log (CSV)',csv_export(rows,['id','actor_id','actor_email','event','created_at']),'audit-events.csv','text/csv')
     st.caption('Event log contains metadata only; no passwords or extracted resume text.')
 
 
 def my_record_management():
-    actor=_actor('user');st.title('Manage My Records')
+    actor=_actor('user')
+    page_header('MY WORKSPACE / PRIVACY', 'Manage my records', 'Inspect and remove resumes you own, with linked results removed as well.', '▣')
     overview=user_overview(actor['id'])
     cols=st.columns(3)
     for col,key,label in zip(cols,('resumes','analyses','job_matches'),('Resumes','ATS Analyses','Job Matches')):
