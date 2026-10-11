@@ -28,5 +28,5 @@ def navigate(route: str) -> None:
 
 def navigation_card(title: str, description: str, route: str, icon: str = "✦") -> None:
     """Real navigation button, not a decorative HTML card."""
-    if st.button(f"{icon}  {title}  ↗\n\n{description}", key=f"nav_card_{route}", use_container_width=True, type="secondary"):
+    if st.button(f"{icon}  {title}   ↗\n\n{description}", key=f"nav_card_{route}", use_container_width=True, type="secondary"):
         navigate(route)

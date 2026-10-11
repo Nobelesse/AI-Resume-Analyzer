@@ -30,3 +30,8 @@ Run `python scripts/final_audit.py` and `python -m pytest -q`. See `docs/FINAL_U
 
 ## UI 0.9.0
 All eight project milestones display complete. The file upload limit is 2,000,000 bytes, enforced in server-side validation. The workspace tiles are accessible native buttons that navigate to pages registered for the current account. See `docs/UI_UPGRADE_0_9_0.md`.
+
+
+## UI 1.0 — Milestone 1
+
+A new cohesive visual shell and dashboard have been integrated. See `docs/UI_1_0_FOUNDATION.md`. The remaining UI 1.0 milestones will redesign tool-specific and admin pages.
