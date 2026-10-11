@@ -250,3 +250,27 @@ div[data-testid="stButton"] button:hover,div[data-testid="stFormSubmitButton"] b
 }
 .st-key-auth_shell [data-testid="stFormSubmitButton"] button {display:block;}
 [data-testid="stSidebar"] [data-testid="stButton"] {text-align:center;}
+
+
+/* Version 1.4.1.1 — sidebar sign-out: center the full label without clipping.
+   The old 1/3 sidebar column constrained Streamlit's intrinsic button size. */
+[data-testid="stSidebar"] .st-key-sidebar_signout_area [data-testid="stButton"] {
+    display: flex !important;
+    justify-content: center !important;
+    width: 100% !important;
+}
+[data-testid="stSidebar"] .st-key-sidebar_signout_area [data-testid="stButton"] button {
+    flex: 0 0 auto !important;
+    width: max-content !important;
+    min-width: 6.6rem !important;
+    max-width: 100% !important;
+    padding: .48rem .85rem !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+}
+[data-testid="stSidebar"] .st-key-sidebar_signout_area [data-testid="stButton"] button p {
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+}

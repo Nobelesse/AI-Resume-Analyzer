@@ -49,8 +49,9 @@ def main() -> None:
         st.divider()
         if current:
             st.caption(f"Signed in as {current['display_name']} · {current['role']}")
-            _, signout_col, _ = st.columns([1, 1, 1])
-            with signout_col:
+            # Keep the button at its natural width in the full sidebar.
+            # A one-third-width Streamlit column clips "Sign out" as "Sign ...".
+            with st.container(key="sidebar_signout_area"):
                 if st.button("Sign out", key="sidebar_signout", use_container_width=False):
                     logout()
                     st.rerun()
@@ -74,6 +75,7 @@ def main() -> None:
             st.Page(management_pages.admin_resume_management, title="Resume Management", icon="📚", url_path="admin-resume-management"),
             st.Page(management_pages.account_management, title="Account Management", icon="👥", url_path="account-management"),
             st.Page(management_pages.audit_page, title="Activity Log", icon="📋", url_path="audit-log"),
+            st.Page(management_pages.taxonomy_management, title="Skills Catalog", icon="📚", url_path="skills-catalog"),
         ]
     elif current["role"] == "user":
         account_pages = [
