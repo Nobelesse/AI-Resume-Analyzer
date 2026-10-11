@@ -204,3 +204,15 @@ div[data-testid="stButton"] button:hover,div[data-testid="stFormSubmitButton"] b
  .v10-orb,.v11-orb-system,.v10-orb-core,.v10-orb-core:after,.v10-orbit-a,.v10-orbit-b,
  .v11-orbit-c,.v11-satellite,.v11-starfield,.v10-orb:after,.v10-hero:after{animation:none!important}
 }
+
+/* UI 1.2 — real-time intelligence sphere layout */
+.hero-shell{position:relative;padding:0 0 10px}
+.u12-hero-copy{padding:20px 10px 0 6px}
+.u12-headline{margin:18px 0 12px;font-size:clamp(2.6rem,4.2vw,4.4rem);line-height:.98;letter-spacing:-.045em;font-weight:800;color:#edf2ff;max-width:700px}
+.u12-headline em{font-style:normal;background:linear-gradient(135deg,#dfd7ff 0%,#a7b8ff 42%,#7ce8ff 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.u12-lead{max-width:620px;font-size:1.18rem;line-height:1.72;color:#c6d0ee;margin:0 0 18px}
+.u12-tags{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}
+.u12-tags span{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:999px;border:1px solid rgba(151,168,255,.24);background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));color:#dde4ff;font-size:.96rem;box-shadow:inset 0 1px rgba(255,255,255,.06)}
+.u12-sphere-frame{border:1px solid rgba(132,148,255,.22);border-radius:28px;overflow:hidden;background:linear-gradient(180deg, rgba(22,27,62,.65), rgba(14,17,46,.7));box-shadow:0 20px 60px rgba(6,10,32,.28), inset 0 1px rgba(255,255,255,.06)}
+.u12-sphere-frame iframe{border-radius:28px}
+@media(max-width:980px){.u12-lead{max-width:100%}.u12-headline{font-size:clamp(2.2rem,9vw,3.3rem)}.hero-shell [data-testid="stVerticalBlock"]{gap:1rem}}

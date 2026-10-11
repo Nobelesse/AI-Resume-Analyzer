@@ -2,6 +2,7 @@
 from html import escape
 import streamlit as st
 from app.ui.motion import render_motion_scene
+from app.ui.sphere import render_intelligence_sphere
 
 def sidebar_identity() -> None:
     st.markdown('<div class="sidebar-brand"><span class="brand-orbit">✦</span><span>RESUME<span class="brand-accent">INTEL</span></span></div>', unsafe_allow_html=True)
@@ -20,3 +21,7 @@ def feature_tile(icon: str, title: str, description: str, flag: str = "PLANNED")
 
 def motion_demo(height: int = 360) -> None:
     render_motion_scene(height=height)
+
+
+def intelligence_sphere(height: int = 360) -> None:
+    render_intelligence_sphere(height=height)

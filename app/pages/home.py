@@ -1,7 +1,7 @@
-"""UI 1.0 foundation: focused dashboard and accessible authenticated navigation."""
+"""UI 1.2 dashboard with interactive intelligence sphere."""
 import streamlit as st
 from app.config import MAX_RESUME_BYTES, SUPPORTED_EXTENSIONS
-from app.ui.components import section_heading, metric_tile
+from app.ui.components import section_heading, metric_tile, intelligence_sphere
 from app.ui.navigation import navigation_card
 from app.ui.session import session_user
 
@@ -22,17 +22,29 @@ ADMIN_CARDS = [
     ("Activity Log", "Review recorded administrative events", "audit-log", "📋"),
 ]
 
+
 def render() -> None:
     current = session_user()
     role = current.get("role") if current else None
-    st.markdown('<div class="v10-hero">'
-        '<div class="v10-hero-content">'
-        '<div class="v10-kicker"><span class="v10-dot"></span> LOCAL AI · PRIVATE BY DESIGN</div>'
-        '<h1 class="v10-headline">A sharper view of <em>your potential.</em></h1>'
-        '<p class="v10-lead">Intelligent resume analysis, role matching and career discovery in one focused workspace.</p>'
-        '<div class="v10-tags"><span>✧ Resume intelligence</span><span>◈ Skill matching</span><span>↗ Career discovery</span></div>'
-        '</div><div class="v10-orb" aria-hidden="true"><div class="v11-starfield"></div><div class="v11-orb-system"><div class="v10-orb-core"></div><div class="v10-orbit-a"></div><div class="v10-orbit-b"></div><div class="v11-orbit-c"></div><i class="v11-satellite"></i></div></div>'
-        '</div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="hero-shell">', unsafe_allow_html=True)
+    left, right = st.columns([1.1, 0.9], gap="large")
+    with left:
+        st.markdown(
+            '<div class="u12-hero-copy">'
+            '<div class="v10-kicker"><span class="v10-dot"></span> LOCAL AI · PRIVATE BY DESIGN</div>'
+            '<h1 class="u12-headline">A sharper view of <em>your potential.</em></h1>'
+            '<p class="u12-lead">Intelligent resume analysis, role matching and career discovery in one focused workspace.</p>'
+            '<div class="u12-tags"><span>✧ Resume intelligence</span><span>◈ Skill matching</span><span>↗ Career discovery</span></div>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+    with right:
+        st.markdown('<div class="u12-sphere-frame">', unsafe_allow_html=True)
+        intelligence_sphere(380)
+        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
     if role in ("user", "admin"):
         section_heading("YOUR WORKSPACE", "Choose your next move", "Every card opens its actual workspace page.")
         cards = USER_CARDS if role == "user" else ADMIN_CARDS
@@ -45,8 +57,15 @@ def render() -> None:
     else:
         section_heading("YOUR WORKSPACE", "Everything your next opportunity needs", "Sign in to access your private documents and career tools.")
         a, b, c = st.columns(3, gap="medium")
-        with a: metric_tile("UPLOAD LIMIT", "2 MB", f"{MAX_RESUME_BYTES:,} bytes per resume", "violet")
-        with b: metric_tile("SUPPORTED FORMATS", str(len(SUPPORTED_EXTENSIONS)), "PDF · DOCX · TXT · RTF · ODT", "cyan")
-        with c: metric_tile("PRIVATE AI ENGINE", "Ollama", "Job intelligence on your PC", "green")
+        with a:
+            metric_tile("UPLOAD LIMIT", "2 MB", f"{MAX_RESUME_BYTES:,} bytes per resume", "violet")
+        with b:
+            metric_tile("SUPPORTED FORMATS", str(len(SUPPORTED_EXTENSIONS)), "PDF · DOCX · TXT · RTF · ODT", "cyan")
+        with c:
+            metric_tile("PRIVATE AI ENGINE", "Ollama", "Job intelligence on your PC", "green")
         st.info("Open User Login or Admin Login in the sidebar to get started.")
-    st.markdown('<p class="v10-footer">AI-guided insights are estimates, not hiring decisions. Your workspace remains local to your computer.</p>', unsafe_allow_html=True)
+
+    st.markdown(
+        '<p class="v10-footer">AI-guided insights are estimates, not hiring decisions. Your workspace remains local to your computer.</p>',
+        unsafe_allow_html=True,
+    )
