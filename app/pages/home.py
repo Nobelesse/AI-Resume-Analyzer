@@ -28,7 +28,7 @@ def render() -> None:
     current = session_user()
     role = current.get("role") if current else None
 
-    render_intelligence_hero(510)
+    render_intelligence_hero(650)
 
     if role in ("user", "admin"):
         section_heading("YOUR WORKSPACE", "Choose your next move", "Every card opens its actual workspace page.")
