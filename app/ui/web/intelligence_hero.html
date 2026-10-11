@@ -14,9 +14,9 @@
     linear-gradient(118deg,#0a1227 1%,#10152e 48%,#090f24 100%);}
   canvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0}
   .scene::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
-    background:linear-gradient(90deg,rgba(8,15,32,.97) 0%,rgba(8,15,32,.91) 24%,rgba(8,15,32,.49) 48%,rgba(8,15,32,.04) 78%),
+    background:linear-gradient(90deg,rgba(8,15,32,.97) 0%,rgba(8,15,32,.91) 24%,rgba(8,15,32,.55) 44%,rgba(8,15,32,.02) 75%),
     linear-gradient(0deg,rgba(8,15,32,.42),transparent 25%,transparent 80%,rgba(8,15,32,.25));}
-  .hero-copy{position:absolute;z-index:2;left:5.5%;top:50%;transform:translateY(-50%);max-width:650px;width:55%;pointer-events:none}
+  .hero-copy{position:absolute;z-index:2;left:5.5%;top:50%;transform:translateY(-50%);max-width:620px;width:53%;pointer-events:none}
   .kicker{color:#a9c4ff;letter-spacing:.21em;font-size:12px;font-weight:800;margin-bottom:26px}
   .kicker::before{content:"";display:inline-block;width:9px;height:9px;background:#75f7d6;box-shadow:0 0 16px #75f7d6;border-radius:50%;margin-right:12px}
   h1{font-size:clamp(48px,5.3vw,84px);line-height:1.04;letter-spacing:-.055em;color:#f0f4ff;margin:0 0 24px;font-weight:850;text-wrap:balance}
@@ -43,13 +43,14 @@
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let w=0,h=0,dpr=Math.min(window.devicePixelRatio||1,2);
   let cx=0, cy=0, scale=1;
+  const FRAME_PADDING = 24; // keep the projected mesh AND orbit trails inside the canvas
   let pointer = {x:0, y:0, tx:0, ty:0};
   let stars = [];
   const spherePoints = [];
   let edges = [];
   const rings = [
-    {r:1.23, tiltX:0.94, tiltY:0.3, color:'rgba(137,111,255,.31)', speed: reduce ? 0 : .18},
-    {r:1.32, tiltX:.36, tiltY:1.14, color:'rgba(102,206,255,.20)', speed: reduce ? 0 : -.12}
+    {r:1.09, tiltX:0.94, tiltY:0.3, color:'rgba(137,111,255,.31)', speed: reduce ? 0 : .18},
+    {r:1.16, tiltX:.36, tiltY:1.14, color:'rgba(102,206,255,.20)', speed: reduce ? 0 : -.12}
   ];
   const satellites = [{ring:0,angle:.4,speed:reduce?0:.45,size:1.9,color:'rgba(192,165,255,.75)'}];
 
@@ -61,8 +62,19 @@
     canvas.style.width = w + 'px';
     canvas.style.height = h + 'px';
     ctx.setTransform(dpr,0,0,dpr,0,0);
-    cx = w * (w < 780 ? 0.53 : 0.77); cy = h * (w < 780 ? 0.79 : 0.51);
-    scale = Math.min(h * (w < 780 ? .33 : .52), w * (w < 780 ? .43 : .30));
+    const mobile = w < 780;
+    // On desktop, frame the whole orb to the right of the headline.
+    // Projection/tilt/orbits can expand the scene ~1.7x beyond its radius.
+    cx = w * (mobile ? 0.52 : 0.735);
+    cy = h * (mobile ? 0.745 : 0.50);
+    const orbitBound = 1.75;
+    scale = Math.max(12, Math.min(
+      (cx - FRAME_PADDING) / orbitBound,
+      (w - cx - FRAME_PADDING) / orbitBound,
+      (cy - FRAME_PADDING) / orbitBound,
+      (h - cy - FRAME_PADDING) / orbitBound,
+      h * (mobile ? 0.25 : 0.37)
+    ));
     buildStars();
   }
 
@@ -79,7 +91,7 @@
 
   function buildSphere(){
     spherePoints.length = 0;
-    const n = 240;
+    const n = 270;
     const golden = Math.PI * (3 - Math.sqrt(5));
     for(let i=0;i<n;i++){
       const y = 1 - (i/(n-1))*2;
@@ -112,7 +124,7 @@
   }
 
   function project(pt){
-    const depth = 3.2;
+    const depth = 4.25;
     const p = depth/(depth - pt.z);
     return {x: cx + pt.x*scale*p, y: cy + pt.y*scale*p, p, z: pt.z};
   }
@@ -154,8 +166,8 @@
   }
 
   function drawSphere(t){
-    const ax = pointer.ty * 0.18 + 0.45 * Math.sin(t*0.22);
-    const ay = pointer.tx * 0.25 + t * (reduce ? 0.08 : 0.34);
+    const ax = pointer.y * 0.20 + 0.30 * Math.sin(t*0.20);
+    const ay = pointer.x * 0.32 + t * (reduce ? 0 : 0.28);
     const pts = spherePoints.map(p => {
       const r = rotate(p, ax, ay);
       const pr = project(r);
@@ -163,6 +175,13 @@
     });
 
     // Subtle translucent interior, with the network rendered on top.
+    // Layered atmospheric rim and translucent core strengthen depth perception.
+    const aura = ctx.createRadialGradient(cx-scale*.2,cy-scale*.24,scale*.04,cx,cy,scale*1.24);
+    aura.addColorStop(0,'rgba(90,112,255,.14)');
+    aura.addColorStop(.66,'rgba(111,80,230,.12)');
+    aura.addColorStop(.87,'rgba(57,128,234,.07)');
+    aura.addColorStop(1,'rgba(80,130,255,0)');
+    ctx.fillStyle=aura;ctx.beginPath();ctx.arc(cx,cy,scale*1.24,0,Math.PI*2);ctx.fill();
     const grd = ctx.createRadialGradient(cx-scale*.25, cy-scale*.22, 0, cx, cy, scale*1.05);
     grd.addColorStop(0, 'rgba(155,124,255,.12)');
     grd.addColorStop(.48, 'rgba(59,83,211,.14)');
@@ -175,23 +194,33 @@
       const a=pts[i],b=pts[j];
       const front=(a.nz+b.nz+2)/4;
       const strength=1-dist/.48;
-      const alpha=(.12+.34*front)*(.55+.45*strength);
+      const pulse = 0.84 + 0.16*Math.sin(t*1.6 + i*.17);
+      const alpha=(.09+.45*front)*(.55+.45*strength)*pulse;
       ctx.strokeStyle = i%3===0 ? `rgba(184,126,255,${alpha})` : `rgba(90,184,255,${alpha})`;
-      ctx.lineWidth = .65 + front*.48;
+      ctx.lineWidth = .52 + front*.8;
       ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
     }
 
     pts.sort((a,b)=>a.z-b.z);
     for(const p of pts){
       const hue = 215 + ((p.nx + 1) * 47);
-      const alpha = 0.35 + ((p.nz+1)/2)*0.75;
+      const alpha = 0.28 + ((p.nz+1)/2)*0.72;
       ctx.fillStyle = `hsla(${hue}, 100%, 75%, ${alpha})`;
-      ctx.shadowBlur = 8; ctx.shadowColor = 'rgba(148,112,255,0.55)';
+      ctx.shadowBlur = p.nz > 0 ? 10 : 3; ctx.shadowColor = 'rgba(148,112,255,0.55)';
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size * p.p, 0, Math.PI*2);
       ctx.fill();
     }
     ctx.shadowBlur = 0;
+    // Moving light sweep, clipped to the circular sphere silhouette.
+    ctx.save();ctx.beginPath();ctx.arc(cx,cy,scale*1.04,0,Math.PI*2);ctx.clip();
+    const beamX = cx + Math.sin(t*.53)*scale*.8;
+    const beam = ctx.createLinearGradient(beamX-scale*.38,cy,beamX+scale*.38,cy);
+    beam.addColorStop(0,'rgba(97,160,255,0)');
+    beam.addColorStop(.5,'rgba(136,176,255,.085)');
+    beam.addColorStop(1,'rgba(97,160,255,0)');
+    ctx.fillStyle=beam;ctx.fillRect(cx-scale*1.1,cy-scale*1.1,scale*2.2,scale*2.2);
+    ctx.restore();
   }
 
   function orbitPoint(ring, theta, t){
@@ -205,7 +234,7 @@
     cos = Math.cos(ring.tiltY); sin = Math.sin(ring.tiltY);
     let x2 = x*cos + z*sin; let z2 = -x*sin + z*cos; x=x2; z=z2;
     // slight whole-system turn with time/pointer
-    const sys = rotate({x:x/scale, y:y/scale, z:z/scale}, pointer.ty*0.15, pointer.tx*0.18 + t*0.12);
+    const sys = rotate({x:x/scale, y:y/scale, z:z/scale}, pointer.y*0.15, pointer.x*0.18 + t*0.12);
     return {x: sys.x*scale, y: sys.y*scale, z: sys.z*scale};
   }
 
