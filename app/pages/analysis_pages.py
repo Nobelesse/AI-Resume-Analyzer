@@ -5,6 +5,7 @@ from app.ui.session import session_user
 from app.database.resumes import list_user_resumes
 from app.database.analyses import analyze_resume,list_analyses,get_analysis
 from app.services.skills import skill_count
+from app.ui.workspace import page_header, section_heading, step_label
 
 def _user():
     current=session_user()
@@ -13,27 +14,31 @@ def _user():
         st.error('User sign-in required.');st.stop()
 
 def _show(result):
+    section_heading('Your ATS readiness', 'An explainable estimate, not an employer hiring decision')
     st.metric('Estimated ATS-readiness',f"{result['score']}/100")
+    st.progress(min(100, max(0, int(result['score']))) / 100)
     st.caption(result['disclaimer'])
-    st.subheader('Evaluation breakdown')
+    section_heading('Evaluation breakdown', 'See how the score is distributed across categories')
     st.bar_chart(result['components'])
-    st.subheader(f"Recognized skills ({len(result['skills'])})")
+    section_heading(f"Recognized skills ({len(result['skills'])})")
     if result['skills']:st.write(' · '.join(result['skills']))
     else:st.info('No matching entries in the current local skill catalog.')
-    st.subheader('Section detection')
+    section_heading('Section detection')
     st.dataframe([{'section':name.title(),'Detected':status} for name,status in result['sections'].items()],hide_index=True,use_container_width=True)
-    st.subheader('Actionable recommendations')
+    section_heading('Your next improvements')
     if result['recommendations']:
         for item in result['recommendations']:st.write('• '+item)
     else:st.success('No recommendations triggered by the current rules.')
 
 def resume_analysis():
-    user=_user();st.title('Resume Intelligence');st.caption('Local explainable analysis — no paid AI key required')
-    st.info(f'Current skills catalog: {skill_count():,} curated entries. Expand using the CSV importer for 10,000+ skills.')
+    user=_user();page_header('ATS ANALYSIS', 'Resume Intelligence', 'Understand your resume structure, recognized skills and improvement opportunities.', '✧')
+    st.caption(f'Local skills catalog · {skill_count():,} entries · Explainable scoring')
+    step_label('01', 'Select a saved resume')
     resumes=list_user_resumes(user['id'])
     if not resumes:
         st.warning('Upload a resume in Upload Resume first.');return
     selected=st.selectbox('Choose one of your resumes',[r['id'] for r in resumes],format_func=lambda key:next(f"#{r['id']} · {r['original_filename']}" for r in resumes if r['id']==key))
+    step_label('02', 'Run secure local analysis')
     if st.button('Analyze and save results',type='primary'):
         try:st.session_state['phase5_current_result']=analyze_resume(user['id'],selected)
         except (ValueError,PermissionError) as error:st.error(str(error));return
@@ -41,7 +46,7 @@ def resume_analysis():
     if result: _show(result)
 
 def analysis_history():
-    user=_user();st.title('My Analysis History')
+    user=_user();page_header('SAVED INTELLIGENCE', 'Analysis History', 'Revisit earlier ATS reports without losing your progress.', '◷')
     rows=list_analyses(user['id'])
     if not rows:st.info('You have no saved analyses yet.');return
     st.dataframe(rows,hide_index=True,use_container_width=True)

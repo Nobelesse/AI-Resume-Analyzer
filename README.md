@@ -35,3 +35,7 @@ All eight project milestones display complete. The file upload limit is 2,000,00
 ## UI 1.0 — Milestone 1
 
 A new cohesive visual shell and dashboard have been integrated. See `docs/UI_1_0_FOUNDATION.md`. The remaining UI 1.0 milestones will redesign tool-specific and admin pages.
+
+
+## UI 1.0 — Milestone 2
+Professional styling is now consistent across authentication, resume upload, ATS reports, job comparison and AI Career Finder. See `docs/UI_1_0_MILESTONE_2.md`.

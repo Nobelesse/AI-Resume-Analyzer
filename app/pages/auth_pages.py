@@ -2,15 +2,14 @@
 import streamlit as st
 from app.auth.service import register_user, authenticate, AuthError
 from app.ui.session import start_session, session_user
+from app.ui.workspace import page_header, step_label
 
 def login(role):
     if session_user():
         st.info("You are already signed in. Sign out before switching accounts.")
         return
     title = "Admin access" if role == "admin" else "User sign in"
-    st.markdown('<div class="eyebrow">SECURE ACCOUNT ACCESS</div>', unsafe_allow_html=True)
-    st.title(title)
-    st.caption("Administrator credentials are never created through public registration." if role=="admin" else "Sign in to your personal workspace.")
+    page_header("SECURE ACCESS · ADMIN" if role == "admin" else "SECURE ACCESS · USER", title, "Administrator credentials are provisioned privately." if role == "admin" else "Sign in to access your private career intelligence workspace.", "◆")
     with st.container(key="auth_shell"):
       with st.form(f"login_{role}",clear_on_submit=True):
           email=st.text_input("Email address",max_chars=254)
@@ -30,8 +29,7 @@ def register():
     if session_user():
         st.info("Sign out to register another account.")
         return
-    st.markdown('<div class="eyebrow">CREATE YOUR PRIVATE WORKSPACE</div>',unsafe_allow_html=True)
-    st.title("Create user account")
+    page_header("JOIN THE WORKSPACE", "Create your account", "Create a secure account to analyze resumes and discover careers.", "✦")
     with st.container(key="auth_shell"):
       with st.form("register",clear_on_submit=True):
           name=st.text_input("Full name",max_chars=80)

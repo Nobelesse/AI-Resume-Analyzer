@@ -130,3 +130,22 @@ div[data-testid="stButton"] button:hover,div[data-testid="stFormSubmitButton"] b
 @media(max-width:900px){.v10-orb{opacity:.20;right:-60px}.v10-hero{min-height:0;padding:32px 27px}.v10-hero-content{max-width:100%}}
 @media(max-width:620px){.v10-tags{gap:6px}.v10-headline{font-size:2.5rem}.st-key-workspace_cards div[data-testid="stButton"] button[kind="secondary"]{min-height:108px;padding:16px 18px}}
 @media(prefers-reduced-motion:reduce){.v10-hero:before{animation:none}.st-key-workspace_cards div[data-testid="stButton"] button[kind="secondary"]{transition:none}.st-key-workspace_cards div[data-testid="stButton"] button[kind="secondary"]:hover{transform:none}}
+
+
+/* UI 1.0 Milestone 2 · cohesive user workspaces · no business logic in CSS */
+.uim2-header{position:relative;isolation:isolate;overflow:hidden;border:1px solid rgba(157,169,246,.24);border-radius:26px;padding:32px clamp(22px,4vw,46px);margin:4px 0 22px;background:radial-gradient(circle at 90% 12%,rgba(123,98,248,.22),transparent 39%),radial-gradient(circle at 68% 102%,rgba(53,166,212,.12),transparent 45%),linear-gradient(128deg,rgba(27,40,76,.97),rgba(9,20,40,.97));box-shadow:0 26px 65px rgba(0,0,0,.3),inset 0 1px rgba(255,255,255,.11)}
+.uim2-header:after{content:"";position:absolute;right:-40px;top:-88px;width:310px;height:310px;border-radius:50%;pointer-events:none;border:1px solid rgba(170,166,255,.22);box-shadow:0 0 0 38px rgba(149,126,238,.025),0 0 0 78px rgba(149,126,238,.018),inset 0 0 70px rgba(104,102,223,.09);transform:rotateX(51deg) rotateZ(-24deg)}
+.uim2-kicker{font-size:.7rem;letter-spacing:.17em;font-weight:800;color:#b8c8fa;display:flex;align-items:center;gap:10px;text-transform:uppercase}.uim2-spark{display:grid;place-items:center;background:rgba(166,155,249,.15);border:1px solid rgba(175,165,255,.35);border-radius:10px;color:#c4b9ff;width:29px;height:29px;font-size:1rem}
+.uim2-header h1{position:relative;z-index:1;margin:17px 0 10px;font-size:clamp(2rem,4vw,3.1rem);font-weight:770;color:#f6f8ff;letter-spacing:-.045em;line-height:1.13}.uim2-header p{position:relative;z-index:1;color:#b2c5e5;max-width:670px;line-height:1.7;font-size:1rem;margin:0}
+.uim2-step{display:flex;align-items:center;gap:11px;font-size:.88rem;font-weight:650;margin:24px 0 11px;color:#d7e3fb}.uim2-step span{width:30px;height:30px;display:grid;place-items:center;border-radius:9px;background:linear-gradient(135deg,#674fb4,#296d92);border:1px solid #9eaeed78;font-size:.76rem;color:#fff}
+.uim2-section-title{font-weight:750;letter-spacing:-.025em;font-size:1.28rem;color:#eef4ff;margin:30px 0 4px}.uim2-section-caption{font-size:.85rem;color:#a0b6d8;margin:0 0 13px}
+[data-testid="stFileUploader"]{background:linear-gradient(140deg,rgba(28,43,75,.79),rgba(12,25,46,.87));border:1px dashed rgba(144,171,248,.55);border-radius:23px;padding:12px;box-shadow:inset 0 1px rgba(255,255,255,.06),0 12px 34px rgba(3,7,20,.17)}
+[data-testid="stForm"]{background:linear-gradient(140deg,rgba(25,36,69,.72),rgba(11,23,44,.84));padding:21px;border:1px solid rgba(158,174,247,.21);box-shadow:0 15px 42px #0003;border-radius:20px}
+.st-key-auth_shell{box-shadow:0 32px 85px rgba(0,0,0,.42),0 0 65px rgba(91,68,182,.10),inset 0 1px rgba(255,255,255,.08)}
+[data-testid="stMetric"]{padding:18px 22px;border-radius:18px;background:linear-gradient(145deg,rgba(32,44,80,.93),rgba(11,23,44,.95));border:1px solid rgba(150,168,238,.2)}
+[data-testid="stProgress"]>div{border-radius:50px}
+[data-testid="stExpander"]{border:1px solid rgba(145,172,242,.2);border-radius:16px;background:linear-gradient(145deg,rgba(23,36,69,.67),rgba(10,20,40,.85));box-shadow:0 10px 27px #0002;transition:border-color .2s ease,transform .2s ease}
+[data-testid="stExpander"]:hover{border-color:rgba(174,151,248,.49);transform:translateY(-2px)}
+[data-testid="stDownloadButton"] button{min-height:40px;border:1px solid rgba(153,175,253,.29);border-radius:11px;background:rgba(103,91,200,.15)}
+@media(max-width:680px){.uim2-header{padding:24px 19px;border-radius:20px}.uim2-header:after{opacity:.35}.uim2-header h1{font-size:2.05rem}[data-testid="stForm"]{padding:13px}}
+@media(prefers-reduced-motion:reduce){[data-testid="stExpander"]{transition:none!important}[data-testid="stExpander"]:hover{transform:none}}

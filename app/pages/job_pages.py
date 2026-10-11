@@ -8,6 +8,7 @@ from app.services.occupation_ai import analyze_occupation
 from app.services.career_finder import recommend_careers
 from app.database.resumes import get_resume
 from app.services.reports import render_html_report,render_pdf_report
+from app.ui.workspace import page_header, step_label, section_heading
 
 def _user():
     current=session_user()
@@ -16,7 +17,9 @@ def _user():
         st.error('User sign-in required.');st.stop()
 
 def _display(result):
+    section_heading('Your match overview', 'Evidence-based comparison against the selected role')
     st.metric('Estimated job match',f"{result['match_score']} / 100")
+    st.progress(min(100, max(0, int(result['match_score']))) / 100)
     st.caption(result['disclaimer'])
     if result.get('requirements_status') == 'title-suggestions':
         st.info('These are typical skills suggested for this role, NOT confirmed requirements from an employer.')
@@ -46,12 +49,14 @@ def _display(result):
     st.download_button('Download HTML report',render_html_report(result),file_name='job-match-report.html',mime='text/html',key=f"html_{result.get('match_id', 'new')}")
 
 def job_match():
-    user=_user();st.title('Job Match Studio')
-    st.caption('Enter any job title or job description. Ollama runs automatically; the offline library is a fallback.')
+    user=_user();page_header('OCCUPATION INTELLIGENCE', 'Job Match Studio', 'Compare your experience with a job title or employer description using local AI.', '◎')
+    st.caption('Automatic local AI · If Ollama is unavailable, available offline suggestions are used.')
     resumes=list_user_resumes(user['id'])
     if not resumes:st.warning('Upload your resume first.');return
     ids=[r['id'] for r in resumes]
+    step_label('01', 'Select your resume')
     selected=st.selectbox('Select your resume',ids,format_func=lambda k:next(r['original_filename'] for r in resumes if r['id']==k))
+    step_label('02', 'Describe the role you want to explore')
     with st.form('job_compare_form'):
         title=st.text_input('Job title (optional if you paste a job description)',max_chars=150,placeholder='e.g. Customer Care Executive')
         description=st.text_area('Job description (optional; up to 30,000 characters)',height=230,max_chars=30000)
@@ -69,7 +74,7 @@ def job_match():
     if result: _display(result)
 
 def job_history():
-    user=_user();st.title('Saved Job Comparisons')
+    user=_user();page_header('YOUR HISTORY', 'Saved Job Comparisons', 'Review comparisons and download your previous reports.', '▤')
     rows=list_job_matches(user['id'])
     if not rows:st.info('No saved job comparisons yet.');return
     st.dataframe(rows,hide_index=True,use_container_width=True)
@@ -79,12 +84,14 @@ def job_history():
 
 
 def career_finder():
-    user=_user();st.title('AI Career Finder')
-    st.caption('Get possible jobs based on your existing resume skills. Ollama runs automatically with offline fallback.')
+    user=_user();page_header('CAREER DISCOVERY', 'AI Career Finder', 'Find career paths aligned with the skills and experience evidenced by your resume.', '✧')
+    st.caption('Local Ollama intelligence · Offline fallback where available')
     resumes=list_user_resumes(user['id'])
     if not resumes:st.warning('Upload your resume first.');return
     ids=[r['id'] for r in resumes]
+    step_label('01', 'Choose a resume for career discovery')
     selected=st.selectbox('Resume to analyze',ids,format_func=lambda k:next(r['original_filename'] for r in resumes if r['id']==k),key='career_resume')
+    step_label('02', 'Discover relevant career paths')
     if st.button('Find suitable careers',type='primary'):
         record=get_resume(user['id'],selected)
         if record is None:st.error('Resume not found.');return
@@ -95,6 +102,7 @@ def career_finder():
     if not data:return
     if data.get('warning'):st.warning('Offline fallback used: '+data['warning'])
     st.caption('Source: '+data['source']+' • '+data['disclaimer'])
+    section_heading('Suggested career paths', 'Skills coverage is not a hiring probability or proof of eligibility')
     for job in data['jobs']:
         with st.expander(job['title']+' — '+(str(job['skills_coverage'])+'% skill coverage' if job['skills_coverage'] is not None else 'skill coverage unavailable'),expanded=False):
             st.write(job['reason'])
