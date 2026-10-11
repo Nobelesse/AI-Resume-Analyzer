@@ -59,7 +59,7 @@ def main() -> None:
 
     workspace_pages = [
         st.Page(home.render, title="Overview", icon="🏠", url_path="home", default=True),
-        st.Page(design_lab.render, title="Interaction Studio", icon="✨", url_path="interaction-studio"),
+        st.Page(design_lab.render, title="Experience Center", icon="✨", url_path="interaction-studio"),
     ]
 
     if current is None:

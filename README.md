@@ -43,3 +43,7 @@ Professional styling is now consistent across authentication, resume upload, ATS
 
 ## UI 1.0 Milestone 3
 Admin dashboard, account management, applicant records and activity log have a refreshed consistent design. See `docs/UI_1_0_MILESTONE_3.md`.
+
+
+## UI 1.1 Immersive Motion
+Animated orbital hero, contextual panel depth and revamped Experience Center. See `docs/UI_1_1_MOTION.md`.

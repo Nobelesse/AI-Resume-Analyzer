@@ -31,7 +31,7 @@ def render() -> None:
         '<h1 class="v10-headline">A sharper view of <em>your potential.</em></h1>'
         '<p class="v10-lead">Intelligent resume analysis, role matching and career discovery in one focused workspace.</p>'
         '<div class="v10-tags"><span>✧ Resume intelligence</span><span>◈ Skill matching</span><span>↗ Career discovery</span></div>'
-        '</div><div class="v10-orb" aria-hidden="true"><div class="v10-orb-core"></div><div class="v10-orbit-a"></div><div class="v10-orbit-b"></div></div>'
+        '</div><div class="v10-orb" aria-hidden="true"><div class="v11-starfield"></div><div class="v11-orb-system"><div class="v10-orb-core"></div><div class="v10-orbit-a"></div><div class="v10-orbit-b"></div><div class="v11-orbit-c"></div><i class="v11-satellite"></i></div></div>'
         '</div>', unsafe_allow_html=True)
     if role in ("user", "admin"):
         section_heading("YOUR WORKSPACE", "Choose your next move", "Every card opens its actual workspace page.")
