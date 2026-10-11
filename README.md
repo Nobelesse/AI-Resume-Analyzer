@@ -1,3 +1,7 @@
+## UI 1.2.1 — Full-width interactive intelligence hero
+
+The home hero now puts text over a full-width interactive network-sphere canvas; see `docs/UI_1_2_1.md`.
+
 # AI-Resume-Analyzer — UI Upgrade 0.9.0
 
 University-level local Streamlit application. Python 3.11, SQLite, Argon2id, secure resume upload (2 MB, PDF/DOCX/TXT/RTF/ODT), explainable ATS analysis, skill catalog, job comparisons, Ollama-assisted occupation profiles and career suggestions, and protected admin/user dashboards. The new overview has actual clickable workflow tiles, a darker futuristic presentation, and completed milestones.

@@ -75,7 +75,7 @@
 
   function buildSphere(){
     spherePoints.length = 0;
-    const n = 120;
+    const n = 200;
     const golden = Math.PI * (3 - Math.sqrt(5));
     for(let i=0;i<n;i++){
       const y = 1 - (i/(n-1))*2;
@@ -147,18 +147,18 @@
     const pts = spherePoints.map(p => {
       const r = rotate(p, ax, ay);
       const pr = project(r);
-      return {...r, ...pr, size:p.size};
+      return {...pr, nx:r.x, ny:r.y, nz:r.z, size:p.size};
     });
 
     // connections
     for(let i=0;i<pts.length;i++){
       for(let j=i+1;j<pts.length;j++){
         const a = pts[i], b = pts[j];
-        const dx = a.x-b.x, dy = a.y-b.y, dz = a.z-b.z;
+        const dx = a.nx-b.nx, dy = a.ny-b.ny, dz = a.nz-b.nz;
         const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
-        if(dist < 0.42){
-          const strength = 1 - dist/0.42;
-          const alpha = Math.max(0, strength * 0.42 * ((a.z+b.z+2)/4));
+        if(dist < 0.53){
+          const strength = 1 - dist/0.53;
+          const alpha = Math.max(0, strength * 0.42 * ((a.nz+b.nz+2)/4));
           ctx.strokeStyle = `rgba(${160+Math.floor(strength*40)}, ${185+Math.floor(strength*40)}, 255, ${alpha})`;
           ctx.lineWidth = 0.6 + strength*0.7;
           ctx.beginPath();
@@ -182,8 +182,8 @@
 
     pts.sort((a,b)=>a.z-b.z);
     for(const p of pts){
-      const hue = 235 + ((p.x + 1) * 25);
-      const alpha = 0.35 + ((p.z+1)/2)*0.75;
+      const hue = 235 + ((p.nx + 1) * 25);
+      const alpha = 0.35 + ((p.nz+1)/2)*0.75;
       ctx.fillStyle = `hsla(${hue}, 100%, 75%, ${alpha})`;
       ctx.shadowBlur = 10; ctx.shadowColor = 'rgba(177,188,255,0.35)';
       ctx.beginPath();

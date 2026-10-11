@@ -1,7 +1,8 @@
 """UI 1.2 dashboard with interactive intelligence sphere."""
 import streamlit as st
 from app.config import MAX_RESUME_BYTES, SUPPORTED_EXTENSIONS
-from app.ui.components import section_heading, metric_tile, intelligence_sphere
+from app.ui.components import section_heading, metric_tile
+from app.ui.sphere import render_intelligence_hero
 from app.ui.navigation import navigation_card
 from app.ui.session import session_user
 
@@ -27,23 +28,7 @@ def render() -> None:
     current = session_user()
     role = current.get("role") if current else None
 
-    st.markdown('<div class="hero-shell">', unsafe_allow_html=True)
-    left, right = st.columns([1.1, 0.9], gap="large")
-    with left:
-        st.markdown(
-            '<div class="u12-hero-copy">'
-            '<div class="v10-kicker"><span class="v10-dot"></span> LOCAL AI · PRIVATE BY DESIGN</div>'
-            '<h1 class="u12-headline">A sharper view of <em>your potential.</em></h1>'
-            '<p class="u12-lead">Intelligent resume analysis, role matching and career discovery in one focused workspace.</p>'
-            '<div class="u12-tags"><span>✧ Resume intelligence</span><span>◈ Skill matching</span><span>↗ Career discovery</span></div>'
-            '</div>',
-            unsafe_allow_html=True,
-        )
-    with right:
-        st.markdown('<div class="u12-sphere-frame">', unsafe_allow_html=True)
-        intelligence_sphere(380)
-        st.markdown('</div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+    render_intelligence_hero(510)
 
     if role in ("user", "admin"):
         section_heading("YOUR WORKSPACE", "Choose your next move", "Every card opens its actual workspace page.")
