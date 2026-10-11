@@ -48,6 +48,7 @@ def render() -> None:
             metric_tile("SUPPORTED FORMATS", str(len(SUPPORTED_EXTENSIONS)), "PDF · DOCX · TXT · RTF · ODT", "cyan")
         with c:
             metric_tile("PRIVATE AI ENGINE", "Ollama", "Job intelligence on your PC", "green")
+        st.markdown('<div class="guest-card-info-gap" aria-hidden="true"></div>', unsafe_allow_html=True)
         st.info("Open User Login or Admin Login in the sidebar to get started.")
 
     st.markdown(

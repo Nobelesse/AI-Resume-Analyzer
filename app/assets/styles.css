@@ -274,3 +274,6 @@ div[data-testid="stButton"] button:hover,div[data-testid="stFormSubmitButton"] b
     overflow: visible !important;
     text-overflow: clip !important;
 }
+
+/* UI 1.4.1.2: breathing room between guest metric cards and guidance banner */
+.guest-card-info-gap { height: 20px; }
