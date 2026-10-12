@@ -9,7 +9,9 @@
   *{box-sizing:border-box}
   html,body{height:100%;margin:0;overflow:hidden;background:transparent;font-family:Inter,system-ui,-apple-system,sans-serif}
   .scene{height:100%;width:100%;position:relative;overflow:hidden;isolation:isolate;
-    background:radial-gradient(ellipse 78% 95% at 80% 52%,rgba(74,60,172,.22),transparent 72%),
+    background:radial-gradient(ellipse 46% 65% at 82% 49%,rgba(77,75,177,.25),transparent 75%),
+    radial-gradient(ellipse 36% 38% at 71% 66%,rgba(27,89,153,.11),transparent 76%),
+    radial-gradient(ellipse 78% 95% at 80% 52%,rgba(74,53,166,.14),transparent 72%),
     radial-gradient(ellipse 58% 88% at 94% 82%,rgba(52,122,196,.16),transparent 82%),
     radial-gradient(circle at 86% 42%,rgba(154,135,255,.08),transparent 28%),
     linear-gradient(118deg,#030816 0%,#071124 35%,#08132a 64%,#030915 100%);}
@@ -24,6 +26,9 @@
   h1 span{background:linear-gradient(110deg,#eacbff,#93d8ff);background-clip:text;-webkit-background-clip:text;color:transparent}
   p{color:#cad5f1;line-height:1.7;font-size:clamp(15px,1.45vw,19px);max-width:525px;margin:0 0 27px}
   .pills{display:flex;gap:10px;flex-wrap:wrap}.pills span{border:1px solid rgba(160,175,255,.31);background:rgba(22,34,73,.68);border-radius:999px;padding:10px 14px;color:#e0e9ff;font-size:12px;white-space:nowrap;backdrop-filter:blur(8px)}
+  .pills span{transition:transform .28s ease,border-color .28s ease,box-shadow .28s ease,background .28s ease}
+  .pills span:hover{transform:translateY(-3px);border-color:rgba(168,197,255,.58);background:rgba(36,49,94,.85);box-shadow:0 8px 24px rgba(69,91,189,.15)}
+  @media(prefers-reduced-motion:reduce){.pills span{transition:none}.pills span:hover{transform:none}}
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
   @media(max-width:780px){.hero-copy{width:88%;left:6%;top:15%;transform:none;max-width:none}.kicker{font-size:10px;margin-bottom:15px}h1{font-size:clamp(38px,8vw,54px);max-width:590px;margin-bottom:13px}p{max-width:490px;font-size:14px;margin-bottom:14px}.pills span{font-size:10px;padding:8px 10px}.scene::after{background:linear-gradient(180deg,rgba(4,10,24,.97) 0%,rgba(4,10,24,.87) 31%,rgba(4,10,24,.10) 69%,rgba(4,10,24,.24) 100%)}}
   @media(max-width:400px){.hero-copy{top:8%}h1{font-size:36px}.pills{gap:6px}}
@@ -66,7 +71,7 @@
     const mobile = w < 780;
     // On desktop, frame the whole orb to the right of the headline.
     // Projection/tilt/orbits can expand the scene ~1.7x beyond its radius.
-    cx = w * (mobile ? 0.545 : 0.826);
+    cx = w * (mobile ? 0.545 : 0.785);
     cy = h * (mobile ? 0.745 : 0.50);
     const orbitBound = 1.75;
     scale = Math.max(12, Math.min(
@@ -74,7 +79,7 @@
       (w - cx - FRAME_PADDING) / orbitBound,
       (cy - FRAME_PADDING) / orbitBound,
       (h - cy - FRAME_PADDING) / orbitBound,
-      h * (mobile ? 0.238 : 0.298)
+      h * (mobile ? 0.238 : 0.328)
     ));
     buildStars();
   }
@@ -313,6 +318,21 @@
       ctx.shadowColor = ring.core || ring.color;
       ctx.stroke();
       ctx.shadowBlur = 0;
+      // Short luminous accent glides around each orbit without obscuring the planet.
+      const accentAngle = t*(ring.speed * 2.1 + 0.12) + idx*2.3;
+      ctx.beginPath();
+      for(let k=0;k<=18;k++){
+        const ang=accentAngle + k*0.012;
+        const pos=orbitPoint(ring,ang,t);
+        const q=project({x:pos.x/scale,y:pos.y/scale,z:pos.z/scale});
+        if(k===0)ctx.moveTo(q.x,q.y);else ctx.lineTo(q.x,q.y);
+      }
+      ctx.strokeStyle=ring.core;
+      ctx.lineWidth=ring.width*0.78;
+      ctx.shadowBlur=14;
+      ctx.shadowColor=ring.core;
+      ctx.stroke();
+      ctx.shadowBlur=0;
     });
 
     satellites.forEach(s => {
