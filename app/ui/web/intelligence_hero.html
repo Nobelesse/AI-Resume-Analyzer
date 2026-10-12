@@ -49,8 +49,8 @@
   const spherePoints = [];
   let edges = [];
   const rings = [
-    {r:1.09, tiltX:0.94, tiltY:0.3, color:'rgba(157,124,255,.46)', core:'rgba(194,160,255,.72)', width:1.9, glow:12, speed: reduce ? 0 : .18},
-    {r:1.16, tiltX:.36, tiltY:1.14, color:'rgba(102,206,255,.34)', core:'rgba(139,223,255,.58)', width:1.5, glow:10, speed: reduce ? 0 : -.12}
+    {r:1.09, tiltX:0.94, tiltY:0.3, color:'rgba(170,132,255,.62)', core:'rgba(222,184,255,.90)', width:3.25, glow:18, speed: reduce ? 0 : .18},
+    {r:1.16, tiltX:.36, tiltY:1.14, color:'rgba(102,214,255,.48)', core:'rgba(182,242,255,.78)', width:2.55, glow:16, speed: reduce ? 0 : -.12}
   ];
   const satellites = [{ring:0,angle:.4,speed:reduce?0:.45,size:1.9,color:'rgba(192,165,255,.75)'}];
 
@@ -79,16 +79,16 @@
   }
 
   function buildStars(){
-    stars = Array.from({length: Math.max(45, Math.floor((w*h)/9000))}, (_, i) => ({
+    stars = Array.from({length: Math.max(72, Math.floor((w*h)/6200))}, (_, i) => ({
       x: Math.random()*w,
       y: Math.random()*h,
-      r: Math.random()*1.6 + 0.35,
+      r: Math.random()*1.95 + 0.32,
       a: Math.random()*Math.PI*2,
       speed: 0.25 + Math.random()*0.55,
       hue: i % 3 === 0 ? 285 : (i % 3 === 1 ? 205 : 250),
-      twinkle: 0.6 + Math.random()*1.8,
+      twinkle: 0.95 + Math.random()*2.9,
       shine: Math.random(),
-      cross: Math.random() > 0.72
+      cross: Math.random() > 0.56
     }));
   }
 
@@ -134,8 +134,8 @@
 
   function drawBackgroundGlow(t){
     const grad = ctx.createRadialGradient(cx, cy, 20, cx, cy, scale*2.4);
-    grad.addColorStop(0, 'rgba(164,190,255,0.18)');
-    grad.addColorStop(0.35, 'rgba(134,111,255,0.10)');
+    grad.addColorStop(0, 'rgba(184,208,255,0.25)');
+    grad.addColorStop(0.35, 'rgba(148,116,255,0.16)');
     grad.addColorStop(1, 'rgba(10,18,49,0)');
     ctx.fillStyle = grad;
     ctx.beginPath();
@@ -144,8 +144,8 @@
     const sweepX = cx + Math.cos(t*0.45)*scale*1.6;
     const sweepY = cy + Math.sin(t*0.38)*scale*0.9;
     const sweep = ctx.createRadialGradient(sweepX, sweepY, 0, sweepX, sweepY, scale*1.6);
-    sweep.addColorStop(0,'rgba(210,233,255,0.19)');
-    sweep.addColorStop(0.2,'rgba(177,145,255,0.11)');
+    sweep.addColorStop(0,'rgba(210,233,255,0.24)');
+    sweep.addColorStop(0.2,'rgba(194,154,255,0.16)');
     sweep.addColorStop(1,'rgba(15,15,35,0)');
     ctx.fillStyle = sweep;
     ctx.fillRect(0,0,w,h);
@@ -155,23 +155,23 @@
     for(const s of stars){
       const pulse = 0.5 + 0.5*Math.sin(t*s.speed + s.a);
       const shimmer = 0.5 + 0.5*Math.sin(t*s.twinkle + s.a*1.7);
-      const alpha = 0.18 + 0.52*pulse + 0.30*shimmer;
-      const glow = s.r * (2.1 + shimmer*2.6);
+      const alpha = 0.22 + 0.50*pulse + 0.36*shimmer;
+      const glow = s.r * (3.0 + shimmer*3.6);
       ctx.fillStyle = `hsla(${s.hue}, 95%, 78%, ${alpha})`;
       ctx.shadowBlur = glow;
-      ctx.shadowColor = `hsla(${s.hue}, 100%, 78%, ${0.38 + shimmer*0.35})`;
+      ctx.shadowColor = `hsla(${s.hue}, 100%, 78%, ${0.52 + shimmer*0.40})`;
       ctx.beginPath();
-      ctx.arc(s.x, s.y, s.r*(1 + shimmer*0.22), 0, Math.PI*2);
+      ctx.arc(s.x, s.y, s.r*(1 + shimmer*0.34), 0, Math.PI*2);
       ctx.fill();
       if(s.cross || s.r > 1.05){
-        const arm = s.r * (2.8 + shimmer*2.4);
+        const arm = s.r * (3.8 + shimmer*3.3);
         ctx.strokeStyle = `hsla(${s.hue}, 95%, 80%, ${alpha*(0.30 + shimmer*0.26)})`;
-        ctx.lineWidth = 0.55 + shimmer*0.45;
+        ctx.lineWidth = 0.85 + shimmer*0.60;
         ctx.beginPath();
         ctx.moveTo(s.x-arm, s.y); ctx.lineTo(s.x+arm, s.y);
         ctx.moveTo(s.x, s.y-arm); ctx.lineTo(s.x, s.y+arm);
         if(s.shine > 0.55){
-          const diag = arm * 0.72;
+          const diag = arm * 0.84;
           ctx.moveTo(s.x-diag, s.y-diag); ctx.lineTo(s.x+diag, s.y+diag);
           ctx.moveTo(s.x-diag, s.y+diag); ctx.lineTo(s.x+diag, s.y-diag);
         }
@@ -193,15 +193,16 @@
     // Subtle translucent interior, with the network rendered on top.
     // Layered atmospheric rim and translucent core strengthen depth perception.
     const aura = ctx.createRadialGradient(cx-scale*.2,cy-scale*.24,scale*.04,cx,cy,scale*1.24);
-    aura.addColorStop(0,'rgba(90,112,255,.14)');
-    aura.addColorStop(.66,'rgba(111,80,230,.12)');
-    aura.addColorStop(.87,'rgba(57,128,234,.07)');
+    aura.addColorStop(0,'rgba(125,150,255,.21)');
+    aura.addColorStop(.66,'rgba(132,92,245,.18)');
+    aura.addColorStop(.87,'rgba(72,140,246,.10)');
     aura.addColorStop(1,'rgba(80,130,255,0)');
     ctx.fillStyle=aura;ctx.beginPath();ctx.arc(cx,cy,scale*1.24,0,Math.PI*2);ctx.fill();
     const grd = ctx.createRadialGradient(cx-scale*.25, cy-scale*.22, 0, cx, cy, scale*1.05);
-    grd.addColorStop(0, 'rgba(155,124,255,.12)');
-    grd.addColorStop(.48, 'rgba(59,83,211,.14)');
-    grd.addColorStop(1, 'rgba(23,16,70,.018)');
+    grd.addColorStop(0, 'rgba(196,166,255,.22)');
+    grd.addColorStop(.30, 'rgba(144,180,255,.14)');
+    grd.addColorStop(.48, 'rgba(74,94,225,.18)');
+    grd.addColorStop(1, 'rgba(23,16,70,.028)');
     ctx.fillStyle = grd;
     ctx.beginPath(); ctx.arc(cx,cy,scale*1.05,0,Math.PI*2);ctx.fill();
 
@@ -222,7 +223,7 @@
       const hue = 215 + ((p.nx + 1) * 47);
       const alpha = 0.28 + ((p.nz+1)/2)*0.72;
       ctx.fillStyle = `hsla(${hue}, 100%, 75%, ${alpha})`;
-      ctx.shadowBlur = p.nz > 0 ? 10 : 3; ctx.shadowColor = 'rgba(148,112,255,0.55)';
+      ctx.shadowBlur = p.nz > 0 ? 12 : 4; ctx.shadowColor = 'rgba(168,132,255,0.72)';
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size * p.p, 0, Math.PI*2);
       ctx.fill();
@@ -233,7 +234,7 @@
     const beamX = cx + Math.sin(t*.53)*scale*.8;
     const beam = ctx.createLinearGradient(beamX-scale*.38,cy,beamX+scale*.38,cy);
     beam.addColorStop(0,'rgba(97,160,255,0)');
-    beam.addColorStop(.5,'rgba(136,176,255,.085)');
+    beam.addColorStop(.5,'rgba(152,190,255,.12)');
     beam.addColorStop(1,'rgba(97,160,255,0)');
     ctx.fillStyle=beam;ctx.fillRect(cx-scale*1.1,cy-scale*1.1,scale*2.2,scale*2.2);
     ctx.restore();
@@ -265,12 +266,12 @@
         if(!started){ctx.moveTo(pr.x, pr.y); started = true;} else {ctx.lineTo(pr.x, pr.y)}
       }
       ctx.strokeStyle = ring.color;
-      ctx.lineWidth = ring.width || (idx===0 ? 1.9 : 1.5);
+      ctx.lineWidth = ring.width || (idx===0 ? 3.25 : 2.55);
       ctx.shadowBlur = ring.glow || 10;
       ctx.shadowColor = ring.color;
       ctx.stroke();
       ctx.strokeStyle = ring.core || ring.color;
-      ctx.lineWidth = Math.max(0.7, (ring.width || 1.5) * 0.46);
+      ctx.lineWidth = Math.max(1.1, (ring.width || 2.5) * 0.58);
       ctx.shadowBlur = (ring.glow || 10) + 3;
       ctx.shadowColor = ring.core || ring.color;
       ctx.stroke();
@@ -283,7 +284,7 @@
       const p = orbitPoint(ring, theta, t);
       const pr = project({x:p.x/scale, y:p.y/scale, z:p.z/scale});
       ctx.fillStyle = s.color;
-      ctx.shadowBlur = 20;
+      ctx.shadowBlur = 26;
       ctx.shadowColor = s.color;
       ctx.beginPath();
       ctx.arc(pr.x, pr.y, (s.size+0.25)*pr.p, 0, Math.PI*2);
