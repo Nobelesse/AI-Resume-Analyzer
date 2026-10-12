@@ -55,8 +55,8 @@
   const spherePoints = [];
   let edges = [];
   const rings = [
-    {r:1.09, tiltX:0.94, tiltY:0.3, color:'rgba(176,138,255,.72)', core:'rgba(238,203,255,.98)', width:6.2, glow:30, speed: reduce ? 0 : .18},
-    {r:1.16, tiltX:.36, tiltY:1.14, color:'rgba(114,221,255,.58)', core:'rgba(200,248,255,.88)', width:4.8, glow:26, speed: reduce ? 0 : -.12}
+    {r:1.09, tiltX:0.94, tiltY:0.3, color:'rgba(182,146,255,.76)', core:'rgba(244,214,255,.99)', width:6.8, glow:32, speed: reduce ? 0 : .18},
+    {r:1.16, tiltX:.36, tiltY:1.14, color:'rgba(120,226,255,.62)', core:'rgba(208,250,255,.92)', width:5.4, glow:28, speed: reduce ? 0 : -.12}
   ];
   const satellites = [{ring:0,angle:.4,speed:reduce?0:.45,size:1.9,color:'rgba(192,165,255,.75)'}];
 
@@ -309,8 +309,8 @@
 
   function traceOrbitPath(ring, t){
     const points = [];
-    for(let i=0;i<=220;i++){
-      const ang = (i/220) * Math.PI*2 + t*ring.speed;
+    for(let i=0;i<=360;i++){
+      const ang = (i/360) * Math.PI*2 + t*ring.speed;
       const p = orbitPoint(ring, ang, t);
       const pr = project({x:p.x/scale, y:p.y/scale, z:p.z/scale});
       points.push({x:pr.x, y:pr.y, z:p.z, ang});
@@ -318,37 +318,78 @@
     return points;
   }
 
-  function strokeOrbitSection(points, predicate, stroke, lineWidth, shadowBlur, shadowColor){
-    ctx.beginPath();
-    let drawing = false;
-    for(const pt of points){
-      if(predicate(pt)){
-        if(!drawing){ ctx.moveTo(pt.x, pt.y); drawing = true; }
-        else { ctx.lineTo(pt.x, pt.y); }
-      }else{
-        drawing = false;
+  function getOrbitRanges(points, predicate){
+    const ranges = [];
+    let start = -1;
+    for(let i=0;i<points.length;i++){
+      if(predicate(points[i])){
+        if(start === -1) start = i;
+      }else if(start !== -1){
+        ranges.push([start, i-1]);
+        start = -1;
       }
+    }
+    if(start !== -1) ranges.push([start, points.length-1]);
+    if(ranges.length > 1 && ranges[0][0] === 0 && ranges[ranges.length-1][1] === points.length-1){
+      const first = ranges.shift();
+      const last = ranges.pop();
+      ranges.unshift([last[0], first[1] + points.length]);
+    }
+    return ranges;
+  }
+
+  function strokeOrbitRange(points, range, stroke, lineWidth, shadowBlur, shadowColor){
+    const total = points.length;
+    const pad = 2;
+    const start = Math.max(0, range[0] - pad);
+    const end = Math.min(range[1] + pad, range[0] + total - 1);
+    const sampled = [];
+    for(let idx=start; idx<=end; idx++) sampled.push(points[idx % total]);
+    if(sampled.length < 2) return;
+
+    ctx.beginPath();
+    ctx.moveTo(sampled[0].x, sampled[0].y);
+    if(sampled.length === 2){
+      ctx.lineTo(sampled[1].x, sampled[1].y);
+    }else{
+      for(let i=1;i<sampled.length-1;i++){
+        const curr = sampled[i];
+        const next = sampled[i+1];
+        const midX = (curr.x + next.x) * 0.5;
+        const midY = (curr.y + next.y) * 0.5;
+        ctx.quadraticCurveTo(curr.x, curr.y, midX, midY);
+      }
+      const penult = sampled[sampled.length-2];
+      const last = sampled[sampled.length-1];
+      ctx.quadraticCurveTo(penult.x, penult.y, last.x, last.y);
     }
     ctx.strokeStyle = stroke;
     ctx.lineWidth = lineWidth;
     ctx.shadowBlur = shadowBlur;
     ctx.shadowColor = shadowColor;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
     ctx.stroke();
     ctx.shadowBlur = 0;
   }
 
+  function strokeOrbitSection(points, predicate, stroke, lineWidth, shadowBlur, shadowColor){
+    const ranges = getOrbitRanges(points, predicate);
+    ranges.forEach(range => strokeOrbitRange(points, range, stroke, lineWidth, shadowBlur, shadowColor));
+  }
+
   function drawRingAccent(ring, idx, t){
-    const accentAngle = t*(ring.speed * 2.1 + 0.12) + idx*2.3;
+    const accentAngle = t*(ring.speed * 1.8 + 0.10) + idx*2.0;
     ctx.beginPath();
-    for(let k=0;k<=18;k++){
-      const ang=accentAngle + k*0.012;
+    for(let k=0;k<=22;k++){
+      const ang=accentAngle + k*0.0085;
       const pos=orbitPoint(ring,ang,t);
       const q=project({x:pos.x/scale,y:pos.y/scale,z:pos.z/scale});
       if(k===0)ctx.moveTo(q.x,q.y);else ctx.lineTo(q.x,q.y);
     }
     ctx.strokeStyle=ring.core;
-    ctx.lineWidth=ring.width*0.72;
-    ctx.shadowBlur=18;
+    ctx.lineWidth=ring.width*0.36;
+    ctx.shadowBlur=10;
     ctx.shadowColor=ring.core;
     ctx.stroke();
     ctx.shadowBlur=0;
@@ -357,17 +398,17 @@
   function drawRings(t, layer='all'){
     rings.forEach((ring, idx) => {
       const points = traceOrbitPath(ring, t);
-      const isBack = pt => pt.z < -0.04;
-      const isFront = pt => pt.z >= -0.04;
+      const isBack = pt => pt.z < 0.08;
+      const isFront = pt => pt.z > -0.08;
 
       if(layer === 'back' || layer === 'all'){
-        strokeOrbitSection(points, isBack, ring.color.replace(/rgba\(([^,]+),([^,]+),([^,]+),[^\)]+\)/, 'rgba($1,$2,$3,0.20)'), (ring.width || (idx===0 ? 6.2 : 4.8))*0.88, (ring.glow || 10)*0.55, ring.color);
-        strokeOrbitSection(points, isBack, ring.core.replace(/rgba\(([^,]+),([^,]+),([^,]+),[^\)]+\)/, 'rgba($1,$2,$3,0.18)'), Math.max(1.2, (ring.width || 4.8) * 0.42), (ring.glow || 10)*0.45, ring.core);
+        strokeOrbitSection(points, isBack, ring.color.replace(/rgba\(([^,]+),([^,]+),([^,]+),[^\)]+\)/, 'rgba($1,$2,$3,0.22)'), (ring.width || (idx===0 ? 6.8 : 5.4))*0.92, (ring.glow || 10)*0.60, ring.color);
+        strokeOrbitSection(points, isBack, ring.core.replace(/rgba\(([^,]+),([^,]+),([^,]+),[^\)]+\)/, 'rgba($1,$2,$3,0.20)'), Math.max(1.4, (ring.width || 5.4) * 0.44), (ring.glow || 10)*0.48, ring.core);
       }
 
       if(layer === 'front' || layer === 'all'){
-        strokeOrbitSection(points, isFront, ring.color, ring.width || (idx===0 ? 6.2 : 4.8), ring.glow || 10, ring.color);
-        strokeOrbitSection(points, isFront, ring.core || ring.color, Math.max(1.9, (ring.width || 4.8) * 0.66), (ring.glow || 10) + 7, ring.core || ring.color);
+        strokeOrbitSection(points, isFront, ring.color, ring.width || (idx===0 ? 6.8 : 5.4), ring.glow || 10, ring.color);
+        strokeOrbitSection(points, isFront, ring.core || ring.color, Math.max(2.2, (ring.width || 5.4) * 0.68), (ring.glow || 10) + 7, ring.core || ring.color);
         drawRingAccent(ring, idx, t);
       }
     });

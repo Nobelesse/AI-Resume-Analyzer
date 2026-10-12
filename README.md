@@ -68,6 +68,6 @@ Use existing O*NET 31.0 CSV extraction (no extra download):
 Admin users can open **Skills Catalog** for source-specific catalog statistics. See `docs/VERSION_1_4_1_ONET.md`.
 
 
-UI 1.4.2.2: full-sphere camera framing, improved depth and cinematic motion. See `docs/VERSION_1_4_1_4_HERO.md`.
+UI 1.4.2.4: full-sphere camera framing, improved depth and cinematic motion. See `docs/VERSION_1_4_1_4_HERO.md`.
 
-See `docs/VERSION_1_4_2_VISUAL.md` for the 1.4.2.2 hero refinements.
+See `docs/VERSION_1_4_2_VISUAL.md` for the 1.4.2.4 hero refinements.
