@@ -55,8 +55,8 @@
   const spherePoints = [];
   let edges = [];
   const rings = [
-    {r:1.09, tiltX:0.94, tiltY:0.3, color:'rgba(170,132,255,.62)', core:'rgba(222,184,255,.90)', width:4.9, glow:24, speed: reduce ? 0 : .18},
-    {r:1.16, tiltX:.36, tiltY:1.14, color:'rgba(102,214,255,.48)', core:'rgba(182,242,255,.78)', width:3.7, glow:20, speed: reduce ? 0 : -.12}
+    {r:1.09, tiltX:0.94, tiltY:0.3, color:'rgba(176,138,255,.72)', core:'rgba(238,203,255,.98)', width:6.2, glow:30, speed: reduce ? 0 : .18},
+    {r:1.16, tiltX:.36, tiltY:1.14, color:'rgba(114,221,255,.58)', core:'rgba(200,248,255,.88)', width:4.8, glow:26, speed: reduce ? 0 : -.12}
   ];
   const satellites = [{ring:0,angle:.4,speed:reduce?0:.45,size:1.9,color:'rgba(192,165,255,.75)'}];
 
@@ -71,7 +71,7 @@
     const mobile = w < 780;
     // On desktop, frame the whole orb to the right of the headline.
     // Projection/tilt/orbits can expand the scene ~1.7x beyond its radius.
-    cx = w * (mobile ? 0.545 : 0.785);
+    cx = w * (mobile ? 0.545 : 0.792);
     cy = h * (mobile ? 0.745 : 0.50);
     const orbitBound = 1.75;
     scale = Math.max(12, Math.min(
@@ -79,7 +79,7 @@
       (w - cx - FRAME_PADDING) / orbitBound,
       (cy - FRAME_PADDING) / orbitBound,
       (h - cy - FRAME_PADDING) / orbitBound,
-      h * (mobile ? 0.238 : 0.328)
+      h * (mobile ? 0.242 : 0.348)
     ));
     buildStars();
   }
@@ -216,37 +216,47 @@
 
     // Subtle translucent interior, with the network rendered on top.
     // Layered atmospheric rim and translucent core strengthen depth perception.
-    const aura = ctx.createRadialGradient(cx-scale*.2,cy-scale*.24,scale*.04,cx,cy,scale*1.24);
-    aura.addColorStop(0,'rgba(122,158,255,.24)');
-    aura.addColorStop(.54,'rgba(128,96,246,.22)');
-    aura.addColorStop(.82,'rgba(66,126,226,.13)');
+    const aura = ctx.createRadialGradient(cx-scale*.24,cy-scale*.28,scale*.04,cx,cy,scale*1.26);
+    aura.addColorStop(0,'rgba(156,194,255,.28)');
+    aura.addColorStop(.34,'rgba(152,120,255,.24)');
+    aura.addColorStop(.76,'rgba(72,132,236,.15)');
     aura.addColorStop(1,'rgba(80,130,255,0)');
     ctx.fillStyle=aura;ctx.beginPath();ctx.arc(cx,cy,scale*1.24,0,Math.PI*2);ctx.fill();
-    const grd = ctx.createRadialGradient(cx-scale*.25, cy-scale*.22, 0, cx, cy, scale*1.05);
-    grd.addColorStop(0, 'rgba(216,194,255,.20)');
-    grd.addColorStop(.18, 'rgba(180,214,255,.16)');
-    grd.addColorStop(.42, 'rgba(88,110,238,.20)');
-    grd.addColorStop(.72, 'rgba(34,52,136,.16)');
-    grd.addColorStop(1, 'rgba(17,16,58,.040)');
+    const grd = ctx.createRadialGradient(cx-scale*.31, cy-scale*.27, scale*.02, cx, cy, scale*1.05);
+    grd.addColorStop(0, 'rgba(238,224,255,.24)');
+    grd.addColorStop(.14, 'rgba(206,230,255,.20)');
+    grd.addColorStop(.36, 'rgba(118,138,255,.23)');
+    grd.addColorStop(.68, 'rgba(34,56,144,.18)');
+    grd.addColorStop(1, 'rgba(10,13,44,.05)');
     ctx.fillStyle = grd;
     ctx.beginPath(); ctx.arc(cx,cy,scale*1.05,0,Math.PI*2);ctx.fill();
 
-    const nightShadow = ctx.createRadialGradient(cx+scale*.28, cy+scale*.18, scale*.10, cx+scale*.22, cy+scale*.14, scale*1.02);
+    const nightShadow = ctx.createRadialGradient(cx+scale*.30, cy+scale*.22, scale*.06, cx+scale*.24, cy+scale*.18, scale*1.05);
     nightShadow.addColorStop(0,'rgba(18,18,64,0)');
-    nightShadow.addColorStop(.52,'rgba(16,18,64,.10)');
-    nightShadow.addColorStop(1,'rgba(7,10,32,.34)');
+    nightShadow.addColorStop(.42,'rgba(18,20,70,.11)');
+    nightShadow.addColorStop(.76,'rgba(10,14,44,.24)');
+    nightShadow.addColorStop(1,'rgba(5,8,28,.42)');
     ctx.fillStyle = nightShadow;
     ctx.beginPath(); ctx.arc(cx,cy,scale*1.03,0,Math.PI*2); ctx.fill();
-    const atmosphere = ctx.createRadialGradient(cx-scale*.34, cy-scale*.32, scale*.02, cx, cy, scale*1.12);
-    atmosphere.addColorStop(0,'rgba(255,255,255,.16)');
-    atmosphere.addColorStop(.18,'rgba(188,224,255,.13)');
-    atmosphere.addColorStop(.58,'rgba(120,170,255,.05)');
+    const atmosphere = ctx.createRadialGradient(cx-scale*.38, cy-scale*.34, scale*.01, cx, cy, scale*1.14);
+    atmosphere.addColorStop(0,'rgba(255,255,255,.20)');
+    atmosphere.addColorStop(.12,'rgba(214,236,255,.18)');
+    atmosphere.addColorStop(.42,'rgba(140,188,255,.10)');
+    atmosphere.addColorStop(.78,'rgba(122,166,255,.04)');
     atmosphere.addColorStop(1,'rgba(122,166,255,0)');
-    ctx.strokeStyle = 'rgba(150,196,255,.16)';
-    ctx.lineWidth = scale * 0.028;
+    ctx.strokeStyle = 'rgba(168,212,255,.22)';
+    ctx.lineWidth = scale * 0.032;
     ctx.beginPath(); ctx.arc(cx,cy,scale*0.99,0,Math.PI*2); ctx.stroke();
     ctx.fillStyle = atmosphere;
     ctx.beginPath(); ctx.arc(cx,cy,scale*1.01,0,Math.PI*2); ctx.fill();
+
+    const haze = ctx.createRadialGradient(cx-scale*.18, cy-scale*.14, scale*.12, cx, cy, scale*.98);
+    haze.addColorStop(0,'rgba(255,255,255,.045)');
+    haze.addColorStop(.38,'rgba(192,214,255,.028)');
+    haze.addColorStop(.72,'rgba(110,124,255,.020)');
+    haze.addColorStop(1,'rgba(110,124,255,0)');
+    ctx.fillStyle = haze;
+    ctx.beginPath(); ctx.arc(cx,cy,scale*.96,0,Math.PI*2); ctx.fill();
 
     // Bright violet / electric-blue local edges reveal spherical geometry.
     for(const [i,j,dist] of edges){
@@ -297,57 +307,88 @@
     return {x: sys.x*scale, y: sys.y*scale, z: sys.z*scale};
   }
 
-  function drawRings(t){
+  function traceOrbitPath(ring, t){
+    const points = [];
+    for(let i=0;i<=220;i++){
+      const ang = (i/220) * Math.PI*2 + t*ring.speed;
+      const p = orbitPoint(ring, ang, t);
+      const pr = project({x:p.x/scale, y:p.y/scale, z:p.z/scale});
+      points.push({x:pr.x, y:pr.y, z:p.z, ang});
+    }
+    return points;
+  }
+
+  function strokeOrbitSection(points, predicate, stroke, lineWidth, shadowBlur, shadowColor){
+    ctx.beginPath();
+    let drawing = false;
+    for(const pt of points){
+      if(predicate(pt)){
+        if(!drawing){ ctx.moveTo(pt.x, pt.y); drawing = true; }
+        else { ctx.lineTo(pt.x, pt.y); }
+      }else{
+        drawing = false;
+      }
+    }
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = lineWidth;
+    ctx.shadowBlur = shadowBlur;
+    ctx.shadowColor = shadowColor;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+
+  function drawRingAccent(ring, idx, t){
+    const accentAngle = t*(ring.speed * 2.1 + 0.12) + idx*2.3;
+    ctx.beginPath();
+    for(let k=0;k<=18;k++){
+      const ang=accentAngle + k*0.012;
+      const pos=orbitPoint(ring,ang,t);
+      const q=project({x:pos.x/scale,y:pos.y/scale,z:pos.z/scale});
+      if(k===0)ctx.moveTo(q.x,q.y);else ctx.lineTo(q.x,q.y);
+    }
+    ctx.strokeStyle=ring.core;
+    ctx.lineWidth=ring.width*0.72;
+    ctx.shadowBlur=18;
+    ctx.shadowColor=ring.core;
+    ctx.stroke();
+    ctx.shadowBlur=0;
+  }
+
+  function drawRings(t, layer='all'){
     rings.forEach((ring, idx) => {
-      ctx.beginPath();
-      let started = false;
-      for(let i=0;i<=180;i++){
-        const ang = (i/180) * Math.PI*2 + t*ring.speed;
-        const p = orbitPoint(ring, ang, t);
-        const pr = project({x:p.x/scale, y:p.y/scale, z:p.z/scale});
-        if(!started){ctx.moveTo(pr.x, pr.y); started = true;} else {ctx.lineTo(pr.x, pr.y)}
+      const points = traceOrbitPath(ring, t);
+      const isBack = pt => pt.z < -0.04;
+      const isFront = pt => pt.z >= -0.04;
+
+      if(layer === 'back' || layer === 'all'){
+        strokeOrbitSection(points, isBack, ring.color.replace(/rgba\(([^,]+),([^,]+),([^,]+),[^\)]+\)/, 'rgba($1,$2,$3,0.20)'), (ring.width || (idx===0 ? 6.2 : 4.8))*0.88, (ring.glow || 10)*0.55, ring.color);
+        strokeOrbitSection(points, isBack, ring.core.replace(/rgba\(([^,]+),([^,]+),([^,]+),[^\)]+\)/, 'rgba($1,$2,$3,0.18)'), Math.max(1.2, (ring.width || 4.8) * 0.42), (ring.glow || 10)*0.45, ring.core);
       }
-      ctx.strokeStyle = ring.color;
-      ctx.lineWidth = ring.width || (idx===0 ? 4.9 : 3.7);
-      ctx.shadowBlur = ring.glow || 10;
-      ctx.shadowColor = ring.color;
-      ctx.stroke();
-      ctx.strokeStyle = ring.core || ring.color;
-      ctx.lineWidth = Math.max(1.6, (ring.width || 3.7) * 0.62);
-      ctx.shadowBlur = (ring.glow || 10) + 5;
-      ctx.shadowColor = ring.core || ring.color;
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-      // Short luminous accent glides around each orbit without obscuring the planet.
-      const accentAngle = t*(ring.speed * 2.1 + 0.12) + idx*2.3;
-      ctx.beginPath();
-      for(let k=0;k<=18;k++){
-        const ang=accentAngle + k*0.012;
-        const pos=orbitPoint(ring,ang,t);
-        const q=project({x:pos.x/scale,y:pos.y/scale,z:pos.z/scale});
-        if(k===0)ctx.moveTo(q.x,q.y);else ctx.lineTo(q.x,q.y);
+
+      if(layer === 'front' || layer === 'all'){
+        strokeOrbitSection(points, isFront, ring.color, ring.width || (idx===0 ? 6.2 : 4.8), ring.glow || 10, ring.color);
+        strokeOrbitSection(points, isFront, ring.core || ring.color, Math.max(1.9, (ring.width || 4.8) * 0.66), (ring.glow || 10) + 7, ring.core || ring.color);
+        drawRingAccent(ring, idx, t);
       }
-      ctx.strokeStyle=ring.core;
-      ctx.lineWidth=ring.width*0.78;
-      ctx.shadowBlur=14;
-      ctx.shadowColor=ring.core;
-      ctx.stroke();
-      ctx.shadowBlur=0;
     });
 
-    satellites.forEach(s => {
-      const ring = rings[s.ring];
-      const theta = s.angle + t * s.speed;
-      const p = orbitPoint(ring, theta, t);
-      const pr = project({x:p.x/scale, y:p.y/scale, z:p.z/scale});
-      ctx.fillStyle = s.color;
-      ctx.shadowBlur = 32;
-      ctx.shadowColor = s.color;
-      ctx.beginPath();
-      ctx.arc(pr.x, pr.y, (s.size+0.25)*pr.p, 0, Math.PI*2);
-      ctx.fill();
-      ctx.shadowBlur = 0;
-    });
+    if(layer === 'front' || layer === 'all'){
+      satellites.forEach(s => {
+        const ring = rings[s.ring];
+        const theta = s.angle + t * s.speed;
+        const p = orbitPoint(ring, theta, t);
+        const pr = project({x:p.x/scale, y:p.y/scale, z:p.z/scale});
+        if(p.z >= -0.04){
+          ctx.fillStyle = s.color;
+          ctx.shadowBlur = 32;
+          ctx.shadowColor = s.color;
+          ctx.beginPath();
+          ctx.arc(pr.x, pr.y, (s.size+0.25)*pr.p, 0, Math.PI*2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+      });
+    }
   }
 
   let previousFrame = -1000;
@@ -363,8 +404,9 @@
     ctx.clearRect(0,0,w,h);
     drawBackgroundGlow(t);
     drawStars(t);
-    drawRings(t);
+    drawRings(t, "back");
     drawSphere(t);
+    drawRings(t, "front");
     if (!reduce) animationHandle = requestAnimationFrame(frame);
   }
 
