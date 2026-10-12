@@ -4,6 +4,7 @@ import re
 from app.services.ollama_client import query_with_fallback, clean_strings, LocalAIError
 from app.services.role_skills import ROLE_MAP
 from app.services.skills import extract_skills, seed_skills
+from app.services.taxonomy import role_skills as catalog_role_skills
 
 def _present(skill,text):
     return bool(re.search(r'(?<!\w)'+re.escape(skill)+r'(?!\w)',text,re.I))
@@ -33,8 +34,9 @@ def recommend_careers(resume_text, *, db_path=None, ai_provider=query_with_fallb
         key=title.casefold()
         if key in seen:continue
         seen.add(key)
-        role_skills=ROLE_MAP.get(key,()) or proposed_skills
-        if key not in ROLE_MAP:
+        catalog=catalog_role_skills(title,db_path=db_path)
+        role_skills=(catalog["skills"] if catalog and catalog["skills"] else ROLE_MAP.get(key,()) or proposed_skills)
+        if key not in ROLE_MAP and not catalog:
             reason=(reason+' | Skills are model suggestions, not verified employer requirements.').strip(' |')
         matched=[s for s in role_skills if any(s.casefold()==v.casefold() for v in known) or _present(s,resume_text)]
         absent=[s for s in role_skills if s not in matched]

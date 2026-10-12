@@ -85,3 +85,21 @@ def my_record_management():
             confirmed=st.checkbox('Permanently delete this resume and its associated analyses and job comparisons')
             if st.form_submit_button('Delete my resume',disabled=not confirmed):
                 delete_resume(actor['id'],target);st.success('Resume deleted.');st.rerun()
+
+
+def taxonomy_management():
+    _actor('admin')
+    from app.services.taxonomy import catalog_details
+    page_header('ADMINISTRATOR / INTELLIGENCE', 'Occupation and skills catalog', 'Inspect imported publisher data and actual database counts. No resume content is displayed.', '◈')
+    info=catalog_details()
+    a,b,c=st.columns(3)
+    a.metric('Occupations',info['counts']['occupations'])
+    b.metric('Unique catalog skills',info['counts']['skills'])
+    c.metric('Occupation–skill links',info['counts']['links'])
+    section_heading('Source attribution','Datasets imported from official publisher CSVs')
+    st.dataframe(info['imports'],use_container_width=True,hide_index=True)
+    section_heading('Relationships','Relationship counts grouped by publisher and type')
+    st.dataframe(info['relations'],use_container_width=True,hide_index=True)
+    section_heading('Occupation aliases','Searchable alternate job titles')
+    st.dataframe(info['aliases'],use_container_width=True,hide_index=True)
+    st.caption('Catalog counts describe imported records, not verified candidate skills. Official files remain outside the application ZIP.')

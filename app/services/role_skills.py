@@ -103,7 +103,11 @@ def normalize_title(title: str) -> str:
     return ' '.join(value.split())
 
 
-def suggest_for_title(title: str) -> dict:
+def suggest_for_title(title: str, *, db_path=None) -> dict:
+    from app.services.taxonomy import role_skills
+    catalog = role_skills(title, db_path=db_path)
+    if catalog and catalog["skills"]:
+        return {k: catalog[k] for k in ("skills", "role", "source", "confidence")}
     normalized = normalize_title(title)
     normalized = ALIASED_ROLES.get(normalized, normalized)
     if normalized in ROLE_MAP:

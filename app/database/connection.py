@@ -3,7 +3,7 @@ import sqlite3
 from pathlib import Path
 from app.config import DATABASE_PATH
 
-SCHEMA_VERSION = 5
+SCHEMA_VERSION = 6
 
 def connect(path=None):
     db_path = Path(path) if path is not None else DATABASE_PATH
@@ -83,6 +83,8 @@ def initialize_database(path=None):
         );
         CREATE INDEX IF NOT EXISTS idx_matches_owner ON job_matches(owner_id,id DESC);
         """)
+        from app.services.taxonomy import ensure_tables
+        ensure_tables(conn)
         from app.services.skills import seed_skills
         seed_skills(path)
         conn.execute(f'PRAGMA user_version={SCHEMA_VERSION}')

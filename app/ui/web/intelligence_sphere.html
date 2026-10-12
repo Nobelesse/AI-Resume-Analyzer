@@ -241,7 +241,10 @@
     });
   }
 
+  let animationHandle = null;
+  let isRunning = false;
   function frame(now){
+    if (document.hidden || !isRunning) return;
     const t = now * 0.001;
     pointer.x += (pointer.tx - pointer.x) * 0.08;
     pointer.y += (pointer.ty - pointer.y) * 0.08;
@@ -261,10 +264,23 @@
     pointer.ty = ny;
   });
   scene.addEventListener('pointerleave', () => { pointer.tx = 0; pointer.ty = 0; });
+  function startAnimation(){
+    if (isRunning || document.hidden) return;
+    isRunning = true;
+    animationHandle = requestAnimationFrame(frame);
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      isRunning = false;
+      if (animationHandle !== null) cancelAnimationFrame(animationHandle);
+    } else {
+      startAnimation();
+    }
+  });
   window.addEventListener('resize', resize);
   buildSphere();
   resize();
-  requestAnimationFrame(frame);
+  startAnimation();
 })();
 </script>
 </body>
