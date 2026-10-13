@@ -6,6 +6,7 @@ from app.database.resumes import list_user_resumes
 from app.database.job_matches import save_job_match,list_job_matches,get_job_match
 from app.services.occupation_ai import analyze_occupation
 from app.services.career_finder import recommend_careers
+from app.services.hybrid_intelligence import explain_career_recommendations, GeminiUnavailable
 from app.database.resumes import get_resume
 from app.services.reports import render_html_report,render_pdf_report
 from app.ui.workspace import page_header, step_label, section_heading
@@ -24,7 +25,7 @@ def _display(result):
     if result.get('requirements_status') == 'title-suggestions':
         st.info('These are typical skills suggested for this role, NOT confirmed requirements from an employer.')
     elif result.get('requirements_status') == 'unrecognized-role':
-        st.warning('Role not found in the offline role library. Paste a job description or enable local Ollama for broader role suggestions.')
+        st.warning('Role not found in the offline catalog. Paste a detailed job description for better matching.')
     with st.expander('Suggested role skills ('+str(len(result.get('suggested_role_skills',[])))+')', expanded=True):
         st.write(', '.join(result.get('suggested_role_skills',[])) or 'No occupation suggestions available')
         st.caption('Matched in your resume: '+(', '.join(result.get('matched_suggested',[])) or 'None'))
@@ -49,8 +50,8 @@ def _display(result):
     st.download_button('Download HTML report',render_html_report(result),file_name='job-match-report.html',mime='text/html',key=f"html_{result.get('match_id', 'new')}")
 
 def job_match():
-    user=_user();page_header('OCCUPATION INTELLIGENCE', 'Job Match Studio', 'Compare your experience with a job title or employer description using local AI.', '◎')
-    st.caption('Automatic local AI · If Ollama is unavailable, available offline suggestions are used.')
+    user=_user();page_header('OCCUPATION INTELLIGENCE', 'Job Match Studio', 'Compare resume evidence to explicit job requirements with offline, explainable matching.', '◎')
+    st.caption('Zero-cost offline matching · Imported O*NET/ESCO skills when available · Not a certified ATS score')
     resumes=list_user_resumes(user['id'])
     if not resumes:st.warning('Upload your resume first.');return
     ids=[r['id'] for r in resumes]
@@ -60,12 +61,12 @@ def job_match():
     with st.form('job_compare_form'):
         title=st.text_input('Job title (optional if you paste a job description)',max_chars=150,placeholder='e.g. Customer Care Executive')
         description=st.text_area('Job description (optional; up to 30,000 characters)',height=230,max_chars=30000)
-        st.caption('Automatic Ollama: llama3.2:3b, then llama3.2:1b on failure. No checkbox needed.')
+        st.caption('No paid API and no local language model required.')
         weight=st.slider('Required skill weight',min_value=0.50,max_value=0.95,value=0.75,step=0.05)
         submit=st.form_submit_button('Compare and save',type='primary')
     if submit:
         try:
-            with st.spinner('Analyzing occupation with local Ollama (first response can take a few minutes)...'):
+            with st.spinner('Comparing resume evidence against the role requirements...'):
                 profile=analyze_occupation(title,description)
                 st.session_state['phase6_match']=save_job_match(user['id'],selected,title,description,
                     required_weight=round(weight,2),occupation_profile=profile)
@@ -85,7 +86,8 @@ def job_history():
 
 def career_finder():
     user=_user();page_header('CAREER DISCOVERY', 'AI Career Finder', 'Find career paths aligned with the skills and experience evidenced by your resume.', '✧')
-    st.caption('Local Ollama intelligence · Offline fallback where available')
+    st.caption('Evidence-ranked O*NET/ESCO careers · Works fully offline · Optional Gemini guidance with consent')
+    ai_opt_in = st.checkbox('Enable optional Gemini career guidance (sends matched skills and proposed roles to Google; free quota limits apply)', value=False)
     resumes=list_user_resumes(user['id'])
     if not resumes:st.warning('Upload your resume first.');return
     ids=[r['id'] for r in resumes]
@@ -95,12 +97,20 @@ def career_finder():
     if st.button('Find suitable careers',type='primary'):
         record=get_resume(user['id'],selected)
         if record is None:st.error('Resume not found.');return
-        with st.spinner('Finding career options with Ollama...'):
+        with st.spinner('Ranking careers from your local occupation catalog...'):
             try:st.session_state['career_results']=recommend_careers(record['extracted_text'])
             except ValueError as exc:st.error(str(exc));return
     data=st.session_state.get('career_results')
     if not data:return
-    if data.get('warning'):st.warning('Offline fallback used: '+data['warning'])
+    if data.get('warning'):st.warning(data['warning'])
+    if ai_opt_in and st.button('Generate optional Gemini learning guidance'):
+        try:
+            guide = explain_career_recommendations(data, consent=True)
+            st.session_state['career_gemini_guidance'] = guide
+        except GeminiUnavailable as error: st.warning(str(error))
+    if ai_opt_in and st.session_state.get('career_gemini_guidance'):
+        st.subheader('Optional Gemini guidance — verify independently')
+        st.json(st.session_state['career_gemini_guidance'])
     st.caption('Source: '+data['source']+' • '+data['disclaimer'])
     section_heading('Suggested career paths', 'Skills coverage is not a hiring probability or proof of eligibility')
     for job in data['jobs']:

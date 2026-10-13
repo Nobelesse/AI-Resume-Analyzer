@@ -8,7 +8,7 @@ PHASES = [
     ("03", "Authentication & database", "Admin/User permissions and local SQLite"),
     ("04", "Document processing", "2 MB PDF, DOCX, TXT, RTF and ODT uploads"),
     ("05", "Resume intelligence", "ATS-readiness review and skill extraction"),
-    ("06", "Career matching", "Job matching, Ollama and Career Finder"),
+    ("06", "Career matching", "Evidence-ranked career matching and Career Finder"),
     ("07", "Workspace dashboards", "Admin management, analytics and audit logs"),
     ("08", "Validation & release", "Regression tests, hardening and documentation"),
 ]

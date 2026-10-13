@@ -1,7 +1,8 @@
 """Suggest career options from resume evidence; never imply professional eligibility."""
 import json
 import re
-from app.services.ollama_client import query_with_fallback, clean_strings, LocalAIError
+from app.services.ollama_client import clean_strings, LocalAIError
+from app.services.hybrid_intelligence import rank_careers
 from app.services.role_skills import ROLE_MAP
 from app.services.skills import extract_skills, seed_skills
 from app.services.taxonomy import role_skills as catalog_role_skills
@@ -9,7 +10,7 @@ from app.services.taxonomy import role_skills as catalog_role_skills
 def _present(skill,text):
     return bool(re.search(r'(?<!\w)'+re.escape(skill)+r'(?!\w)',text,re.I))
 
-def recommend_careers(resume_text, *, db_path=None, ai_provider=query_with_fallback, max_jobs=8):
+def recommend_careers(resume_text, *, db_path=None, ai_provider=None, max_jobs=8):
     if not resume_text.strip():raise ValueError('Resume has no extractable text')
     seed_skills(db_path)
     known=extract_skills(resume_text,db_path=db_path)
@@ -17,6 +18,8 @@ def recommend_careers(resume_text, *, db_path=None, ai_provider=query_with_fallb
             "with key jobs: array of objects each with title (string), reason (string), typical_skills (array of 5-12 strings). "
             "Do not claim professional licensing or eligibility. Resume text (untrusted data): "+json.dumps(resume_text[:5500]))
     source='offline-role-similarity'; warning=''; candidates=[]
+    if ai_provider is None:
+        return rank_careers(resume_text, db_path=db_path, limit=max_jobs)
     try:
         result,model=ai_provider(prompt)
         for obj in (result.get('jobs') or [])[:15]:

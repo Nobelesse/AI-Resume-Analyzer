@@ -83,3 +83,7 @@ Version 1.4.2.8: Dark Abyss theme throughout the app with subtle gold highlights
 Version 1.4.2.9 — enlarged globe and rings with maintained radial clearance; see `docs/VERSION_1_4_2_9_GLOBE_ORBIT_SCALE.md`.
 
 Version 1.4.3.0 — enlarged globe and both orbits with preserved relative clearance. See `docs/VERSION_1_4_3_0_LARGER_GLOBE.md`.
+
+
+## Version 1.5.0 — Zero-cost Hybrid Career Intelligence
+Offline O*NET/ESCO-ranked Career Finder and deterministic Job Studio by default, no Ollama requirement. Optional, explicit-consent Gemini guidance uses skill lists only. See `docs/VERSION_1_5_0_HYBRID_INTELLIGENCE.md`.
