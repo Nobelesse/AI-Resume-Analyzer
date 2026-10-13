@@ -12,6 +12,64 @@ from app.services.role_skills import ROLE_MAP
 
 DISCLAIMER = 'Evidence-based skill coverage, not a hiring probability or a verified qualification.'
 
+# Controlled occupation domain evidence. These are ranking aids, NOT inferred
+# qualifications or a substitute for the source occupation catalog.
+DOMAIN_PROFILES = {
+    'software': {
+        'signals': ('fastapi','django','flask','rest api','sqlalchemy','postgresql','git','docker','backend','api development','software engineer','software developer','python developer','microservices','javascript','java','node.js'),
+        'titles': ('software','developer','programmer','web application','web developer','application engineer','webmaster','computer programmer','computer systems analyst'),
+    },
+    'data': {
+        'signals': ('data analyst','data analysis','power bi','tableau','pandas','data visualization','etl','data science','business intelligence','data modeling','statistics','power query','dax'),
+        'titles': ('data scientist','data analyst','business intelligence','data engineer','database','statistician','operations research analyst','business analyst','market research analyst'),
+    },
+    'marketing': {
+        'signals': ('marketing','seo','search engine optimization','content marketing','social media marketing','branding','advertising','google ads','email marketing','public relations','campaign'),
+        'titles': ('marketing','advertising','promotions','public relations','search marketing','market research','communications specialist'),
+    },
+}
+
+
+def _phrase_present(text, phrase):
+    return bool(re.search(r'(?<![\w])' + re.escape(phrase) + r'(?![\w])', text))
+
+
+def _domain_evidence(text, known):
+    corpus = text.casefold()
+    skill_text = ' '.join(known)
+    strengths = {}
+    for domain, profile in DOMAIN_PROFILES.items():
+        signals = [term for term in profile['signals'] if _phrase_present(corpus, term) or _phrase_present(skill_text, term)]
+        # Require at least two distinct signals; a single generic keyword does
+        # not establish a field. Scores reflect evidence only.
+        strengths[domain] = min(5, len(signals)) if len(signals) >= 2 else 0
+    return strengths
+
+
+def _occupation_domain(title):
+    title = title.casefold()
+    matches = []
+    for domain, profile in DOMAIN_PROFILES.items():
+        if any(term in title for term in profile['titles']):
+            matches.append(domain)
+    return matches
+
+
+def _ranking_score(title, skills, matched, strengths):
+    domains = _occupation_domain(title)
+    coverage = len(matched) / max(len(skills), 1)
+    breadth = min(len(matched) / 5, 1)
+    base = 0.6 * coverage + 0.4 * breadth
+    aligned = max((strengths.get(d, 0) for d in domains), default=0)
+    strongest = max(strengths.values(), default=0)
+    # No domain signal -> original catalog scoring behavior. With sufficient
+    # evidence, prioritize related career families over incidental overlap.
+    if strongest >= 2:
+        if aligned:
+            return round(100 * (0.42 * base + 0.58 * aligned / 5)), domains, 'aligned'
+        return round(100 * base * 0.24), domains, 'unconfirmed'
+    return round(100 * base), domains, 'undetermined'
+
 
 def _skill_keys(text, db_path=None):
     seed_skills(db_path)
@@ -28,6 +86,7 @@ def rank_careers(resume_text: str, *, db_path=None, limit=8):
     if not resume_text or not resume_text.strip():
         raise ValueError('Resume has no extractable text')
     known = _skill_keys(resume_text, db_path)
+    strengths = _domain_evidence(resume_text, known)
     bounded_limit = max(1, min(20, int(limit)))
     candidates = []
     if known:
@@ -70,7 +129,7 @@ def rank_careers(resume_text: str, *, db_path=None, limit=8):
                 # Avoid a one-of-one role outranking a role supported by many
                 # distinct resume skills. Still show observed coverage separately.
                 breadth = min(len(matched)/5, 1.0)
-                score = round(100 * (0.6 * coverage + 0.4 * breadth))
+                score, domains, alignment = _ranking_score(group['title'], skills, matched, strengths)
                 candidates.append((score, len(matched), group['title'].casefold(), {
                     'title': group['title'],
                     'reason': f"Matched {len(matched)} of {total} catalogued skills from {group['source']}. No eligibility decision was made.",
@@ -78,6 +137,7 @@ def rank_careers(resume_text: str, *, db_path=None, limit=8):
                     'skills_not_detected': missing[:25],
                     'skills_coverage': round(100*coverage),
                     'match_strength': score,
+                    'domain_alignment': alignment, 'occupation_domains': domains,
                     'matched_skill_count': len(matched),
                     'catalog_skill_count': total,
                     'eligibility': 'Education, experience and licensing not assessed.',
@@ -90,19 +150,20 @@ def rank_careers(resume_text: str, *, db_path=None, limit=8):
             matched = [skill for skill in skills if skill.casefold() in known]
             if matched:
                 coverage = len(matched)/len(skills)
-                score = round(100*(0.6*coverage + 0.4*min(len(matched)/5,1)))
+                score, domains, alignment = _ranking_score(title, skills, matched, strengths)
                 candidates.append((score,len(matched),title.casefold(),{
                     'title':title.title(), 'reason':'Matched explicitly detected resume skills from the curated role library.',
                     'skills_detected':matched, 'skills_not_detected':[s for s in skills if s not in matched],
                     'skills_coverage':round(100*coverage), 'match_strength':score,
                     'matched_skill_count':len(matched), 'catalog_skill_count':len(skills),
+                    'domain_alignment':alignment, 'occupation_domains':domains,
                     'eligibility':'Education, experience and licensing not assessed.',
                     'evidence_source':'curated-role-library'}))
         candidates.sort(key=lambda item:(-item[0],-item[1],item[2]))
     return {'jobs':[item[3] for item in candidates[:bounded_limit]],
             'resume_skills': sorted(known), 'source':source,
             'warning':'' if candidates else 'No corresponding catalog skills detected; add explicit project and skills evidence.',
-            'methodology':'60% explicit catalog skill coverage + 40% evidence breadth (up to five matched skills). Scores are ranking aids, not suitability probabilities.',
+            'methodology':'Catalog skill coverage and evidence breadth are combined with conservative occupation-family alignment when multiple domain-specific signals exist. Match strength is a ranking aid, not a suitability probability.',
             'disclaimer':DISCLAIMER}
 
 
