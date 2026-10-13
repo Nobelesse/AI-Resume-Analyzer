@@ -4,7 +4,7 @@ from app.config import APP_VERSION, MAX_RESUME_BYTES
 ROOT = Path(__file__).resolve().parents[1]
 
 def test_ui10_version_and_limit():
-    assert APP_VERSION == "1.4.2.8"
+    assert APP_VERSION == "1.4.2.9"
     assert MAX_RESUME_BYTES == 2_000_000
 
 def test_home_has_real_navigation_and_no_stale_copy():

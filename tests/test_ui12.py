@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_release_version_ui12():
-    assert APP_VERSION == "1.4.2.8"
+    assert APP_VERSION == "1.4.2.9"
 
 
 def test_sphere_component_asset_exists():

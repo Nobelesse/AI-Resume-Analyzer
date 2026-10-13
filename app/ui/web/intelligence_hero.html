@@ -55,8 +55,8 @@
   const spherePoints = [];
   let edges = [];
   const rings = [
-    {r:1.30, tiltX:0.94, tiltY:0.3, color:'rgba(173,150,215,.66)', core:'rgba(220,193,241,.91)', width:6.3, glow:24, speed: reduce ? 0 : .18},
-    {r:1.43, tiltX:.36, tiltY:1.14, color:'rgba(107,183,207,.64)', core:'rgba(220,190,122,.84)', width:5.0, glow:22, speed: reduce ? 0 : -.12}
+    {r:1.278, tiltX:0.94, tiltY:0.3, color:'rgba(173,150,215,.66)', core:'rgba(220,193,241,.91)', width:6.3, glow:24, speed: reduce ? 0 : .18},
+    {r:1.398, tiltX:.36, tiltY:1.14, color:'rgba(107,183,207,.64)', core:'rgba(220,190,122,.84)', width:5.0, glow:22, speed: reduce ? 0 : -.12}
   ];
   const satellites = [{ring:0,angle:.4,speed:reduce?0:.45,size:1.9,color:'rgba(192,165,255,.75)'}];
 
@@ -71,15 +71,15 @@
     const mobile = w < 780;
     // On desktop, frame the whole orb to the right of the headline.
     // Projection/tilt/orbits can expand the scene ~1.7x beyond its radius.
-    cx = w * (mobile ? 0.56 : 0.787);
+    cx = w * (mobile ? 0.56 : 0.765);
     cy = h * (mobile ? 0.745 : 0.50);
-    const orbitBound = 2.04;
+    const orbitBound = 2.08;
     scale = Math.max(12, Math.min(
       (cx - FRAME_PADDING) / orbitBound,
       (w - cx - FRAME_PADDING) / orbitBound,
       (cy - FRAME_PADDING) / orbitBound,
       (h - cy - FRAME_PADDING) / orbitBound,
-      h * (mobile ? 0.236 : 0.350)
+      h * (mobile ? 0.255 : 0.376)
     ));
     buildStars();
   }
