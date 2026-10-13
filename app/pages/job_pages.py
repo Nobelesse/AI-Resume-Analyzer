@@ -6,6 +6,7 @@ from app.database.resumes import list_user_resumes
 from app.database.job_matches import save_job_match,list_job_matches,get_job_match
 from app.services.occupation_ai import analyze_occupation
 from app.services.career_finder import recommend_careers
+from app.services.career_state import _career_selection_changed, _career_current_results
 from app.services.hybrid_intelligence import explain_career_recommendations, GeminiUnavailable
 from app.database.resumes import get_resume
 from app.services.reports import render_html_report,render_pdf_report
@@ -85,37 +86,71 @@ def job_history():
 
 
 def career_finder():
-    user=_user();page_header('CAREER DISCOVERY', 'AI Career Finder', 'Find career paths aligned with the skills and experience evidenced by your resume.', '✧')
+    user = _user()
+    page_header('CAREER DISCOVERY', 'AI Career Finder',
+                'Find career paths aligned with the skills and experience evidenced by your resume.', '✧')
     st.caption('Evidence-ranked O*NET/ESCO careers · Works fully offline · Optional Gemini guidance with consent')
-    ai_opt_in = st.checkbox('Enable optional Gemini career guidance (sends matched skills and proposed roles to Google; free quota limits apply)', value=False)
-    resumes=list_user_resumes(user['id'])
-    if not resumes:st.warning('Upload your resume first.');return
-    ids=[r['id'] for r in resumes]
+    ai_opt_in = st.checkbox(
+        'Enable optional Gemini career guidance (sends matched skills and proposed roles to Google; free quota limits apply)',
+        value=False)
+    resumes = list_user_resumes(user['id'])
+    if not resumes:
+        st.warning('Upload your resume first.')
+        return
+    ids = [row['id'] for row in resumes]
     step_label('01', 'Choose a resume for career discovery')
-    selected=st.selectbox('Resume to analyze',ids,format_func=lambda k:next(r['original_filename'] for r in resumes if r['id']==k),key='career_resume')
+    selected = st.selectbox('Resume to analyze', ids,
+                            format_func=lambda key: next(row['original_filename'] for row in resumes if row['id'] == key),
+                            key='career_resume')
+    changed = _career_selection_changed(st.session_state, user['id'], selected)
+    if changed:
+        st.caption('Resume changed. Click **Find suitable careers** to generate new recommendations.')
     step_label('02', 'Discover relevant career paths')
-    if st.button('Find suitable careers',type='primary'):
-        record=get_resume(user['id'],selected)
-        if record is None:st.error('Resume not found.');return
+    if st.button('Find suitable careers', type='primary'):
+        record = get_resume(user['id'], selected)
+        if record is None:
+            st.error('Resume not found.')
+            return
         with st.spinner('Ranking careers from your local occupation catalog...'):
-            try:st.session_state['career_results']=recommend_careers(record['extracted_text'])
-            except ValueError as exc:st.error(str(exc));return
-    data=st.session_state.get('career_results')
-    if not data:return
-    if data.get('warning'):st.warning(data['warning'])
+            try:
+                new_results = recommend_careers(record['extracted_text'])
+            except ValueError as exc:
+                st.session_state.pop('career_results', None)
+                st.error(str(exc))
+                return
+            st.session_state['career_results'] = new_results
+            st.session_state['career_result_identity'] = (str(user['id']), str(selected))
+            st.session_state.pop('career_gemini_guidance', None)
+    data = _career_current_results(st.session_state, user['id'], selected)
+    if data is None:
+        st.info('Choose your resume and click **Find suitable careers**. Previous resume results are cleared automatically.')
+        return
+    if data.get('warning'):
+        st.warning(data['warning'])
     if ai_opt_in and st.button('Generate optional Gemini learning guidance'):
         try:
-            guide = explain_career_recommendations(data, consent=True)
-            st.session_state['career_gemini_guidance'] = guide
-        except GeminiUnavailable as error: st.warning(str(error))
+            st.session_state['career_gemini_guidance'] = explain_career_recommendations(data, consent=True)
+        except GeminiUnavailable as error:
+            st.warning(str(error))
     if ai_opt_in and st.session_state.get('career_gemini_guidance'):
         st.subheader('Optional Gemini guidance — verify independently')
         st.json(st.session_state['career_gemini_guidance'])
-    st.caption('Source: '+data['source']+' • '+data['disclaimer'])
-    section_heading('Suggested career paths', 'Skills coverage is not a hiring probability or proof of eligibility')
+    st.caption('Source: ' + data['source'] + ' • ' + data['disclaimer'])
+    section_heading('Suggested career paths', 'Domain-aware rankings; catalog skill coverage is not a suitability probability')
     for job in data['jobs']:
-        with st.expander(job['title']+' — '+(str(job['skills_coverage'])+'% skill coverage' if job['skills_coverage'] is not None else 'skill coverage unavailable'),expanded=False):
+        title = job['title']
+        strength = job.get('match_strength')
+        label = title + (' — evidence ranking '+str(strength)+'/100' if strength is not None else '')
+        with st.expander(label, expanded=False):
             st.write(job['reason'])
-            st.write('**Detected:** '+(', '.join(job['skills_detected']) or 'None'))
-            st.write('**Not detected:** '+(', '.join(job['skills_not_detected']) or 'None'))
+            matched = job.get('skills_detected', [])
+            st.write('**Matched evidence (' + str(len(matched)) + '):** ' + (', '.join(matched) or 'None'))
+            st.write('**Not detected (sample):** ' + (', '.join(job.get('skills_not_detected', [])) or 'None'))
+            coverage = job.get('skills_coverage')
+            count = job.get('catalog_skill_count')
+            if coverage is not None:
+                st.caption(f'Raw catalog coverage: {coverage}% ({len(matched)} of {count or "unknown"} catalog skills). '
+                           'Catalog coverage is distinct from the evidence-ranking score and may be small for broad occupations.')
+            if job.get('domain_alignment'):
+                st.caption('Career-family alignment: ' + job['domain_alignment'])
             st.caption(job['eligibility'])

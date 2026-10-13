@@ -91,3 +91,5 @@ Offline O*NET/ESCO-ranked Career Finder and deterministic Job Studio by default,
 Version 1.5.1: evidence-ranked offline careers and transparent JD match methodology. See docs/VERSION_1_5_1_ACCURACY.md.
 
 Version 1.5.2: Career relevance repair with domain-aligned catalog ranking. See docs/VERSION_1_5_2_CAREER_RELEVANCE.md.
+
+Version 1.5.3: fixes stale career results on resume switches; distinguishes evidence ranking from raw skill coverage. See docs/VERSION_1_5_3_CAREER_STATE.md.

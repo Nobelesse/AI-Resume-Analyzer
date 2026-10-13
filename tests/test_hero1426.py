@@ -4,7 +4,7 @@ from app.config import APP_VERSION
 HTML = Path("app/ui/web/intelligence_hero.html")
 
 def test_version():
-    assert APP_VERSION == "1.5.2"
+    assert APP_VERSION == "1.5.3"
 
 def test_fast_closed_orbits():
     html = HTML.read_text(encoding="utf-8")
