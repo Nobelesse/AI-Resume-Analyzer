@@ -148,8 +148,9 @@ def career_finder():
             if parts:
                 st.caption('Ranking contributions (points): ' + ', '.join(f'{name.replace("_", " ")}: {value}' for name, value in parts.items()))
             matched = job.get('skills_detected', [])
-            st.write('**Matched evidence (' + str(len(matched)) + '):** ' + (', '.join(matched) or 'None'))
-            st.write('**Not detected (sample):** ' + (', '.join(job.get('skills_not_detected', [])) or 'None'))
+            st.write('**Matched catalog terms (' + str(len(matched)) + '):** ' + (', '.join(matched) or 'None'))
+            st.caption('Higher-signal technical/domain evidence: ' + (', '.join(job.get('high_signal_skills', [])) or 'Not identified'))
+            st.write('**Potential learning topics (not verified job requirements):** ' + (', '.join(job.get('skills_not_detected', [])) or 'None'))
             coverage = job.get('skills_coverage')
             count = job.get('catalog_skill_count')
             if coverage is not None:

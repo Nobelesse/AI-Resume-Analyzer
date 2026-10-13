@@ -9,6 +9,7 @@ from app.database.connection import connect
 from app.services.skills import extract_skills, seed_skills
 from app.services.taxonomy import ensure_tables
 from app.services.role_skills import ROLE_MAP
+from app.services.career_intelligence155 import evidence_weight, occupation_focus, useful_gaps
 
 DISCLAIMER = 'Evidence-based skill coverage, not a hiring probability or a verified qualification.'
 
@@ -68,7 +69,7 @@ def _ranking_score(title, skills, matched, strengths):
     coverage = (matched_count / total) * min(1.0, matched_count / 3.0)
     breadth = min(matched_count / 8, 1.0)
     # Distinct title-specific overlap matters even for large O*NET skill sets.
-    rarity_adjusted = sum(1.0 / (1.0 + 0.025 * (len(skill))) for skill in matched) / 8
+    rarity_adjusted = sum(evidence_weight(skill) / (1.0 + 0.025 * len(skill)) for skill in matched) / 8
     rarity_adjusted = min(1.0, rarity_adjusted)
     aligned = max((strengths.get(d, 0) for d in domains), default=0)
     strongest = max(strengths.values(), default=0)
@@ -145,11 +146,15 @@ def rank_careers(resume_text: str, *, db_path=None, limit=8):
                 # distinct resume skills. Still show observed coverage separately.
                 breadth = min(len(matched)/5, 1.0)
                 score, domains, alignment, breakdown = _ranking_score(group['title'], skills, matched, strengths)
+                # An intentionally modest tie-breaker; evidence still determines the main rank.
+                focus = occupation_focus(group['title'], resume_text)
+                score = round(min(100, score + 2.0 * focus), 1)
+                breakdown['resume_role_context'] = round(2.0 * focus, 2)
                 candidates.append((score, len(matched), group['title'].casefold(), {
                     'title': group['title'],
                     'reason': f"Matched {len(matched)} of {total} catalogued skills from {group['source']}. No eligibility decision was made.",
-                    'skills_detected': matched,
-                    'skills_not_detected': missing[:25],
+                    'skills_detected': matched, 'high_signal_skills': [s for s in matched if evidence_weight(s) >= 0.9],
+                    'skills_not_detected': useful_gaps(skills, matched),
                     'skills_coverage': round(100*coverage),
                     'match_strength': score, 'score_breakdown': breakdown,
                     'domain_alignment': alignment, 'occupation_domains': domains,
@@ -178,7 +183,7 @@ def rank_careers(resume_text: str, *, db_path=None, limit=8):
     return {'jobs':[item[3] for item in candidates[:bounded_limit]],
             'resume_skills': sorted(known), 'source':source,
             'warning':'' if candidates else 'No corresponding catalog skills detected; add explicit project and skills evidence.',
-            'methodology':'Occupation-specific catalog skill coverage (48%), matched skill breadth (30%), specific skill evidence (10%) and bounded career-family alignment (up to 12%). Missing qualifications are not assumed. Ranking is heuristic, not a hiring probability.',
+            'methodology':'Occupation catalog coverage (48%), matched skill breadth (30%), specificity-weighted evidence (10%), career-family alignment (up to 12 points), and a bounded 2-point stated-role tie-break. Missing skills are unverified learning ideas, not mandatory requirements. No education or seniority inference. Heuristic ranking, not a hiring probability.',
             'disclaimer':DISCLAIMER}
 
 
