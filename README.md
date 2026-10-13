@@ -81,3 +81,5 @@ Version 1.4.2.7 — faster independent closed orbit rendering, see docs/VERSION_
 Version 1.4.2.8: Dark Abyss theme throughout the app with subtle gold highlights and optimized wider hero orbits. See docs/VERSION_1_4_2_8_DARK_ABYSS.md.
 
 Version 1.4.2.9 — enlarged globe and rings with maintained radial clearance; see `docs/VERSION_1_4_2_9_GLOBE_ORBIT_SCALE.md`.
+
+Version 1.4.3.0 — enlarged globe and both orbits with preserved relative clearance. See `docs/VERSION_1_4_3_0_LARGER_GLOBE.md`.
