@@ -7,7 +7,7 @@ from app.database.job_matches import save_job_match,list_job_matches,get_job_mat
 from app.services.occupation_ai import analyze_occupation
 from app.services.career_finder import recommend_careers
 from app.services.career_state import _career_selection_changed, _career_current_results
-from app.services.hybrid_intelligence import explain_career_recommendations, GeminiUnavailable
+from app.services.hybrid_intelligence import explain_career_recommendations, GeminiUnavailable, gemini_connection_status
 from app.database.resumes import get_resume
 from app.services.reports import render_html_report,render_pdf_report
 from app.ui.workspace import page_header, step_label, section_heading
@@ -90,6 +90,7 @@ def career_finder():
     page_header('CAREER DISCOVERY', 'AI Career Finder',
                 'Find career paths aligned with the skills and experience evidenced by your resume.', '✧')
     st.caption('Evidence-ranked O*NET/ESCO careers · Works fully offline · Optional Gemini guidance with consent')
+    st.caption(gemini_connection_status()['message'])
     ai_opt_in = st.checkbox(
         'Enable optional Gemini career guidance (sends matched skills and proposed roles to Google; free quota limits apply)',
         value=False)
@@ -140,9 +141,12 @@ def career_finder():
     for job in data['jobs']:
         title = job['title']
         strength = job.get('match_strength')
-        label = title + (' — evidence ranking '+str(strength)+'/100' if strength is not None else '')
+        label = title + (' — evidence ranking '+str(round(strength, 1))+'/100' if strength is not None else '')
         with st.expander(label, expanded=False):
             st.write(job['reason'])
+            parts = job.get('score_breakdown') or {}
+            if parts:
+                st.caption('Ranking contributions (points): ' + ', '.join(f'{name.replace("_", " ")}: {value}' for name, value in parts.items()))
             matched = job.get('skills_detected', [])
             st.write('**Matched evidence (' + str(len(matched)) + '):** ' + (', '.join(matched) or 'None'))
             st.write('**Not detected (sample):** ' + (', '.join(job.get('skills_not_detected', [])) or 'None'))
