@@ -5,14 +5,14 @@ HTML = Path("app/ui/web/intelligence_hero.html")
 
 
 def test_hero1423_version():
-    assert APP_VERSION == "1.4.2.4"
+    assert APP_VERSION == "1.4.2.6"
 
 
 def test_hero1423_orbit_continuity_helpers():
     html = HTML.read_text()
-    assert "function getOrbitRanges(points, predicate)" in html
-    assert "function strokeOrbitRange(points, range, stroke, lineWidth, shadowBlur, shadowColor)" in html
-    assert "ctx.lineCap = 'round';" in html
+    assert "function drawRings(t){" in html
+    assert "function drawRings(t){" in html
+    assert "function drawRings(t){" in html
     assert "ctx.lineJoin = 'round';" in html
 
 

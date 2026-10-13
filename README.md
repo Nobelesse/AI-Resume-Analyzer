@@ -71,3 +71,9 @@ Admin users can open **Skills Catalog** for source-specific catalog statistics. 
 UI 1.4.2.4: full-sphere camera framing, improved depth and cinematic motion. See `docs/VERSION_1_4_1_4_HERO.md`.
 
 See `docs/VERSION_1_4_2_VISUAL.md` for the 1.4.2.4 hero refinements.
+
+
+Version 1.4.2.5: true continuous orbit rendering for the cinematic hero, removing visible orbit breaks while preserving the dark-space UI. See `docs/VERSION_1_4_2_5_TRUE_CONTINUOUS_ORBIT.md`.
+
+
+Version 1.4.2.6 — faster independent closed orbit rendering, see docs/VERSION_1_4_2_6_PERFORMANCE.md.
