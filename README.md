@@ -87,3 +87,5 @@ Version 1.4.3.0 — enlarged globe and both orbits with preserved relative clear
 
 ## Version 1.5.0 — Zero-cost Hybrid Career Intelligence
 Offline O*NET/ESCO-ranked Career Finder and deterministic Job Studio by default, no Ollama requirement. Optional, explicit-consent Gemini guidance uses skill lists only. See `docs/VERSION_1_5_0_HYBRID_INTELLIGENCE.md`.
+
+Version 1.5.1: evidence-ranked offline careers and transparent JD match methodology. See docs/VERSION_1_5_1_ACCURACY.md.

@@ -19,56 +19,91 @@ def _skill_keys(text, db_path=None):
 
 
 def rank_careers(resume_text: str, *, db_path=None, limit=8):
+    """Rank catalog roles with explicit matches, conservative coverage, and evidence.
+
+    We never infer education/licensing or predict hiring probability. The database
+    query fetches only occupations linked to detected skills rather than loading
+    every relation into application memory.
+    """
     if not resume_text or not resume_text.strip():
         raise ValueError('Resume has no extractable text')
     known = _skill_keys(resume_text, db_path)
+    bounded_limit = max(1, min(20, int(limit)))
     candidates = []
-    with connect(db_path) as db:
-        ensure_tables(db)
-        # Avoid 70k Python-side link scans: aggregate candidates in SQLite.
-        rows = db.execute("""SELECT o.id, o.name, o.source, s.name AS skill
-            FROM tax_occupations o JOIN tax_links l ON l.occupation_id=o.id
-            JOIN tax_skills s ON s.id=l.skill_id
-            ORDER BY o.id, s.normalized""").fetchall()
-    groups = {}
-    for row in rows:
-        name = row['name']
-        grp = groups.setdefault(row['id'], {'title': name, 'source': row['source'], 'skills': set()})
-        grp['skills'].add(row['skill'])
-    for group in groups.values():
-        skills = sorted(group['skills'], key=str.casefold)
-        matched = [s for s in skills if s.casefold() in known]
-        if not matched:
-            continue
-        # Coverage plus matching evidence, with a small specificity boost.
-        ratio = len(matched) / len(skills)
-        relevance = round(100 * (0.8 * ratio + 0.2 * min(len(matched)/6, 1)))
-        candidates.append((relevance, len(matched), group['title'], {
-            'title': group['title'],
-            'reason': f"Matched {len(matched)} of {len(skills)} catalogued skills from {group['source']}. These are occupation associations, not guaranteed job requirements.",
-            'skills_detected': matched,
-            'skills_not_detected': [s for s in skills if s not in matched][:25],
-            'skills_coverage': round(ratio * 100),
-            'eligibility': 'Not assessed: education, experience, and licensing must be reviewed separately.',
-            'evidence_source': group['source'],
-        }))
-    candidates.sort(key=lambda item: (-item[0], -item[1], item[2].casefold()))
+    if known:
+        with connect(db_path) as db:
+            ensure_tables(db)
+            # Query in batches to respect SQLite bind-parameter limits.
+            found = {}
+            keys = sorted(known)
+            for pos in range(0, len(keys), 400):
+                batch = keys[pos:pos+400]
+                marks = ','.join('?' for _ in batch)
+                rows = db.execute(f"""SELECT o.id, o.name, o.source,
+                    s.name AS skill, s.normalized AS skill_key
+                    FROM tax_skills s
+                    JOIN tax_links l ON l.skill_id = s.id
+                    JOIN tax_occupations o ON o.id = l.occupation_id
+                    WHERE s.normalized IN ({marks})""", batch).fetchall()
+                for row in rows:
+                    record = found.setdefault(row['id'], {
+                        'title': row['name'], 'source': row['source'], 'matched': set()})
+                    record['matched'].add(row['skill'])
+            if found:
+                ids = list(found)
+                for pos in range(0, len(ids), 400):
+                    batch = ids[pos:pos+400]
+                    marks = ','.join('?' for _ in batch)
+                    rows = db.execute(f"""SELECT l.occupation_id, s.name
+                        FROM tax_links l JOIN tax_skills s ON s.id=l.skill_id
+                        WHERE l.occupation_id IN ({marks})""", batch).fetchall()
+                    for row in rows:
+                        found[row['occupation_id']].setdefault('skills', set()).add(row['name'])
+            for group in found.values():
+                skills = group.get('skills', set())
+                matched = sorted(group['matched'], key=str.casefold)
+                missing = sorted(skills - group['matched'], key=str.casefold)
+                total = len(skills)
+                if total == 0:
+                    continue
+                coverage = len(matched)/total
+                # Avoid a one-of-one role outranking a role supported by many
+                # distinct resume skills. Still show observed coverage separately.
+                breadth = min(len(matched)/5, 1.0)
+                score = round(100 * (0.6 * coverage + 0.4 * breadth))
+                candidates.append((score, len(matched), group['title'].casefold(), {
+                    'title': group['title'],
+                    'reason': f"Matched {len(matched)} of {total} catalogued skills from {group['source']}. No eligibility decision was made.",
+                    'skills_detected': matched,
+                    'skills_not_detected': missing[:25],
+                    'skills_coverage': round(100*coverage),
+                    'match_strength': score,
+                    'matched_skill_count': len(matched),
+                    'catalog_skill_count': total,
+                    'eligibility': 'Education, experience and licensing not assessed.',
+                    'evidence_source': group['source'],
+                }))
+    candidates.sort(key=lambda item: (-item[0], -item[1], item[2]))
     source = 'ONET/ESCO-imported-catalog' if candidates else 'curated-offline-catalog'
     if not candidates:
         for title, skills in ROLE_MAP.items():
             matched = [skill for skill in skills if skill.casefold() in known]
             if matched:
-                candidates.append((len(matched),len(matched),title,{
-                    'title': title.title(), 'reason': 'Matched skills from the curated offline role library.',
-                    'skills_detected': matched, 'skills_not_detected': [s for s in skills if s not in matched],
-                    'skills_coverage': round(100*len(matched)/len(skills)),
-                    'eligibility':'Education, experience, and licensing not assessed.',
-                    'evidence_source':'curated-role-library',
-                }))
-        candidates.sort(key=lambda item: (-item[0],-item[1],item[2]))
-    return {'jobs':[item[3] for item in candidates[:max(1,min(20,limit))]],
-            'resume_skills': sorted(known), 'source': source, 'warning': '' if candidates else 'No relevant skills detected in the catalog.',
-            'disclaimer': DISCLAIMER}
+                coverage = len(matched)/len(skills)
+                score = round(100*(0.6*coverage + 0.4*min(len(matched)/5,1)))
+                candidates.append((score,len(matched),title.casefold(),{
+                    'title':title.title(), 'reason':'Matched explicitly detected resume skills from the curated role library.',
+                    'skills_detected':matched, 'skills_not_detected':[s for s in skills if s not in matched],
+                    'skills_coverage':round(100*coverage), 'match_strength':score,
+                    'matched_skill_count':len(matched), 'catalog_skill_count':len(skills),
+                    'eligibility':'Education, experience and licensing not assessed.',
+                    'evidence_source':'curated-role-library'}))
+        candidates.sort(key=lambda item:(-item[0],-item[1],item[2]))
+    return {'jobs':[item[3] for item in candidates[:bounded_limit]],
+            'resume_skills': sorted(known), 'source':source,
+            'warning':'' if candidates else 'No corresponding catalog skills detected; add explicit project and skills evidence.',
+            'methodology':'60% explicit catalog skill coverage + 40% evidence breadth (up to five matched skills). Scores are ranking aids, not suitability probabilities.',
+            'disclaimer':DISCLAIMER}
 
 
 class GeminiUnavailable(Exception):

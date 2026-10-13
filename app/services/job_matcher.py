@@ -88,6 +88,7 @@ def compare_resume_to_job(resume_text: str, description: str, *,db_path=None,req
     if not required and not preferred and not suggested:explanations.append('Role not recognized in the offline catalog. Paste a detailed job description or optionally use a locally installed Ollama model for suggestions.')
     explanations.append('Missing skills mean not detected in the document, not proof the candidate lacks them.')
     return {'match_score':overall,'similarity_score':round(similarity*100), 'skill_match_score':round(skill_score*100) if skill_score is not None else None,
+      'scoring_methodology':'70% explicit skill match / 30% lexical similarity; missing required skills are shown separately. Not employer ATS scoring.', 'scoring_basis':'employer-stated' if status=='explicit-description' else 'occupation-suggestions',
       'required_weight':required_weight,'resume_skills':sorted(candidate),'required_skills':sorted(required),'preferred_skills':sorted(preferred),
       'matched_required':matched_required,'missing_required':missing_required,'matched_preferred':matched_preferred,'missing_preferred':missing_preferred,
       'suggested_role_skills':sorted(suggested),'matched_suggested':suggested_matched,'missing_suggested':suggested_missing,
