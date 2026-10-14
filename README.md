@@ -102,3 +102,6 @@ Version 1.5.5 — Conservative skill quality and occupational relevance; see doc
 Version 1.5.6: occupation-aware catalog-grounded optional learning topics; see docs/VERSION_1_5_6_LEARNING_PRIORITIES.md.
 
 Version 1.5.7: job description evidence and truthful improvement guidance (docs/VERSION_1_5_7_JOB_STUDIO.md).
+
+
+Version 1.5.7.1: confidence-aware multi-domain Career Finder filtering. See docs/VERSION_1_5_7_1_RELIABILITY.md.

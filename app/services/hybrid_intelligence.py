@@ -28,6 +28,26 @@ DOMAIN_PROFILES = {
         'signals': ('marketing','seo','search engine optimization','content marketing','social media marketing','branding','advertising','google ads','email marketing','public relations','campaign'),
         'titles': ('marketing','advertising','promotions','public relations','search marketing','market research','communications specialist'),
     },
+    'accounting': {
+        'signals': ('accounting','bookkeeping','billing','accounts payable','accounts receivable','financial reporting','invoice','taxation'),
+        'titles': ('accounting','bookkeeping','bookkeeper','billing','payroll','financial clerk','accounts','tax preparer'),
+    },
+    'customer_service': {
+        'signals': ('customer service','customer support','call handling','complaint resolution','customer care','customer relations','client service'),
+        'titles': ('customer service','customer support','customer representative','customer contact','receptionist','information clerk'),
+    },
+    'administration': {
+        'signals': ('data entry','office assistant','office administration','administrative assistant','word processing','ms word','microsoft word','excel','office clerk','clerical'),
+        'titles': ('office clerk','administrative assistant','administrative support','data entry','secretar','office assistant','receptionist','information clerk'),
+    },
+    'it_support': {
+        'signals': ('computer knowledge','basic computer','computer support','technical support','it support','troubleshooting','computer applications','computer hardware','bca','mca'),
+        'titles': ('computer user support','computer network support','help desk','technical support','computer support','information technology support'),
+    },
+    'web_entry': {
+        'signals': ('html','css','web design','web development','front end','frontend','web page'),
+        'titles': ('web developer','web designer','webmaster','web and digital interface'),
+    },
 }
 
 
@@ -150,6 +170,13 @@ def rank_careers(resume_text: str, *, db_path=None, limit=8):
                 focus = occupation_focus(group['title'], resume_text)
                 score = round(min(100, score + 2.0 * focus), 1)
                 breakdown['resume_role_context'] = round(2.0 * focus, 2)
+                # A few generic catalog overlaps must never be converted into
+                # unrelated career advice. Strong domain evidence or multiple
+                # concrete occupation matches are necessary before display.
+                concrete = [term for term in matched if evidence_weight(term) >= 0.9]
+                has_domain = alignment == 'aligned'
+                if (not has_domain and (len(concrete) < 2 or score < 20)) or score < 12:
+                    continue
                 candidates.append((score, len(matched), group['title'].casefold(), {
                     'title': group['title'],
                     'reason': f"Matched {len(matched)} of {total} catalogued skills from {group['source']}. No eligibility decision was made.",
@@ -169,7 +196,7 @@ def rank_careers(resume_text: str, *, db_path=None, limit=8):
     if not candidates:
         for title, skills in ROLE_MAP.items():
             matched = [skill for skill in skills if skill.casefold() in known]
-            if matched:
+            if len(matched) >= 2:
                 coverage = len(matched)/len(skills)
                 score, domains, alignment, breakdown = _ranking_score(title, skills, matched, strengths)
                 candidates.append((score,len(matched),title.casefold(),{
@@ -183,8 +210,8 @@ def rank_careers(resume_text: str, *, db_path=None, limit=8):
         candidates.sort(key=lambda item:(-item[0],-item[1],item[2]))
     return {'jobs':[item[3] for item in candidates[:bounded_limit]],
             'resume_skills': sorted(known), 'source':source,
-            'warning':'' if candidates else 'No corresponding catalog skills detected; add explicit project and skills evidence.',
-            'methodology':'Occupation catalog coverage (48%), matched skill breadth (30%), specificity-weighted evidence (10%), career-family alignment (up to 12 points), and a bounded 2-point stated-role tie-break. Learning topics use field-specific priorities when listed in the occupation catalog; absence from a resume does not prove missing proficiency. No education or seniority inference. Heuristic ranking, not a hiring probability.',
+            'warning':'' if candidates else 'Insufficient occupation-specific evidence for reliable career recommendations. Add relevant skills, projects, or experience; no unrelated careers will be suggested.',
+            'methodology':'Low-evidence and unrelated occupations are filtered. Occupation catalog coverage (48%), matched skill breadth (30%), specificity-weighted evidence (10%), career-family alignment (up to 12 points), and a bounded 2-point stated-role tie-break. Learning topics use field-specific priorities when listed in the occupation catalog; absence from a resume does not prove missing proficiency. No education or seniority inference. Heuristic ranking, not a hiring probability.',
             'disclaimer':DISCLAIMER}
 
 

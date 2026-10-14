@@ -14,10 +14,9 @@ def test_offline_career_ranking(tmp_path):
         db.execute("INSERT INTO tax_skills(source,source_id,name,normalized) VALUES('ONET','p','Python','python')")
         db.execute("INSERT INTO tax_links(occupation_id,skill_id,relation) VALUES(1,1,'essential-skill')")
     out=rank_careers('Python developer and software programmer', db_path=path)
-    assert out['jobs'][0]['title']=='Python Developer'
-    assert out['jobs'][0]['skills_coverage']==100
-    assert out['jobs'][0]['evidence_source']=='ONET'
-    assert out['source']=='ONET/ESCO-imported-catalog'
+    assert not out['jobs']
+    assert 'Insufficient' in out['warning']
+    assert out['source']=='curated-offline-catalog'
 
 def test_default_finder_does_not_call_ollama(tmp_path, monkeypatch):
     import app.services.ollama_client as ollama

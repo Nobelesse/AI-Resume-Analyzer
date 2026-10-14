@@ -37,14 +37,16 @@ def test_data_analyst_over_biofuels(tmp_path):
     path=tmp_path/'roles.sqlite3'; _db(path)
     result=rank_careers('Data Analyst: Python SQL Pandas Power BI Tableau statistics data visualization',db_path=path)
     titles=[r['title'] for r in result['jobs']]
-    assert titles.index('Data Scientists') < titles.index('Biofuels Processing Technicians')
+    assert 'Data Scientists' in titles
+    assert 'Biofuels Processing Technicians' not in titles
 
 
 def test_marketing_domain_over_producers(tmp_path):
     path=tmp_path/'roles.sqlite3'; _db(path)
     result=rank_careers('Digital Marketing SEO Search Engine Optimization Google Analytics marketing analytics and content marketing, project management, communication',db_path=path)
     titles=[r['title'] for r in result['jobs']]
-    assert titles.index('Search Marketing Strategists') < titles.index('Producers and Directors')
+    assert 'Search Marketing Strategists' in titles
+    assert 'Producers and Directors' not in titles
 
 
 def test_coverage_remains_factual(tmp_path):
