@@ -100,3 +100,5 @@ Version 1.5.4: occupation-specific score contributions and Gemini configuration 
 Version 1.5.5 — Conservative skill quality and occupational relevance; see docs/VERSION_1_5_5_SKILL_QUALITY.md.
 
 Version 1.5.6: occupation-aware catalog-grounded optional learning topics; see docs/VERSION_1_5_6_LEARNING_PRIORITIES.md.
+
+Version 1.5.7: job description evidence and truthful improvement guidance (docs/VERSION_1_5_7_JOB_STUDIO.md).

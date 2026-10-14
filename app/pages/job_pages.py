@@ -23,6 +23,26 @@ def _display(result):
     st.metric('Estimated job match',f"{result['match_score']} / 100")
     st.progress(min(100, max(0, int(result['match_score']))) / 100)
     st.caption(result['disclaimer'])
+    st.caption(result.get('scoring_methodology', 'Heuristic comparison.'))
+    evidence=result.get('requirement_evidence', [])
+    if evidence:
+        st.subheader('Job-description requirements and resume evidence')
+        st.caption('Evidence means a named skill appears in the uploaded resume. Experience, certifications, education and proficiency are not verified.')
+        required_rows=[r for r in evidence if r['priority']=='required']
+        preferred_rows=[r for r in evidence if r['priority']=='preferred']
+        st.caption(f"{len(required_rows)} required lines · {len(preferred_rows)} preferred lines")
+        for category,rows in [('Required',required_rows),('Preferred',preferred_rows)]:
+            with st.expander(f'{category} requirements ({len(rows)})', expanded=(category=='Required')):
+                for row in rows:
+                    st.markdown(f"**{row['text']}**")
+                    st.caption('Status: '+row['status'].replace('-', ' ') +
+                               ' · Found: '+(', '.join(row['matched']) or 'None')+
+                               ' · Not found: '+(', '.join(row['not_found']) or 'None') )
+    improvements=result.get('improvement_suggestions', [])
+    if improvements:
+        with st.expander('Truthful resume improvement opportunities',expanded=True):
+            for item in improvements:st.write('• '+item)
+
     if result.get('requirements_status') == 'title-suggestions':
         st.info('These are typical skills suggested for this role, NOT confirmed requirements from an employer.')
     elif result.get('requirements_status') == 'unrecognized-role':
@@ -73,7 +93,8 @@ def job_match():
                     required_weight=round(weight,2),occupation_profile=profile)
         except (ValueError,PermissionError) as exc:st.error(str(exc));return
     result=st.session_state.get('phase6_match')
-    if result: _display(result)
+    if result and str(result.get('resume_id')) == str(selected): _display(result)
+    elif result: st.info('Selected resume changed. Compare and save to generate new results.')
 
 def job_history():
     user=_user();page_header('YOUR HISTORY', 'Saved Job Comparisons', 'Review comparisons and download your previous reports.', '▤')

@@ -39,6 +39,60 @@ def split_requirements(description: str) -> tuple[str,str]:
         (preferred if current=='preferred' else required).append(content)
     return '\n'.join(required),'\n'.join(preferred)
 
+# Requirement extraction is deterministic, explainable, and deliberately conservative.
+# "Not found" means missing document evidence, not missing candidate competence.
+REQUIRED_CUES = re.compile(r"\b(must have|required|essential|minimum|mandatory|need to|you will need)\b", re.I)
+PREFERRED_CUES = re.compile(r"\b(preferred|nice[ -]to[ -]have|bonus|desirable|plus|advantageous)\b", re.I)
+SECTION_HEADER = re.compile(r"^(?:required|requirements|minimum qualifications|must.have|essential|preferred|preferred qualifications|nice.to.have|bonus|desirable|optional)(?: skills| qualifications| experience)?\s*:?$", re.I)
+
+
+def requirement_evidence(description: str, candidate: set[str], *, db_path=None) -> list[dict]:
+    """One auditable row per JD line, keeping required/preferred boundaries.
+
+    Sections are more authoritative than inline cues; ambiguous lines default to
+    required rather than silently treating requirements as optional.
+    """
+    results=[]
+    section='required'
+    for raw in description.splitlines():
+        line=re.sub(r'^\s*(?:[-*•]|\d+[.)])\s*', '', raw).strip()
+        if not line:continue
+        header=SECTION_HEADER.fullmatch(line)
+        if header:
+            section='preferred' if PREFERRED_CUES.search(line) else 'required'
+            continue
+        inline_required=bool(REQUIRED_CUES.search(line))
+        inline_preferred=bool(PREFERRED_CUES.search(line))
+        priority='required' if inline_required else 'preferred' if inline_preferred else section
+        detected=sorted(set(extract_skills(line,db_path=db_path)))
+        matched=sorted(set(detected)&candidate)
+        missing=sorted(set(detected)-candidate)
+        if re.search(r'\b(certificat(?:e|ion)|licen[sc]e|\d+\+?\s*years?|degree|bachelor|master|diploma)\b',line,re.I):
+            state='unverified'
+        elif not detected:
+            state='unverified'
+        elif missing:
+            state='partial' if matched else 'not-found'
+        else:
+            state='evidenced'
+        results.append({'text':line[:500], 'priority':priority,'skills':detected,
+                        'matched':matched,'not_found':missing,'status':state})
+    return results[:120]
+
+
+def truthful_improvements(rows: list[dict], *, max_items:int=6) -> list[str]:
+    """Suggestions are limited to content and evidence, never fabricated claims."""
+    suggestions=[]
+    for row in sorted(rows,key=lambda r:0 if r['priority']=='required' else 1):
+        if row['status'] in ('not-found','partial'):
+            topic=', '.join(row['not_found'][:3])
+            suggestions.append(f"If you have experience with {topic}, describe a specific project or result that demonstrates it. Otherwise consider learning it.")
+        elif row['status']=='unverified' and len(row['text'])>12:
+            suggestions.append('Review this requirement manually and add only verifiable evidence: '+row['text'][:95])
+        if len(suggestions)>=max_items:break
+    return suggestions
+
+
 def compare_resume_to_job(resume_text: str, description: str, *,db_path=None,required_weight:float=0.75, job_title:str="", use_local_ai:bool=False, ollama_model:str="llama3.2", occupation_profile=None) -> dict:
     if not resume_text.strip():raise ValueError('Resume has no extractable text')
     if len(description)>30000:raise ValueError('Job description cannot exceed 30,000 characters')
@@ -78,9 +132,12 @@ def compare_resume_to_job(resume_text: str, description: str, *,db_path=None,req
     elif req_score is None:skill_score=pref_score
     elif pref_score is None:skill_score=req_score
     else:skill_score=required_weight*req_score+(1-required_weight)*pref_score
+    evidence=requirement_evidence(description,candidate,db_path=db_path)
     similarity=cosine_similarity(resume_text,description or job_title)
     overall=round(100*(0.7*skill_score+0.3*similarity)) if skill_score is not None else round(similarity*100)
     explanations=[]
+    if any(r['status']=='unverified' for r in evidence):
+        explanations.append('Some non-skill requirements could not be evaluated automatically; review experience, education and responsibilities manually.')
     if missing_required:explanations.append('Required skills not explicitly found: '+', '.join(missing_required[:15]))
     if matched_required:explanations.append('Required skills recognized in the resume: '+', '.join(matched_required[:15]))
     if missing_preferred:explanations.append('Optional skills not explicitly found: '+', '.join(missing_preferred[:15]))
@@ -88,9 +145,12 @@ def compare_resume_to_job(resume_text: str, description: str, *,db_path=None,req
     if not required and not preferred and not suggested:explanations.append('Role not recognized in the offline catalog. Paste a detailed job description or optionally use a locally installed Ollama model for suggestions.')
     explanations.append('Missing skills mean not detected in the document, not proof the candidate lacks them.')
     return {'match_score':overall,'similarity_score':round(similarity*100), 'skill_match_score':round(skill_score*100) if skill_score is not None else None,
-      'scoring_methodology':'70% explicit skill match / 30% lexical similarity; missing required skills are shown separately. Not employer ATS scoring.', 'scoring_basis':'employer-stated' if status=='explicit-description' else 'occupation-suggestions',
+      'scoring_methodology':'70% detected skill overlap / 30% lexical similarity; requirement rows marked unverified are not assessed. Not employer ATS scoring.', 'scoring_basis':'employer-stated' if status=='explicit-description' else 'occupation-suggestions',
       'required_weight':required_weight,'resume_skills':sorted(candidate),'required_skills':sorted(required),'preferred_skills':sorted(preferred),
       'matched_required':matched_required,'missing_required':missing_required,'matched_preferred':matched_preferred,'missing_preferred':missing_preferred,
       'suggested_role_skills':sorted(suggested),'matched_suggested':suggested_matched,'missing_suggested':suggested_missing,
       'inference_source':role['source'] if catalog_preferred else (occupation_profile['source'] if occupation_profile else role['source']),'inference_confidence':role['confidence'],'requirements_status':status,
-      'occupation_profile':occupation_profile or {},'explanations':explanations,'disclaimer':'Heuristic estimate. Suggested role skills are not employer-confirmed requirements; not a hiring decision or certified ATS score.'}
+      'occupation_profile':occupation_profile or {},'explanations':explanations,
+      'requirement_evidence':evidence,'improvement_suggestions':truthful_improvements(evidence),
+      'required_requirements_count':sum(r['priority']=='required' for r in evidence),
+      'preferred_requirements_count':sum(r['priority']=='preferred' for r in evidence),'disclaimer':'Heuristic estimate. Suggested role skills are not employer-confirmed requirements; not a hiring decision or certified ATS score.'}
