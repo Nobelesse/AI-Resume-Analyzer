@@ -9,7 +9,7 @@ from app.database.connection import connect
 from app.services.skills import extract_skills, seed_skills
 from app.services.taxonomy import ensure_tables
 from app.services.role_skills import ROLE_MAP
-from app.services.career_intelligence155 import evidence_weight, occupation_focus, useful_gaps
+from app.services.career_intelligence155 import evidence_weight, occupation_focus, useful_gaps, occupation_learning_topics
 
 DISCLAIMER = 'Evidence-based skill coverage, not a hiring probability or a verified qualification.'
 
@@ -154,12 +154,13 @@ def rank_careers(resume_text: str, *, db_path=None, limit=8):
                     'title': group['title'],
                     'reason': f"Matched {len(matched)} of {total} catalogued skills from {group['source']}. No eligibility decision was made.",
                     'skills_detected': matched, 'high_signal_skills': [s for s in matched if evidence_weight(s) >= 0.9],
-                    'skills_not_detected': useful_gaps(skills, matched),
+                    'skills_not_detected': occupation_learning_topics(group['title'], skills, matched, resume_text),
                     'skills_coverage': round(100*coverage),
                     'match_strength': score, 'score_breakdown': breakdown,
                     'domain_alignment': alignment, 'occupation_domains': domains,
                     'matched_skill_count': len(matched),
                     'catalog_skill_count': total,
+                    'learning_topic_basis': 'Optional topics are selected from occupation-catalog skills and curated field priorities; not verified requirements.',
                     'eligibility': 'Education, experience and licensing not assessed.',
                     'evidence_source': group['source'],
                 }))
@@ -183,7 +184,7 @@ def rank_careers(resume_text: str, *, db_path=None, limit=8):
     return {'jobs':[item[3] for item in candidates[:bounded_limit]],
             'resume_skills': sorted(known), 'source':source,
             'warning':'' if candidates else 'No corresponding catalog skills detected; add explicit project and skills evidence.',
-            'methodology':'Occupation catalog coverage (48%), matched skill breadth (30%), specificity-weighted evidence (10%), career-family alignment (up to 12 points), and a bounded 2-point stated-role tie-break. Missing skills are unverified learning ideas, not mandatory requirements. No education or seniority inference. Heuristic ranking, not a hiring probability.',
+            'methodology':'Occupation catalog coverage (48%), matched skill breadth (30%), specificity-weighted evidence (10%), career-family alignment (up to 12 points), and a bounded 2-point stated-role tie-break. Learning topics use field-specific priorities when listed in the occupation catalog; absence from a resume does not prove missing proficiency. No education or seniority inference. Heuristic ranking, not a hiring probability.',
             'disclaimer':DISCLAIMER}
 
 

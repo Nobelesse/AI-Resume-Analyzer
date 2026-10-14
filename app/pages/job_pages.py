@@ -150,7 +150,9 @@ def career_finder():
             matched = job.get('skills_detected', [])
             st.write('**Matched catalog terms (' + str(len(matched)) + '):** ' + (', '.join(matched) or 'None'))
             st.caption('Higher-signal technical/domain evidence: ' + (', '.join(job.get('high_signal_skills', [])) or 'Not identified'))
-            st.write('**Potential learning topics (not verified job requirements):** ' + (', '.join(job.get('skills_not_detected', [])) or 'None'))
+            st.write('**Optional occupation-relevant learning topics (not verified job requirements):** ' + (', '.join(job.get('skills_not_detected', [])) or 'No catalog-backed priority topics identified'))
+            if job.get('learning_topic_basis'):
+                st.caption(job['learning_topic_basis'])
             coverage = job.get('skills_coverage')
             count = job.get('catalog_skill_count')
             if coverage is not None:
