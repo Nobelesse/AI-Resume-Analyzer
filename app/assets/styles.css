@@ -481,3 +481,114 @@ div[data-testid="stButton"] button:hover,div[data-testid="stFormSubmitButton"] b
  [data-testid="stAppViewContainer"]::after,
  [data-testid="stSidebar"]::before{animation:none!important;will-change:auto;opacity:.38!important;}
 }
+
+
+/* Version 1.5.9.4 — borderless celestial workspace on all routes.
+   Stars stay visible; interactive controls retain contrast and keyboard focus. */
+:root { --floating-text-shadow:0 3px 17px rgba(0,0,0,.88),0 0 25px rgba(124,162,230,.18); }
+/* Hero and informational tiles float over the original global starfield. */
+.v10-hero,.uim2-header,.u12-sphere-frame,.hero-shell,
+.metric-tile,.feature-card,.roadmap-row,[data-testid="stMetric"],
+.st-key-auth_shell,[data-testid="stForm"],[data-testid="stExpander"],
+[data-testid="stFileUploader"]{
+  background:transparent!important;
+  border:1px solid transparent!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+}
+.v10-hero,.uim2-header,.st-key-auth_shell{overflow:visible;}
+.v10-hero:before,.v10-hero:after,.uim2-header:after{opacity:.13!important;}
+/* Cards remain spatially grouped using spacing, not filled boxes. */
+.metric-tile,.feature-card,.roadmap-row,[data-testid="stMetric"]{
+  text-shadow:0 2px 12px rgba(0,0,0,.72);
+  transition:transform .22s ease,text-shadow .22s ease!important;
+}
+.metric-tile:hover,.feature-card:hover,[data-testid="stMetric"]:hover,
+.uim2-header:hover,.v10-hero:hover{
+  border-color:transparent!important;box-shadow:none!important;
+  transform:perspective(1000px) translateY(-4px)!important;
+}
+/* Floating 3-D typography: depth from layered shadows, not animation reruns. */
+.hero-title,.v10-headline,.u12-headline,.uim2-header h1,
+.section-heading,.subheading,[data-testid="stHeading"] h1,
+[data-testid="stHeading"] h2,.feature-card h3{
+  text-shadow:0 2px 0 rgba(3,7,17,.92),0 9px 19px rgba(0,0,0,.85),0 0 32px rgba(125,155,215,.25)!important;
+  filter:drop-shadow(0 2px 5px rgba(0,0,0,.28));
+}
+.hero-copy,.u12-lead,.section-copy,.uim2-header p,.feature-card p{
+  text-shadow:var(--floating-text-shadow);
+}
+/* Dashboard navigation stays clickable but no longer covers the stars. */
+.st-key-workspace_cards div[data-testid="stButton"] button[kind="secondary"]{
+  background:transparent!important;border:1px solid transparent!important;
+  box-shadow:none!important;text-shadow:var(--floating-text-shadow);
+}
+.st-key-workspace_cards div[data-testid="stButton"] button[kind="secondary"]:hover{
+  background:rgba(10,19,36,.23)!important;border-color:rgba(222,194,138,.22)!important;
+  box-shadow:0 16px 38px rgba(0,0,0,.13)!important;
+}
+/* Leave a quiet, transparent tint behind dense/editable material to keep it readable. */
+[data-testid="stTextInput"] input,[data-testid="stTextArea"] textarea,
+[data-testid="stSelectbox"] [data-baseweb="select"],
+[data-testid="stMultiSelect"] [data-baseweb="select"]{
+  background:rgba(5,13,26,.78)!important;
+  border:1px solid rgba(209,193,153,.20)!important;
+}
+[data-testid="stDataFrame"],[data-testid="stTable"],
+[data-testid="stDataEditor"],[data-testid="stAlert"]{
+  background:rgba(6,14,28,.48)!important;
+  border-color:rgba(209,193,153,.15)!important;
+}
+[data-testid="stFileUploader"] section,
+[data-testid="stExpander"] details,
+[data-testid="stForm"]:focus-within{
+  background:rgba(7,15,31,.14)!important;box-shadow:none!important;
+}
+/* Drop the distracting bar around login but keep its fields/button accessible. */
+.st-key-auth_shell{padding:clamp(18px,3vw,38px)!important;}
+/* Buttons preserve clear hit targets and visible keyboard focus. */
+[data-testid="stButton"] button:focus-visible,
+[data-testid="stFormSubmitButton"] button:focus-visible,
+[data-testid="stDownloadButton"] button:focus-visible{
+  outline:3px solid #eed49b!important;outline-offset:3px!important;
+}
+@media(max-width:700px){
+ .v10-hero,.uim2-header{padding:20px 10px!important;}
+ .metric-tile,.feature-card{padding:18px 12px!important;}
+}
+@media(prefers-reduced-motion:reduce){
+ .metric-tile,.feature-card,[data-testid="stMetric"],
+ .uim2-header,.v10-hero{transition:none!important;}
+ .metric-tile:hover,.feature-card:hover,[data-testid="stMetric"]:hover,
+ .uim2-header:hover,.v10-hero:hover{transform:none!important;}
+}
+
+/* Scroll-linked depth: compositor-friendly and only on decorative/read-only regions.
+   Native scroll timelines avoid JavaScript, Streamlit reruns and mouse-wheel handlers.
+   Browsers without animation-timeline support retain the static borderless layout. */
+@keyframes ara-scroll-depth {
+  0% { opacity:.70; transform:perspective(1150px) translate3d(0,16px,-24px) rotateX(1.1deg); }
+  38% { opacity:1; transform:perspective(1150px) translate3d(0,0,0) rotateX(0); }
+  78% { opacity:1; transform:perspective(1150px) translate3d(0,-2px,0) rotateX(0); }
+  100% { opacity:.75; transform:perspective(1150px) translate3d(0,-12px,-14px) rotateX(-.8deg); }
+}
+@supports (animation-timeline:view()) {
+  @media (prefers-reduced-motion:no-preference) and (min-width:701px) {
+    .uim2-header,.section-heading,.metric-tile,.feature-card,.roadmap-row,
+    [data-testid="stMetric"] {
+      animation-name:ara-scroll-depth;
+      animation-duration:1s;
+      animation-timing-function:linear;
+      animation-fill-mode:both;
+      animation-timeline:view(block);
+      animation-range:entry 0% exit 100%;
+    }
+    /* Avoid competing hover transforms when a scroll-driven transform is active. */
+    .metric-tile:hover,.feature-card:hover,[data-testid="stMetric"]:hover,
+    .uim2-header:hover { transform:none!important; }
+  }
+}
+@media (prefers-reduced-motion:reduce) {
+  .uim2-header,.section-heading,.metric-tile,.feature-card,.roadmap-row,
+  [data-testid="stMetric"]{animation-name:none!important;animation-timeline:auto!important;}
+}
