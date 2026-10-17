@@ -122,3 +122,7 @@ The user-facing Resume Analysis route now offers separate resume-readiness and j
 
 ### v1.5.9 ATS Validation
 Adds a privacy-safe synthetic benchmark: `python scripts/ats_validation.py`. Details in `docs/VERSION_1_5_9_ATS_VALIDATION.md`. The model is not benchmark-calibrated to employer ATS systems.
+
+
+### Version 1.5.9.1
+Job Studio distinguishes exploratory title-only role alignment from job-description compatibility. The screen and downloadable reports label the active mode and do not show misleading zero requirement counts when no job description was provided.

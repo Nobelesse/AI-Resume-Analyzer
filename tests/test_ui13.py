@@ -6,7 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_version_and_upload_limit():
-    assert APP_VERSION == "1.5.9"
+    assert APP_VERSION == "1.5.9.1"
     assert MAX_RESUME_BYTES == 2_000_000
 
 

@@ -133,19 +133,29 @@ def compare_resume_to_job(resume_text: str, description: str, *,db_path=None,req
     elif pref_score is None:skill_score=req_score
     else:skill_score=required_weight*req_score+(1-required_weight)*pref_score
     evidence=requirement_evidence(description,candidate,db_path=db_path)
-    similarity=cosine_similarity(resume_text,description or job_title)
-    overall=round(100*(0.7*skill_score+0.3*similarity)) if skill_score is not None else round(similarity*100)
+    # Title-only mode must not compare a full resume to a two-word title.
+    # Explicit JD mode compares resume against the supplied requirements.
+    title_only = not bool(description.strip())
+    similarity = None if title_only else cosine_similarity(resume_text, description)
+    if title_only:
+        overall = round(100 * skill_score) if skill_score is not None else None
+        scoring_method = 'Role alignment is the proportion of typical role skills explicitly found in the resume. No employer requirements or text similarity were assessed.'
+    else:
+        overall = round(100 * (0.7 * skill_score + 0.3 * similarity)) if skill_score is not None else None
+        scoring_method = '70% stated skill overlap / 30% JD text similarity. Unverifiable non-skill requirements are listed for manual review; not a certified ATS score.'
     explanations=[]
+    if title_only:
+        explanations.append('No employer job description provided: required and preferred requirements were not assessed.')
     if any(r['status']=='unverified' for r in evidence):
         explanations.append('Some non-skill requirements could not be evaluated automatically; review experience, education and responsibilities manually.')
     if missing_required:explanations.append('Required skills not explicitly found: '+', '.join(missing_required[:15]))
     if matched_required:explanations.append('Required skills recognized in the resume: '+', '.join(matched_required[:15]))
     if missing_preferred:explanations.append('Optional skills not explicitly found: '+', '.join(missing_preferred[:15]))
-    if not required and not preferred and suggested:explanations.append('No employer-stated skills detected. Showing typical occupation skills from a role library or optional local model; verify against an actual job posting.')
+    if not required and not preferred and suggested:explanations.append('Typical role skills are illustrative, not employer-stated requirements.')
     if not required and not preferred and not suggested:explanations.append('Role not recognized in the offline catalog. Paste a detailed job description or optionally use a locally installed Ollama model for suggestions.')
     explanations.append('Missing skills mean not detected in the document, not proof the candidate lacks them.')
-    return {'match_score':overall,'similarity_score':round(similarity*100), 'skill_match_score':round(skill_score*100) if skill_score is not None else None,
-      'scoring_methodology':'70% detected skill overlap / 30% lexical similarity; requirement rows marked unverified are not assessed. Not employer ATS scoring.', 'scoring_basis':'employer-stated' if status=='explicit-description' else 'occupation-suggestions',
+    return {'match_score':overall,'similarity_score':round(similarity*100) if similarity is not None else None, 'skill_match_score':round(skill_score*100) if skill_score is not None else None,
+      'scoring_methodology':scoring_method,'analysis_mode':'role-alignment' if title_only else 'job-description', 'scoring_basis':'employer-stated' if status=='explicit-description' else 'occupation-suggestions',
       'required_weight':required_weight,'resume_skills':sorted(candidate),'required_skills':sorted(required),'preferred_skills':sorted(preferred),
       'matched_required':matched_required,'missing_required':missing_required,'matched_preferred':matched_preferred,'missing_preferred':missing_preferred,
       'suggested_role_skills':sorted(suggested),'matched_suggested':suggested_matched,'missing_suggested':suggested_missing,

@@ -20,8 +20,13 @@ def _user():
 
 def _display(result):
     section_heading('Your match overview', 'Evidence-based comparison against the selected role')
-    st.metric('Estimated job match',f"{result['match_score']} / 100")
-    st.progress(min(100, max(0, int(result['match_score']))) / 100)
+    title_only = result.get('analysis_mode', 'role-alignment' if result.get('requirements_status') == 'title-suggestions' else 'job-description') == 'role-alignment'
+    score = result.get('match_score')
+    st.metric('Estimated role alignment' if title_only else 'Estimated job compatibility', f'{score} / 100' if score is not None else 'Not assessed')
+    if score is not None:
+        st.progress(min(100, max(0, int(score))) / 100)
+    if title_only:
+        st.info('No employer job description was provided. Required and preferred qualifications are not assessed; these are only typical role-skill suggestions.')
     st.caption(result['disclaimer'])
     st.caption(result.get('scoring_methodology', 'Heuristic comparison.'))
     evidence=result.get('requirement_evidence', [])
@@ -61,8 +66,14 @@ def _display(result):
             if profile.get(name):
                 with st.expander(label,expanded=(name=='responsibilities')):
                     for item in profile[name]:st.write('• '+item)
-    st.bar_chart({'Text similarity':[result['similarity_score']], 'Skills score':[result['skill_match_score'] or 0]})
-    for field,title in [('matched_required','Matched required'),('missing_required','Missing required'),('matched_preferred','Matched preferred'),('missing_preferred','Missing preferred')]:
+    st.markdown('**Matching overview**')
+    if result.get('skill_match_score') is not None:
+        st.caption(f"Recognized skills: {result['skill_match_score']}%")
+        st.progress(max(0,min(100,result['skill_match_score']))/100)
+    if not title_only and result.get('similarity_score') is not None:
+        st.caption(f"Job description text similarity: {result['similarity_score']}%")
+        st.progress(max(0,min(100,result['similarity_score']))/100)
+    for field,title in ([] if title_only else [('matched_required','Matched required'),('missing_required','Missing required'),('matched_preferred','Matched preferred'),('missing_preferred','Missing preferred')]):
         with st.expander(f"{title} ({len(result[field])})",expanded=('missing_required'==field)):
             if result[field]:st.write(' • '.join(result[field]))
             else:st.caption('None detected')
@@ -72,7 +83,7 @@ def _display(result):
 
 def job_match():
     user=_user();page_header('OCCUPATION INTELLIGENCE', 'Job Match Studio', 'Compare resume evidence to explicit job requirements with offline, explainable matching.', '◎')
-    st.caption('Zero-cost offline matching · Imported O*NET/ESCO skills when available · Not a certified ATS score')
+    st.caption('Offline career and job comparisons · Estimates are not hiring decisions')
     resumes=list_user_resumes(user['id'])
     if not resumes:st.warning('Upload your resume first.');return
     ids=[r['id'] for r in resumes]
@@ -82,7 +93,7 @@ def job_match():
     with st.form('job_compare_form'):
         title=st.text_input('Job title (optional if you paste a job description)',max_chars=150,placeholder='e.g. Customer Care Executive')
         description=st.text_area('Job description (optional; up to 30,000 characters)',height=230,max_chars=30000)
-        st.caption('No paid API and no local language model required.')
+        st.caption('For job-specific requirement assessment, paste an employer job description. Title-only mode provides exploratory role alignment.')
         weight=st.slider('Required skill weight',min_value=0.50,max_value=0.95,value=0.75,step=0.05)
         submit=st.form_submit_button('Compare and save',type='primary')
     if submit:
