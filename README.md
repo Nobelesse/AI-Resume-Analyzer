@@ -129,3 +129,7 @@ Job Studio distinguishes exploratory title-only role alignment from job-descript
 
 
 Version 1.5.9.2 adds reviewed free offline skill aliases and categories. See `docs/VERSION_1_5_9_2_SKILL_INTELLIGENCE.md`.
+
+
+### v1.5.9.3 — Global Dark Abyss starfield
+The shared theme injects a layered CSS starfield on every guest, user and admin page, including sign-in, registration, dashboard, ATS, career matching and management. Twinkles use CSS opacity animations with no external service, JavaScript timer or extra Streamlit reruns. `prefers-reduced-motion` disables animation. No database migrations are required.
