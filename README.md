@@ -118,3 +118,7 @@ Version 1.5.7.4: Career Finder displays role-relevant resume skills and separate
 ## Version 1.5.8.1 — Advanced ATS Intelligence
 
 The user-facing Resume Analysis route now offers separate resume-readiness and job-compatibility assessments, each with evidence and limits. A job description is required for a job-specific score. Existing Analysis History remains available. See `docs/VERSION_1_5_8_ADVANCED_ATS.md`.
+
+
+### v1.5.9 ATS Validation
+Adds a privacy-safe synthetic benchmark: `python scripts/ats_validation.py`. Details in `docs/VERSION_1_5_9_ATS_VALIDATION.md`. The model is not benchmark-calibrated to employer ATS systems.
