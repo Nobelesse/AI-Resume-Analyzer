@@ -5,6 +5,8 @@ from app.ui.session import session_user
 from app.database.resumes import list_user_resumes
 from app.database.analyses import analyze_resume,list_analyses,get_analysis
 from app.services.skills import skill_count
+from app.services.ats_intelligence import resume_readiness, job_compatibility
+from app.database.resumes import get_resume
 from app.ui.workspace import page_header, section_heading, step_label
 
 def _user():
@@ -44,6 +46,60 @@ def resume_analysis():
         except (ValueError,PermissionError) as error:st.error(str(error));return
     result=st.session_state.get('phase5_current_result')
     if result: _show(result)
+
+def advanced_ats_intelligence():
+    user=_user()
+    page_header('ATS INTELLIGENCE', 'Advanced ATS Intelligence',
+                'Understand resume readiness and how your experience aligns with a specific job.', '✧')
+    st.caption('Two independent, evidence-based assessments. No score can guarantee employer ATS outcomes.')
+    resumes=list_user_resumes(user['id'])
+    if not resumes:
+        st.warning('Upload a resume first.');return
+    selected=st.selectbox('Choose your resume',[r['id'] for r in resumes],
+            format_func=lambda ident:next(r['original_filename'] for r in resumes if r['id']==ident),
+            key='ats158_resume')
+    resume=get_resume(user['id'],selected)
+    text=resume['extracted_text']
+    description=st.text_area('Paste a job description (optional)',height=160,
+                              placeholder='Paste required and preferred skills, experience, and qualifications from a real job posting.',
+                              key='ats158_description')
+    analysis_key=(user['id'],selected,description)
+    if st.button('Analyze resume',type='primary',key='ats158_analyze'):
+        try:
+            readiness=resume_readiness(text)
+            compatibility=job_compatibility(text,description) if description.strip() else None
+            st.session_state['ats158_result']=(analysis_key,readiness,compatibility)
+        except ValueError as error:
+            st.error(str(error));return
+    result=st.session_state.get('ats158_result')
+    if not result or result[0]!=analysis_key:
+        st.info('Run the analysis to view results for this resume and job description.');return
+    _,readiness,compatibility=result
+    left,right=st.columns(2)
+    left.metric('Resume readiness',f"{readiness['score']}/100")
+    right.metric('Job compatibility',
+       f"{compatibility['score']}/100" if compatibility and compatibility['score_available'] else 'Not assessed')
+    st.caption(readiness['disclaimer'])
+    if compatibility:st.caption(compatibility['disclaimer'])
+    section_heading('Resume quality', 'Understand what the resume parser can detect')
+    st.dataframe(readiness['checks'],hide_index=True,use_container_width=True)
+    with st.expander('Readiness scoring breakdown'):
+        st.bar_chart(readiness['components'])
+    if readiness['recommendations']:
+        st.subheader('Resume improvement opportunities')
+        for item in readiness['recommendations'][:8]:st.write('• '+item)
+    if compatibility:
+        section_heading('Job requirements', 'Separate documented matches from items needing human review')
+        if not compatibility['score_available']:
+            st.warning('Insufficient recognized job-specific evidence to calculate a meaningful compatibility score.')
+        st.caption(f"{compatibility['matched']} evidenced · {compatibility['partial']} partially evidenced · "
+                   f"{compatibility['not_found']} not found · {compatibility['manual_review_count']} need manual review")
+        for requirement in compatibility['requirements']:
+            with st.expander(f"{requirement['priority'].title()} · {requirement['status'].replace('-', ' ')} · {requirement['text'][:110]}"):
+                st.write('Evidence found: '+(', '.join(requirement['matched']) or 'None detected'))
+                st.write('Not found in resume: '+(', '.join(requirement['not_found']) or 'None'))
+        with st.expander('Job compatibility methodology'):
+            st.write(compatibility['methodology'])
 
 def analysis_history():
     user=_user();page_header('SAVED INTELLIGENCE', 'Analysis History', 'Revisit earlier ATS reports without losing your progress.', '◷')

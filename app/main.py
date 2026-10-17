@@ -83,7 +83,7 @@ def main() -> None:
             st.Page(management_pages.my_record_management, title="Manage My Records", icon="🗂️", url_path="manage-my-records"),
             st.Page(resume_pages.upload_resume, title="Upload Resume", icon="📤", url_path="upload-resume"),
             st.Page(resume_pages.user_library, title="My Resumes", icon="📄", url_path="my-resumes"),
-            st.Page(analysis_pages.resume_analysis, title="AI Resume Analysis", icon="🧠", url_path="resume-analysis"),
+            st.Page(analysis_pages.advanced_ats_intelligence, title="Advanced ATS Intelligence", icon="🧠", url_path="resume-analysis"),
             st.Page(analysis_pages.analysis_history, title="Analysis History", icon="📊", url_path="analysis-history"),
             st.Page(job_pages.job_match, title="Job Match Studio", icon="🎯", url_path="job-match"),
             st.Page(job_pages.career_finder, title="AI Career Finder", icon="🧭", url_path="career-finder"),
