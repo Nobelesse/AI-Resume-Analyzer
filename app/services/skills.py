@@ -3,6 +3,7 @@ import csv
 import re
 from pathlib import Path
 from app.database.connection import connect
+from app.services.skill_intelligence import ADDITIONAL_SKILLS, REVIEWED_ALIASES
 
 SEED = {
 'Programming': 'Python, Java, JavaScript, TypeScript, C, C++, C#, Go, Rust, Kotlin, Swift, PHP, Ruby, R, MATLAB, Scala, Dart, Bash, PowerShell, SQL, HTML, CSS, Solidity, Perl, Lua, Haskell, Julia, Objective-C, Visual Basic, Assembly, VBA',
@@ -20,6 +21,9 @@ SEED = {
 'Professional': 'Active Listening, Complaint Resolution, Call Handling, Email Support, Data Entry, Empathy, Ticketing Systems, Technical Support, Customer Success, Account Management, Customer Retention, Communication, Teamwork, Leadership, Problem Solving, Critical Thinking, Time Management, Adaptability, Collaboration, Presentation Skills, Negotiation, Conflict Resolution, Decision Making, Stakeholder Management, Attention to Detail, Customer Support, Documentation, Mentoring, Analytical Thinking, Creativity, Public Speaking, Organization, Emotional Intelligence'
 }
 ALIASES = {'js':'JavaScript','ts':'TypeScript','py':'Python','postgres':'PostgreSQL','sklearn':'Scikit-learn','ml':'Machine Learning','nlp':'Natural Language Processing','cv':'Computer Vision','ai':'Artificial Intelligence','genai':'Generative AI','gcp':'Google Cloud Platform','k8s':'Kubernetes','powerbi':'Power BI','ms word':'Microsoft Word','word processor':'Microsoft Word','ms excel':'Microsoft Excel','excel':'Microsoft Excel','node':'Node.js','reactjs':'React','vue':'Vue.js','golang':'Go','ci cd':'CI/CD','restful api':'REST API','llm':'LLMs','llms':'LLMs','tf':'TensorFlow','pytorch':'PyTorch','github actions':'GitHub Actions'}
+
+SEED.update(ADDITIONAL_SKILLS)
+ALIASES.update(REVIEWED_ALIASES)
 
 def normalize(value):
     return ' '.join(value.casefold().strip().split())

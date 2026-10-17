@@ -2,7 +2,7 @@ from pathlib import Path
 from app.config import APP_VERSION
 
 def test_release_and_global_theme():
-    assert APP_VERSION == "1.5.9.1"
+    assert APP_VERSION == "1.5.9.2"
     css = Path("app/assets/styles.css").read_text()
     assert "Dark Abyss system" in css
     assert "--abyss-gold:#dec28a" in css

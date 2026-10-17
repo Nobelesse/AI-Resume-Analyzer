@@ -7,6 +7,7 @@ import urllib.error
 import urllib.request
 from app.database.connection import connect
 from app.services.skills import extract_skills, seed_skills
+from app.services.skill_intelligence import phrase_present
 from app.services.taxonomy import ensure_tables
 from app.services.role_skills import ROLE_MAP
 from app.services.career_intelligence155 import evidence_weight, occupation_focus, useful_gaps, occupation_learning_topics
@@ -120,7 +121,13 @@ ONET_VERIFIED_ALIASES = {
     'ms word': 'microsoft word',
     'ms excel': 'microsoft excel',
     'excel': 'microsoft excel',
+    'microsoft word': 'microsoft word',
+    'ms powerpoint': 'microsoft powerpoint',
+    'powerbi': 'microsoft power bi',
+    'power bi': 'microsoft power bi',
+    'postgres': 'postgresql',
 }
+
 
 
 def _onet_query_keys(text, extracted):
@@ -128,7 +135,7 @@ def _onet_query_keys(text, extracted):
     corpus = text.casefold()
     # Map only explicitly present shorthand, never implied experience.
     for shorthand, official in ONET_VERIFIED_ALIASES.items():
-        if _phrase_present(corpus, shorthand) or shorthand in extracted:
+        if phrase_present(corpus, shorthand) or shorthand in extracted:
             keys.add(official)
     return keys
 
