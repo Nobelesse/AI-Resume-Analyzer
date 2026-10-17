@@ -8,6 +8,7 @@ from app.services.skills import skill_count
 from app.services.ats_intelligence import resume_readiness, job_compatibility
 from app.database.resumes import get_resume
 from app.ui.workspace import page_header, section_heading, step_label
+from app.services.ats_report import build_ats_pdf_report
 
 def _user():
     current=session_user()
@@ -83,8 +84,18 @@ def advanced_ats_intelligence():
     if compatibility:st.caption(compatibility['disclaimer'])
     section_heading('Resume quality', 'Understand what the resume parser can detect')
     st.dataframe(readiness['checks'],hide_index=True,use_container_width=True)
-    with st.expander('Readiness scoring breakdown'):
-        st.bar_chart(readiness['components'])
+    with st.expander('Readiness scoring breakdown', expanded=True):
+        st.caption('Points awarded by each rule. These are heuristic checks, not an employer ATS measurement.')
+        maximums = {'Resume sections':35, 'Contact details':15, 'Skill evidence':20,
+                    'Substance':15, 'Bullet formatting':10, 'Quantified impact':5}
+        for label, maximum in maximums.items():
+            points = float(readiness['components'].get(label, 0))
+            st.write(f'**{label}** — {points:g} of {maximum} points')
+            st.progress(max(0.0, min(1.0, points / maximum)))
+    st.download_button('Download full ATS assessment (PDF)',
+        data=build_ats_pdf_report(readiness, compatibility, resume_filename=resume['original_filename']),
+        file_name='resume-ats-assessment.pdf', mime='application/pdf',
+        key='ats158_pdf_download')
     if readiness['recommendations']:
         st.subheader('Resume improvement opportunities')
         for item in readiness['recommendations'][:8]:st.write('• '+item)

@@ -1,4 +1,4 @@
-# Version 1.5.8 — Advanced ATS Intelligence
+# Version 1.5.8.1 — Advanced ATS Intelligence
 
 ## Delivered
 - Separate resume readiness (existing interpretable quality heuristic) and job-specific compatibility (new deterministic requirements analysis).

@@ -115,6 +115,6 @@ Version 1.5.7.3: simplified professional Career Finder presentation. See docs/VE
 
 Version 1.5.7.4: Career Finder displays role-relevant resume skills and separately identifies education, stated experience level, and career interests; see `docs/VERSION_1_5_7_4.md`.
 
-## Version 1.5.8 — Advanced ATS Intelligence
+## Version 1.5.8.1 — Advanced ATS Intelligence
 
 The user-facing Resume Analysis route now offers separate resume-readiness and job-compatibility assessments, each with evidence and limits. A job description is required for a job-specific score. Existing Analysis History remains available. See `docs/VERSION_1_5_8_ADVANCED_ATS.md`.
