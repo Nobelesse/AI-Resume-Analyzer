@@ -105,3 +105,6 @@ Version 1.5.7: job description evidence and truthful improvement guidance (docs/
 
 
 Version 1.5.7.1: confidence-aware multi-domain Career Finder filtering. See docs/VERSION_1_5_7_1_RELIABILITY.md.
+
+
+Version 1.5.7.2 adds verified O*NET aliases and a diagnostic breakdown; see docs/VERSION_1_5_7_2_SKILL_NORMALIZATION.md.

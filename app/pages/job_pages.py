@@ -158,6 +158,17 @@ def career_finder():
         st.subheader('Optional Gemini guidance — verify independently')
         st.json(st.session_state['career_gemini_guidance'])
     st.caption('Source: ' + data['source'] + ' • ' + data['disclaimer'])
+    details = data.get('diagnostics') or {}
+    if details:
+        with st.expander('O*NET matching diagnostics', expanded=False):
+            st.caption('Read-only per-analysis counts; these are not suitability scores.')
+            st.write('Extracted skills:', details.get('extracted_skills', 0))
+            st.write('O*NET query terms (including verified aliases):', details.get('onet_query_terms', 0))
+            st.write('Matched O*NET skill terms:', details.get('catalog_skill_matches', 0))
+            st.write('O*NET occupations retrieved:', details.get('occupations_retrieved', 0))
+            st.write('Occupations passing evidence filters:', details.get('occupations_after_filter', 0))
+            if details.get('fallback_reason'):
+                st.caption('Why curated fallback was used: ' + details['fallback_reason'])
     section_heading('Suggested career paths', 'Domain-aware rankings; catalog skill coverage is not a suitability probability')
     for job in data['jobs']:
         title = job['title']

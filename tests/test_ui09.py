@@ -8,7 +8,7 @@ def constants(file, names):
     return {target.id:ast.literal_eval(node.value) for node in tree.body if isinstance(node,ast.Assign) for target in node.targets if isinstance(target,ast.Name) and target.id in names}
 
 def test_release_and_upload_limit():
-    assert APP_VERSION == "1.5.7.1" and MAX_RESUME_BYTES == 2_000_000
+    assert APP_VERSION == "1.5.7.2" and MAX_RESUME_BYTES == 2_000_000
 
 def test_all_roadmap_milestones_delivered():
     phases=constants("app/pages/roadmap.py",{"PHASES"})["PHASES"]

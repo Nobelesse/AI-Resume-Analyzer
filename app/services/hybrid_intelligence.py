@@ -112,6 +112,27 @@ def _skill_keys(text, db_path=None):
     return {s.casefold() for s in extract_skills(text, db_path=db_path)}
 
 
+# Explicit, reviewed equivalences for named applications and web languages.
+# Never equate a person's soft skill with proficiency in a software product.
+ONET_VERIFIED_ALIASES = {
+    'html': 'hypertext markup language html',
+    'css': 'cascading style sheets css',
+    'ms word': 'microsoft word',
+    'ms excel': 'microsoft excel',
+    'excel': 'microsoft excel',
+}
+
+
+def _onet_query_keys(text, extracted):
+    keys = set(extracted)
+    corpus = text.casefold()
+    # Map only explicitly present shorthand, never implied experience.
+    for shorthand, official in ONET_VERIFIED_ALIASES.items():
+        if _phrase_present(corpus, shorthand) or shorthand in extracted:
+            keys.add(official)
+    return keys
+
+
 def rank_careers(resume_text: str, *, db_path=None, limit=8):
     """Rank catalog roles with explicit matches, conservative coverage, and evidence.
 
@@ -125,12 +146,17 @@ def rank_careers(resume_text: str, *, db_path=None, limit=8):
     strengths = _domain_evidence(resume_text, known)
     bounded_limit = max(1, min(20, int(limit)))
     candidates = []
-    if known:
+    query_keys = _onet_query_keys(resume_text, known)
+    diagnostics = {'extracted_skills': len(known), 'onet_query_terms': len(query_keys),
+                   'catalog_skill_matches': 0, 'occupations_retrieved': 0,
+                   'occupations_after_filter': 0, 'fallback_reason': ''}
+    if query_keys:
         with connect(db_path) as db:
             ensure_tables(db)
             # Query in batches to respect SQLite bind-parameter limits.
             found = {}
-            keys = sorted(known)
+            keys = sorted(query_keys)
+            matched_skill_ids = set()
             for pos in range(0, len(keys), 400):
                 batch = keys[pos:pos+400]
                 marks = ','.join('?' for _ in batch)
@@ -144,6 +170,9 @@ def rank_careers(resume_text: str, *, db_path=None, limit=8):
                     record = found.setdefault(row['id'], {
                         'title': row['name'], 'source': row['source'], 'matched': set()})
                     record['matched'].add(row['skill'])
+                    matched_skill_ids.add(row['skill_key'])
+            diagnostics['catalog_skill_matches'] = len(matched_skill_ids)
+            diagnostics['occupations_retrieved'] = len(found)
             if found:
                 ids = list(found)
                 for pos in range(0, len(ids), 400):
@@ -191,9 +220,15 @@ def rank_careers(resume_text: str, *, db_path=None, limit=8):
                     'eligibility': 'Education, experience and licensing not assessed.',
                     'evidence_source': group['source'],
                 }))
+    diagnostics['occupations_after_filter'] = len(candidates)
     candidates.sort(key=lambda item: (-item[0], -item[1], item[2]))
     source = 'ONET/ESCO-imported-catalog' if candidates else 'curated-offline-catalog'
     if not candidates:
+        diagnostics['fallback_reason'] = (
+            'No resume skills were identified' if not known else
+            'No extracted skills or verified aliases matched O*NET' if not diagnostics['occupations_retrieved'] else
+            'O*NET occupations were retrieved but none passed the minimum evidence checks'
+        )
         for title, skills in ROLE_MAP.items():
             matched = [skill for skill in skills if skill.casefold() in known]
             if len(matched) >= 2:
@@ -209,7 +244,7 @@ def rank_careers(resume_text: str, *, db_path=None, limit=8):
                     'evidence_source':'curated-role-library'}))
         candidates.sort(key=lambda item:(-item[0],-item[1],item[2]))
     return {'jobs':[item[3] for item in candidates[:bounded_limit]],
-            'resume_skills': sorted(known), 'source':source,
+            'resume_skills': sorted(known), 'source':source, 'diagnostics': diagnostics,
             'warning':'' if candidates else 'Insufficient occupation-specific evidence for reliable career recommendations. Add relevant skills, projects, or experience; no unrelated careers will be suggested.',
             'methodology':'Low-evidence and unrelated occupations are filtered. Occupation catalog coverage (48%), matched skill breadth (30%), specificity-weighted evidence (10%), career-family alignment (up to 12 points), and a bounded 2-point stated-role tie-break. Learning topics use field-specific priorities when listed in the occupation catalog; absence from a resume does not prove missing proficiency. No education or seniority inference. Heuristic ranking, not a hiring probability.',
             'disclaimer':DISCLAIMER}

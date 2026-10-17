@@ -2,7 +2,7 @@ from app.services.career_intelligence155 import occupation_learning_topics, cano
 from app.config import APP_VERSION
 
 def test_release():
-    assert APP_VERSION == '1.5.7.1'
+    assert APP_VERSION == '1.5.7.2'
 
 def test_backend_learning_avoids_marketing():
     options={'Python','REST API','Django','Docker','Google Ads','Tableau','Git','MySQL'}
