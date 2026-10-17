@@ -6,6 +6,7 @@ from app.database.resumes import list_user_resumes
 from app.database.job_matches import save_job_match,list_job_matches,get_job_match
 from app.services.occupation_ai import analyze_occupation
 from app.services.career_finder import recommend_careers
+from app.services.resume_evidence import extract_resume_evidence, career_evidence
 from app.services.career_state import _career_selection_changed, _career_current_results
 from app.database.resumes import get_resume
 from app.services.reports import render_html_report,render_pdf_report
@@ -145,16 +146,31 @@ def career_finder():
     if not data.get('jobs'):
         st.info('There is not enough specific information in this resume to recommend careers confidently. Consider adding relevant projects, skills or experience.')
         return
+    record = get_resume(user['id'], selected)
+    profile = extract_resume_evidence(record.get('extracted_text', '') if record else '')
     section_heading('Recommended Career Paths',
                     'Explore options based on the experience and skills described in your resume.')
     for job in data['jobs']:
         with st.expander(job['title'], expanded=False):
-            matched = job.get('high_signal_skills') or job.get('skills_detected', [])
-            if matched:
-                st.markdown('**Relevant skills from your resume**')
-                st.write(', '.join(matched))
+            support = career_evidence(job['title'], profile)
+            relevant = support['relevant_skills']
+            if relevant:
+                st.markdown('**Relevant skills and knowledge from your resume**')
+                st.write(', '.join(relevant))
+                if support['basic_skills']:
+                    st.caption('Stated as basic knowledge: ' + ', '.join(support['basic_skills']))
             else:
-                st.caption('Only limited relevant evidence was found for this option.')
+                st.caption('The resume offers limited directly relevant skill evidence for this career.')
+            if support['career_interests']:
+                st.markdown('**Career interests mentioned**')
+                st.write(', '.join(support['career_interests']))
+                st.caption('An interest is not proof of previous work experience.')
+            if support['education']:
+                st.markdown('**Education mentioned**')
+                st.write(' · '.join(support['education']))
+                st.caption('Education is background context, not proof of role-specific proficiency.')
+            st.markdown('**Experience level**')
+            st.write(support['experience_level'])
             topics = job.get('skills_not_detected', [])
             if topics:
                 st.markdown('**Optional skills to explore**')

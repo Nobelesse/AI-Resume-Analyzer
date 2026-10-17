@@ -111,3 +111,6 @@ Version 1.5.7.2 adds verified O*NET aliases and a diagnostic breakdown; see docs
 
 
 Version 1.5.7.3: simplified professional Career Finder presentation. See docs/VERSION_1_5_7_3_PRESENTATION.md.
+
+
+Version 1.5.7.4: Career Finder displays role-relevant resume skills and separately identifies education, stated experience level, and career interests; see `docs/VERSION_1_5_7_4.md`.
