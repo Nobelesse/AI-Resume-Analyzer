@@ -86,7 +86,7 @@ Version 1.4.3.0 — enlarged globe and both orbits with preserved relative clear
 
 
 ## Version 1.5.0 — Zero-cost Hybrid Career Intelligence
-Offline O*NET/ESCO-ranked Career Finder and deterministic Job Studio by default, no Ollama requirement. Optional, explicit-consent Gemini guidance uses skill lists only. See `docs/VERSION_1_5_0_HYBRID_INTELLIGENCE.md`.
+Offline O*NET/ESCO-ranked Career Finder and deterministic Job Studio by default, no Ollama requirement. No Gemini or other cloud AI dependency. Local Ollama is optional where explicitly supported. See `docs/VERSION_1_5_0_HYBRID_INTELLIGENCE.md`.
 
 Version 1.5.1: evidence-ranked offline careers and transparent JD match methodology. See docs/VERSION_1_5_1_ACCURACY.md.
 
@@ -95,7 +95,7 @@ Version 1.5.2: Career relevance repair with domain-aligned catalog ranking. See 
 Version 1.5.3: fixes stale career results on resume switches; distinguishes evidence ranking from raw skill coverage. See docs/VERSION_1_5_3_CAREER_STATE.md.
 
 
-Version 1.5.4: occupation-specific score contributions and Gemini configuration status; see docs/VERSION_1_5_4.md.
+Version 1.5.4: occupation-specific score contributions and offline configuration status; see docs/VERSION_1_5_4.md.
 
 Version 1.5.5 — Conservative skill quality and occupational relevance; see docs/VERSION_1_5_5_SKILL_QUALITY.md.
 
@@ -145,3 +145,9 @@ Feathered floating hero, PLATFORM navigation, up-to-date privacy/capability page
 ## 1.5.9.7 — Native seamless hero correction
 
 The Overview hero is now inline first-party markup, NOT a Streamlit component iframe. This prevents the black iframe backdrop shown in user browser screenshots. Animations use SVG/CSS only; scroll reveal uses CSS view timelines with a reduced-motion fallback. The original hero canvas remains in the repository for prior compatibility but is no longer rendered on Overview.
+
+## Version 1.5.9.9 — Local-only intelligence and datasets
+
+Gemini API support has been removed from executable source code. Analysis uses local, rule-based matching and downloaded O*NET/ESCO catalogs; some occupation features optionally use locally running Ollama. No Google API key or paid cloud AI is needed. See `docs/VERSION_1_5_9_8_LOCAL_DATASETS.md` for source links, installer commands, data limitations and licensing. A locally curated skill vocabulary (`datasets/curated_skills_1598.csv`) is included and can be imported safely with `scripts/import_skills.py`. Official O*NET/ESCO source datasets are NOT in this ZIP; obtain them from publishers using the links in documentation.
+
+Version 1.5.9.9 adds `scripts/import_unified_datasets.py`. See `docs/VERSION_1_5_9_9_UNIFIED_DATASETS.md`.

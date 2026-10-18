@@ -80,7 +80,7 @@ def import_esco(occupations,skills,relations,*, db_path=None, version='user-supp
             if not uri or not name: raise ValueError('Invalid ESCO occupation columns: conceptUri / preferredLabel required')
             db.execute('INSERT INTO tax_occupations(source,source_id,name,normalized) VALUES(?,?,?,?) ON CONFLICT(source,source_id) DO UPDATE SET name=excluded.name,normalized=excluded.normalized',('ESCO',uri,name,norm(name)))
             oid=db.execute('SELECT id FROM tax_occupations WHERE source=? AND source_id=?',('ESCO',uri)).fetchone()[0]
-            for a in _labels(_get(row,'altLabels','alternativeLabels')):
+            for a in _labels(_get(row,'altLabels','alternativeLabels')+'\n'+_get(row,'hiddenLabels')):
                 db.execute('INSERT OR IGNORE INTO tax_occupation_aliases VALUES(?,?,?)',('ESCO',norm(a),oid))
             counts['occupations']+=1
         for row in _csv(skills):
@@ -88,7 +88,7 @@ def import_esco(occupations,skills,relations,*, db_path=None, version='user-supp
             if not uri or not name: raise ValueError('Invalid ESCO skill columns: conceptUri / preferredLabel required')
             db.execute('INSERT INTO tax_skills(source,source_id,name,normalized) VALUES(?,?,?,?) ON CONFLICT(source,source_id) DO UPDATE SET name=excluded.name,normalized=excluded.normalized',('ESCO',uri,name,norm(name)))
             sid=db.execute('SELECT id FROM tax_skills WHERE source=? AND source_id=?',('ESCO',uri)).fetchone()[0]
-            for a in _labels(_get(row,'altLabels','alternativeLabels')):
+            for a in _labels(_get(row,'altLabels','alternativeLabels')+'\n'+_get(row,'hiddenLabels')):
                 db.execute('INSERT OR IGNORE INTO tax_skill_aliases VALUES(?,?,?)',('ESCO',norm(a),sid))
             counts['skills']+=1
         for row in _csv(relations):
@@ -248,3 +248,29 @@ def catalog_details(*, db_path=None):
         aliases=db.execute('SELECT source, COUNT(*) AS count FROM tax_occupation_aliases GROUP BY source ORDER BY source').fetchall()
         imports=db.execute('SELECT source,version,imported_at FROM tax_imports ORDER BY source').fetchall()
         return dict(counts=counts(db_path),sources=[dict(r) for r in sources],skills=[dict(r) for r in skills],relations=[dict(r) for r in relations],aliases=[dict(r) for r in aliases],imports=[dict(r) for r in imports])
+
+
+def import_onet_supplements(software_csv, essential_csv, *, db_path=None, version='O*NET supplemental CSV'):
+    """Attach official O*NET examples/skills to already imported SOC occupations, repeatably."""
+    result={'software_rows':0,'essential_rows':0,'linked':0,'unknown_occupation':0,'skipped':0}
+    with connect(db_path) as db:
+        ensure_tables(db)
+        if not db.execute("SELECT COUNT(*) FROM tax_occupations WHERE source='ONET'").fetchone()[0]:
+            raise ValueError('Import O*NET occupations before supplements')
+        for filepath,kind,relation in [(software_csv,'software','software-example'),(essential_csv,'essential','essential-skill')]:
+            for row in _csv(filepath):
+                code=_get(row,'O*NET-SOC Code'); element=_get(row,'Element ID')
+                label=_get(row,'Workplace Example') if kind=='software' else _get(row,'Element Name')
+                skill_key=('software:'+norm(label)) if kind=='software' else ('onet-element:'+element)
+                if not code or not label or not skill_key or (kind=='essential' and not element):
+                    result['skipped']+=1;continue
+                occ=db.execute("SELECT id FROM tax_occupations WHERE source='ONET' AND source_id=?",(code,)).fetchone()
+                if not occ:
+                    result['unknown_occupation']+=1;continue
+                db.execute("INSERT INTO tax_skills(source,source_id,name,normalized) VALUES('ONET',?,?,?) ON CONFLICT(source,source_id) DO UPDATE SET name=excluded.name,normalized=excluded.normalized",(skill_key,label,norm(label)))
+                skill=db.execute("SELECT id FROM tax_skills WHERE source='ONET' AND source_id=?",(skill_key,)).fetchone()[0]
+                cur=db.execute('INSERT OR IGNORE INTO tax_links(occupation_id,skill_id,relation) VALUES(?,?,?)',(occ[0],skill,relation))
+                result['linked']+=int(cur.rowcount>0)
+                result[kind+'_rows']+=1
+        db.execute("INSERT INTO tax_imports(source,version) VALUES('ONET-SUPPLEMENTS',?) ON CONFLICT(source) DO UPDATE SET version=excluded.version,imported_at=CURRENT_TIMESTAMP",(version,))
+    return result
