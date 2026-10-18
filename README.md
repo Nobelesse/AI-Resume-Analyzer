@@ -140,3 +140,8 @@ Borderless floating celestial layout throughout guest/user/admin pages. See `doc
 
 ### v1.5.9.6 — Seamless professional UI
 Feathered floating hero, PLATFORM navigation, up-to-date privacy/capability pages and accessible CSS scroll depth. See `docs/VERSION_1_5_9_5_PRESENTATION_UI.md`.
+
+
+## 1.5.9.7 — Native seamless hero correction
+
+The Overview hero is now inline first-party markup, NOT a Streamlit component iframe. This prevents the black iframe backdrop shown in user browser screenshots. Animations use SVG/CSS only; scroll reveal uses CSS view timelines with a reduced-motion fallback. The original hero canvas remains in the repository for prior compatibility but is no longer rendered on Overview.

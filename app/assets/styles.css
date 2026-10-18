@@ -674,3 +674,49 @@ div[data-testid="stButton"] button:hover,div[data-testid="stFormSubmitButton"] b
    animation:none!important;opacity:1!important;transform:none!important;filter:none!important;
  }
 }
+
+/* 1.5.9.7 — same-document celestial hero. NO iframe = NO dark iframe rectangle. */
+.ara-native-hero {
+  position:relative;display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);
+  align-items:center;gap:clamp(1rem,3vw,3rem);min-height:610px;
+  padding:clamp(22px,4vw,65px) clamp(4px,3.2vw,48px);
+  background:transparent!important;background-image:none!important;
+  border:0!important;outline:0!important;border-radius:0!important;
+  box-shadow:none!important;backdrop-filter:none!important;overflow:visible;
+  isolation:auto;color:#f1f3ff;
+}
+.ara-native-hero::before,.ara-native-hero::after{content:none!important}
+.ara-native-copy{z-index:1;position:relative;transform-style:preserve-3d}
+.ara-native-kicker{font-size:.76rem;letter-spacing:.21em;font-weight:800;color:#e3c999;margin-bottom:31px}
+.ara-native-kicker::before{content:"";display:inline-block;width:9px;height:9px;border-radius:50%;background:#75f7d6;box-shadow:0 0 17px #75f7d6;margin-right:14px}
+.ara-native-copy h1{color:#f1f4ff;letter-spacing:-.055em;line-height:1.08;font-size:clamp(2.7rem,4.5vw,5.4rem);font-weight:850;margin:0 0 28px;text-shadow:0 7px 26px rgba(1,5,18,.34)}
+.ara-native-copy h1 span{background:linear-gradient(105deg,#f4dcaa,#e3c37e 52%,#a8dafa);color:transparent;-webkit-background-clip:text;background-clip:text}
+.ara-native-copy p{font-size:clamp(1rem,1.3vw,1.22rem);line-height:1.7;color:#c8d4ed;max-width:555px;text-shadow:0 2px 12px #03091780}
+.ara-native-pills{display:flex;gap:10px;flex-wrap:wrap;margin-top:28px}
+.ara-native-pills span{border:1px solid rgba(157,177,243,.3);padding:10px 14px;background:rgba(22,34,73,.42);border-radius:999px;color:#e0e9ff;font-size:.78rem}
+.ara-native-orb-shell{position:relative;max-width:530px;width:100%;justify-self:center;filter:drop-shadow(0 0 40px rgba(105,111,222,.25));animation:ara-orb-float 6s ease-in-out infinite alternate}
+.ara-native-orb{width:100%;height:auto;display:block;overflow:visible}
+.ara-native-grid{transform-origin:220px 220px;animation:ara-orb-spin 36s linear infinite alternate}
+.ara-native-dots{animation:ara-orb-pulse 3s ease-in-out infinite alternate}
+.ara-native-orbit-group,.ara-native-orbit-secondary{transform-origin:220px 220px;animation:ara-orb-spin 30s linear infinite}
+.ara-native-orbit-secondary{animation-duration:41s;animation-direction:reverse}
+@keyframes ara-orb-float{to{transform:translateY(-14px) rotate(2deg)}}
+@keyframes ara-orb-spin{to{transform:rotate(360deg)}}
+@keyframes ara-orb-pulse{to{opacity:.55}}
+/* Native headings and explanatory cards visibly reveal with the actual page scroll.
+   Use the element's own view timeline, independent of the iframe scroll context. */
+@keyframes ara-scroll-entry-1597{from{opacity:.12;filter:blur(8px);transform:perspective(1000px) translate3d(0,85px,-140px) rotateX(9deg)}to{opacity:1;filter:blur(0);transform:translate3d(0,0,0) rotateX(0)}}
+@supports (animation-timeline:view()) {
+ @media (prefers-reduced-motion:no-preference) and (min-width:701px) {
+  .ara-native-copy, .section-heading, .section-copy, .eyebrow,
+  [data-testid="stHeading"] h2, .metric-tile, .feature-card {
+    animation-name:ara-scroll-entry-1597!important;
+    animation-duration:1s!important;animation-timing-function:linear!important;
+    animation-fill-mode:both!important;animation-timeline:view(block)!important;
+    animation-range:entry 0% cover 35%!important;
+  }
+ }
+}
+/* Fallback for browsers without scroll timeline: never hide content. */
+@media(max-width:800px){.ara-native-hero{grid-template-columns:1fr;min-height:unset;gap:0;padding:35px 8px 25px}.ara-native-copy h1{font-size:clamp(2.7rem,8vw,4rem)}.ara-native-orb-shell{max-width:360px;margin-top:8px}}
+@media(prefers-reduced-motion:reduce){.ara-native-orb-shell,.ara-native-grid,.ara-native-dots,.ara-native-orbit-group,.ara-native-orbit-secondary{animation:none!important}.ara-native-copy,.section-heading,.section-copy,.eyebrow{animation:none!important;opacity:1!important;filter:none!important;transform:none!important}}
