@@ -6,11 +6,9 @@ def test_career_switch_clears_all_private_outputs():
     assert _career_selection_changed(state, 42, 101)
     state['career_results'] = {'jobs': [{'title': 'Software Developers'}]}
     state['career_result_identity'] = ('42', '101')
-    state['career_gemini_guidance'] = {'guidance': ['private']}
     assert _career_current_results(state, 42, 101)['jobs'][0]['title'] == 'Software Developers'
     assert _career_selection_changed(state, 42, 102)
     assert _career_current_results(state, 42, 102) is None
-    assert 'career_gemini_guidance' not in state
     assert 'career_results' not in state
 
 

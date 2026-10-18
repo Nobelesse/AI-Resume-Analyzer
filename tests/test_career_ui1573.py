@@ -6,12 +6,12 @@ CAREER = UI.split('def career_finder():', 1)[1]
 
 
 def test_version_1573():
-    assert APP_VERSION == '1.5.9.7'
+    assert APP_VERSION == '1.5.9.9.1'
 
 
 def test_student_ui_has_no_diagnostic_panel_or_provider_branding():
     for internal in ('O*NET matching diagnostics', 'curated-offline-catalog',
-                     'gemini_connection_status', 'O*NET query terms',
+                     'O*NET query terms',
                      'catalog_skill_matches', "data['source']", 'ai_opt_in',
                      'ranking contributions', 'Catalog coverage'):
         assert internal not in CAREER

@@ -443,7 +443,7 @@ div[data-testid="stButton"] button:hover,div[data-testid="stFormSubmitButton"] b
  position:relative;z-index:1;
 }
 /* Stars continue through the sidebar for both user and admin workspaces. */
-[data-testid="stSidebar"]{position:relative;isolation:isolate;overflow:hidden;}
+[data-testid="stSidebar"]{position:relative;isolation:isolate;overflow:visible;}
 [data-testid="stSidebar"]::before{
  content:"";position:absolute;inset:0;pointer-events:none!important;z-index:0;
  background-image:
@@ -720,3 +720,23 @@ div[data-testid="stButton"] button:hover,div[data-testid="stFormSubmitButton"] b
 /* Fallback for browsers without scroll timeline: never hide content. */
 @media(max-width:800px){.ara-native-hero{grid-template-columns:1fr;min-height:unset;gap:0;padding:35px 8px 25px}.ara-native-copy h1{font-size:clamp(2.7rem,8vw,4rem)}.ara-native-orb-shell{max-width:360px;margin-top:8px}}
 @media(prefers-reduced-motion:reduce){.ara-native-orb-shell,.ara-native-grid,.ara-native-dots,.ara-native-orbit-group,.ara-native-orbit-secondary{animation:none!important}.ara-native-copy,.section-heading,.section-copy,.eyebrow{animation:none!important;opacity:1!important;filter:none!important;transform:none!important}}
+
+/* v1.5.9.9.1: restore independent sidebar navigation scrolling.
+   Sidebar stars remain decorative and must not trap navigation. */
+[data-testid="stSidebar"] { overflow: visible !important; }
+[data-testid="stSidebarContent"] {
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(209,181,115,.65) transparent;
+  padding-bottom: 1.5rem;
+}
+[data-testid="stSidebarContent"]::-webkit-scrollbar { width: 6px; }
+[data-testid="stSidebarContent"]::-webkit-scrollbar-thumb { background: rgba(209,181,115,.55); border-radius: 10px; }
+[data-testid="stSidebarContent"]::-webkit-scrollbar-track { background: transparent; }
+@supports not (height: 100dvh) {
+ [data-testid="stSidebarContent"] {height:100vh!important;max-height:100vh!important;}
+}

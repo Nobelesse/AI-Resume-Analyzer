@@ -4,7 +4,7 @@ from app.ui.sphere import HERO_PATH
 
 def test_cinematic_hero_source():
     html = HERO_PATH.read_text(encoding="utf-8")
-    assert APP_VERSION == "1.5.9.7"
+    assert APP_VERSION == "1.5.9.9.1"
     assert 'class="hero-copy"' in html
     assert '.scene::after{content:none!important}' in html
     assert "edges = []" in html

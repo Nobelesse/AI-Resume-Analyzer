@@ -1,7 +1,7 @@
 import pytest
 from app.database.connection import connect,initialize_database
 from app.services.taxonomy import ensure_tables
-from app.services.hybrid_intelligence import rank_careers,gemini_json,GeminiUnavailable
+from app.services.hybrid_intelligence import rank_careers
 from app.services.career_finder import recommend_careers
 from app.services.occupation_ai import analyze_occupation
 
@@ -27,12 +27,6 @@ def test_default_finder_does_not_call_ollama(tmp_path, monkeypatch):
     assert result['source'] in ('curated-offline-catalog','ONET/ESCO-imported-catalog')
     assert isinstance(result['jobs'],list)
 
-def test_gemini_requires_consent_and_key(monkeypatch):
-    monkeypatch.delenv('ARA_GEMINI_API_KEY',raising=False)
-    with pytest.raises(GeminiUnavailable, match='Explicit consent'):
-        gemini_json('abc')
-    with pytest.raises(GeminiUnavailable, match='not configured'):
-        gemini_json('abc',consent=True)
 
 def test_default_occupation_is_offline(tmp_path):
     result=analyze_occupation('Python Developer')

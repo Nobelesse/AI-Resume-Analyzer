@@ -151,3 +151,7 @@ The Overview hero is now inline first-party markup, NOT a Streamlit component if
 Gemini API support has been removed from executable source code. Analysis uses local, rule-based matching and downloaded O*NET/ESCO catalogs; some occupation features optionally use locally running Ollama. No Google API key or paid cloud AI is needed. See `docs/VERSION_1_5_9_8_LOCAL_DATASETS.md` for source links, installer commands, data limitations and licensing. A locally curated skill vocabulary (`datasets/curated_skills_1598.csv`) is included and can be imported safely with `scripts/import_skills.py`. Official O*NET/ESCO source datasets are NOT in this ZIP; obtain them from publishers using the links in documentation.
 
 Version 1.5.9.9 adds `scripts/import_unified_datasets.py`. See `docs/VERSION_1_5_9_9_UNIFIED_DATASETS.md`.
+
+
+### Version 1.5.9.9.1 — Sidebar scroll repair
+Restores independent vertical scrolling in the Streamlit sidebar so Job Match Studio, AI Career Finder and admin links are reachable on smaller displays. See `docs/VERSION_1_5_9_9_1_SIDEBAR_SCROLL.md`.

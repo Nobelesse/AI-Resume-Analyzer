@@ -1,4 +1,4 @@
-from app.services.hybrid_intelligence import _ranking_score, gemini_connection_status
+from app.services.hybrid_intelligence import _ranking_score
 
 def test_occupation_specific_scores_vary():
     strengths={'software':5,'data':0,'marketing':0}
@@ -13,7 +13,3 @@ def test_alignment_not_dominant():
     high,_,_,_ = _ranking_score('Software Developers', {'Python','SQL','Docker'}, ['Python','SQL','Docker'], strengths)
     assert high > low
 
-def test_gemini_key_optional(monkeypatch):
-    monkeypatch.delenv('ARA_GEMINI_API_KEY', raising=False)
-    assert not gemini_connection_status()['configured']
-    assert gemini_connection_status(api_key='test-key')['configured']
