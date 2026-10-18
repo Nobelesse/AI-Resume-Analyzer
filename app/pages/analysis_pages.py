@@ -100,17 +100,17 @@ def advanced_ats_intelligence():
         st.subheader('Resume improvement opportunities')
         for item in readiness['recommendations'][:8]:st.write('• '+item)
     if compatibility:
-        section_heading('Job requirements', 'Separate documented matches from items needing human review')
+        section_heading('Job compatibility', 'A concise view of the skills in this job description')
         if not compatibility['score_available']:
-            st.warning('Insufficient recognized job-specific evidence to calculate a meaningful compatibility score.')
-        st.caption(f"{compatibility['matched']} evidenced · {compatibility['partial']} partially evidenced · "
-                   f"{compatibility['not_found']} not found · {compatibility['manual_review_count']} need manual review")
-        for requirement in compatibility['requirements']:
-            with st.expander(f"{requirement['priority'].title()} · {requirement['status'].replace('-', ' ')} · {requirement['text'][:110]}"):
-                st.write('Evidence found: '+(', '.join(requirement['matched']) or 'None detected'))
-                st.write('Not found in resume: '+(', '.join(requirement['not_found']) or 'None'))
-        with st.expander('Job compatibility methodology'):
-            st.write(compatibility['methodology'])
+            st.info('Not enough recognized job-specific skills for a compatibility score.')
+        matched = sorted({skill for row in compatibility.get('requirements', []) for skill in row.get('matched', [])})
+        missing = sorted({skill for row in compatibility.get('requirements', []) for skill in row.get('not_found', [])})
+        st.markdown('**Matched skills**')
+        st.write(' · '.join(matched) if matched else 'No matched named skills detected.')
+        st.markdown('**Skills to improve**')
+        st.write(' · '.join(missing) if missing else 'No additional named skills detected.')
+        st.caption('Detailed requirement assessment, manual-review items and scoring methodology are in the downloaded PDF.')
+
 
 def analysis_history():
     user=_user();page_header('SAVED INTELLIGENCE', 'Analysis History', 'Revisit earlier ATS reports without losing your progress.', '◷')

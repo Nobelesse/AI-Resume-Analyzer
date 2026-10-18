@@ -31,7 +31,7 @@ def split_requirements(description: str) -> tuple[str,str]:
     for line in description.splitlines():
         content=line.strip()
         if not content:continue
-        match=re.match(r'^(required|must.have|minimum qualifications|essential|requirements|preferred|nice.to.have|bonus|desirable|optional)(?: skills| qualifications| experience)?\s*[:\-–]?\s*(.*)$',content,re.I)
+        match=re.match(r'^(required|must.have|minimum qualifications|essential|requirements|preferred|nice.to.have|bonus|desirable|optional)(?: skills?| qualifications?| experience)?\s*[:\-–]?\s*(.*)$',content,re.I)
         if match:
             current='preferred' if match.group(1).lower() in ('preferred','nice to have','nice-to-have','bonus','desirable','optional') else 'required'
             if match.group(2): (preferred if current=='preferred' else required).append(match.group(2))
@@ -43,7 +43,7 @@ def split_requirements(description: str) -> tuple[str,str]:
 # "Not found" means missing document evidence, not missing candidate competence.
 REQUIRED_CUES = re.compile(r"\b(must have|required|essential|minimum|mandatory|need to|you will need)\b", re.I)
 PREFERRED_CUES = re.compile(r"\b(preferred|nice[ -]to[ -]have|bonus|desirable|plus|advantageous)\b", re.I)
-SECTION_HEADER = re.compile(r"^(?:required|requirements|minimum qualifications|must.have|essential|preferred|preferred qualifications|nice.to.have|bonus|desirable|optional)(?: skills| qualifications| experience)?\s*:?$", re.I)
+SECTION_HEADER = re.compile(r"^(?:required|requirements|minimum qualifications|must.have|essential|preferred|preferred qualifications|nice.to.have|bonus|desirable|optional)(?: skills?| qualifications?| experience)?\s*:?$", re.I)
 
 
 def requirement_evidence(description: str, candidate: set[str], *, db_path=None) -> list[dict]:

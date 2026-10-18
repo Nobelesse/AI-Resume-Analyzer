@@ -155,3 +155,7 @@ Version 1.5.9.9 adds `scripts/import_unified_datasets.py`. See `docs/VERSION_1_5
 
 ### Version 1.5.9.9.1 — Sidebar scroll repair
 Restores independent vertical scrolling in the Streamlit sidebar so Job Match Studio, AI Career Finder and admin links are reachable on smaller displays. See `docs/VERSION_1_5_9_9_1_SIDEBAR_SCROLL.md`.
+
+### Version 1.5.9.9.2 — Clean ATS screen, detailed reporting
+
+Advanced ATS Intelligence and Job Match Studio now show simple on-screen skill summaries instead of verbose line-level evidence. Downloadable PDF (and Job Studio HTML) reports retain the full requirements and explicit text-based detection details. The job-description parser ignores singular/plural requirement headings such as `Required Skill:`. See `docs/VERSION_1_5_9_9_2_CLEAN_ATS.md`.

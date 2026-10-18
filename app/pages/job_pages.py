@@ -29,23 +29,21 @@ def _display(result):
         st.info('No employer job description was provided. Required and preferred qualifications are not assessed; these are only typical role-skill suggestions.')
     st.caption(result['disclaimer'])
     st.caption(result.get('scoring_methodology', 'Heuristic comparison.'))
-    evidence=result.get('requirement_evidence', [])
-    if evidence:
-        st.subheader('Job-description requirements and resume evidence')
-        st.caption('Evidence means a named skill appears in the uploaded resume. Experience, certifications, education and proficiency are not verified.')
-        required_rows=[r for r in evidence if r['priority']=='required']
-        preferred_rows=[r for r in evidence if r['priority']=='preferred']
-        st.caption(f"{len(required_rows)} required lines · {len(preferred_rows)} preferred lines")
-        for category,rows in [('Required',required_rows),('Preferred',preferred_rows)]:
-            with st.expander(f'{category} requirements ({len(rows)})', expanded=(category=='Required')):
-                for row in rows:
-                    st.markdown(f"**{row['text']}**")
-                    st.caption('Status: '+row['status'].replace('-', ' ') +
-                               ' · Found: '+(', '.join(row['matched']) or 'None')+
-                               ' · Not found: '+(', '.join(row['not_found']) or 'None') )
+    # The screen is a concise summary. Full line-level evidence remains in the
+    # downloadable PDF and HTML reports, not in user-facing expanders.
+    st.subheader('Skills matched')
+    matched = sorted(set(result.get('matched_required', []) + result.get('matched_preferred', [])))
+    if title_only:
+        matched = result.get('matched_suggested', [])
+    st.write(' · '.join(matched) if matched else 'No skills detected for this comparison.')
+    st.subheader('Skills to improve')
+    missing = sorted(set(result.get('missing_required', []) + result.get('missing_preferred', [])))
+    if title_only:
+        missing = result.get('missing_suggested', [])
+    st.write(' · '.join(missing) if missing else 'No additional named skills detected.')
     improvements=result.get('improvement_suggestions', [])
     if improvements:
-        with st.expander('Truthful resume improvement opportunities',expanded=True):
+        with st.expander('Resume improvement suggestions', expanded=True):
             for item in improvements:st.write('• '+item)
 
     if result.get('requirements_status') == 'title-suggestions':
@@ -73,11 +71,7 @@ def _display(result):
     if not title_only and result.get('similarity_score') is not None:
         st.caption(f"Job description text similarity: {result['similarity_score']}%")
         st.progress(max(0,min(100,result['similarity_score']))/100)
-    for field,title in ([] if title_only else [('matched_required','Matched required'),('missing_required','Missing required'),('matched_preferred','Matched preferred'),('missing_preferred','Missing preferred')]):
-        with st.expander(f"{title} ({len(result[field])})",expanded=('missing_required'==field)):
-            if result[field]:st.write(' • '.join(result[field]))
-            else:st.caption('None detected')
-    for explanation in result['explanations']:st.write('• '+explanation)
+    # Detailed requirement status and source explanations are available in reports.
     st.download_button('Download PDF report',render_pdf_report(result),file_name='job-match-report.pdf',mime='application/pdf',key=f"pdf_{result.get('match_id', 'new')}")
     st.download_button('Download HTML report',render_html_report(result),file_name='job-match-report.html',mime='text/html',key=f"html_{result.get('match_id', 'new')}")
 
@@ -149,7 +143,6 @@ def career_finder():
                 return
             st.session_state['career_results'] = new_results
             st.session_state['career_result_identity'] = (str(user['id']), str(selected))
-            st.session_state.pop('career_gemini_guidance', None)
     data = _career_current_results(st.session_state, user['id'], selected)
     if data is None:
         st.info('Choose your resume and select **Find suitable careers** to begin.')

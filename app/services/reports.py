@@ -22,6 +22,15 @@ def render_html_report(result):
         lines.append(f'<h2>{label}</h2><ul>')
         lines.extend(f'<li>{escape(str(s))}</li>' for s in result[key])
         lines.append('</ul>')
+    if not title_only:
+        lines.append('<h2>Line-by-line job description assessment</h2>')
+        for row in result.get('requirement_evidence', []):
+            lines.append('<p><strong>'+escape(row['priority'].title())+' — '+escape(row['status'].replace('-', ' '))+'</strong>: '+escape(row['text'])+'</p>')
+            lines.append('<p>Named skills detected in resume: '+escape(', '.join(row['matched']) or 'None')+'; not detected: '+escape(', '.join(row['not_found']) or 'None')+'</p>')
+        lines.append('<h2>Improvement suggestions</h2><ul>')
+        lines.extend('<li>'+escape(s)+'</li>' for s in result.get('improvement_suggestions', []))
+        lines.append('</ul>')
+    lines.append('<p>Evidence indicates text recognized in the uploaded resume, not verified proficiency. Not detected does not mean not possessed. Experience and credentials require manual review.</p>')
     lines.append(f"<p>{escape(result['disclaimer'])}</p>")
     return ('<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Job match report</title>'
        '<style>body{font-family:Arial;max-width:800px;margin:40px auto;color:#20263b}h1{color:#484baf}</style>'
@@ -54,5 +63,16 @@ def render_pdf_report(result):
     for key,label in ([] if title_only else [('matched_required','Matched required skills'),('missing_required','Missing required skills'),('matched_preferred','Matched preferred skills'),('missing_preferred','Missing preferred skills')]):
         y-=7;line(label,True)
         for skill in result[key]:line(' - '+skill)
+    if not title_only:
+        y-=7;line('Line-by-line job description assessment',True)
+        for row in result.get('requirement_evidence', []):
+            line(f"[{row['priority']}; {row['status']}] {row['text']}")
+            line('  Detected: '+(', '.join(row['matched']) or 'None'))
+            line('  Not detected: '+(', '.join(row['not_found']) or 'None'))
+        y-=7;line('Improvement suggestions',True)
+        for item in result.get('improvement_suggestions', []):line(' - '+item)
+    y-=7;line('Matching recognizes resume text, not verified competence, education or experience.')
+    line('Not detected in a resume does not mean the candidate lacks a skill.')
+    line('Method: '+result.get('scoring_methodology','Heuristic matching.'))
     y-=8;line(result['disclaimer'])
     pdf.save();return stream.getvalue()
