@@ -94,11 +94,11 @@ def main() -> None:
         account_pages = []
 
     project_pages = [
-        st.Page(roadmap.render, title="Project Milestones", icon="🗺️", url_path="build-roadmap"),
-        st.Page(architecture.render, title="Architecture", icon="🧩", url_path="architecture"),
+        st.Page(roadmap.render, title="Platform Capabilities", icon="✨", url_path="build-roadmap"),
+        st.Page(architecture.render, title="Privacy & Technology", icon="🔐", url_path="architecture"),
     ]
 
-    pages = {"WORKSPACE": workspace_pages, "PROJECT": project_pages}
+    pages = {"WORKSPACE": workspace_pages, "PLATFORM": project_pages}
     if account_pages:
         pages["ACCOUNT"] = account_pages
 

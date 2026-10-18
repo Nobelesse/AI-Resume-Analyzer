@@ -14,6 +14,6 @@ PHASES = [
 ]
 
 def render() -> None:
-    section_heading("PROJECT MILESTONES", "Built, tested, and delivered.", "All eight planned development milestones have been completed. The application continues to evolve through UI and maintenance releases.")
+    section_heading("PLATFORM CAPABILITIES", "From resume to next opportunity.", "Explore the features available in the secure career intelligence workspace.")
     for number, title, description in PHASES:
-        st.markdown(f'<div class="roadmap-row"><span class="phase-number">{number}</span><div><strong>{title}</strong><p>{description}</p></div><span class="phase-status phase-complete">✓ COMPLETED</span></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="roadmap-row"><span class="phase-number">{number}</span><div><strong>{title}</strong><p>{description}</p></div><span class="phase-status phase-complete">✦ AVAILABLE</span></div>', unsafe_allow_html=True)
