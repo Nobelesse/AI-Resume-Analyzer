@@ -164,3 +164,6 @@ Advanced ATS Intelligence and Job Match Studio now show simple on-screen skill s
 ## Version 1.5.9.9.3 — Celestial Scroll
 
 Unified lightweight 3D-style scroll reveals for static content across guest, user and admin pages, using CSS view timelines and accessible reduced-motion fallback. No changes to skill databases or matching algorithms. See `docs/VERSION_1_5_9_9_3_CELESTIAL_SCROLL.md`.
+
+## v1.5.9.9.4 — Celestial Spatial Journey
+Geometric 3D scroll transformations replace fade reveals. See `docs/VERSION_1_5_9_9_4_SPATIAL_JOURNEY.md`.

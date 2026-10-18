@@ -594,36 +594,6 @@ div[data-testid="stButton"] button:hover,div[data-testid="stFormSubmitButton"] b
 }
 
 
-/* 1.5.9.5 — seamless hero and readable cinematic scroll reveal. */
-/* Streamlit's component wrapper must be equally transparent: no iframe outline/card. */
-[data-testid="stIFrame"], [data-testid="stIFrame"] iframe,
-[data-testid="stElementContainer"]:has(iframe[title]) {
-  background:transparent!important; border:0!important;box-shadow:none!important;
-}
-/* Presentation-layer depth; native CSS view timelines avoid Streamlit reruns. */
-@keyframes ara-reveal-1595 {
-  0% { opacity:.34; transform:perspective(1200px) translate3d(0,44px,-68px) rotateX(4deg);filter:blur(3px); }
-  28% { opacity:1; transform:perspective(1200px) translate3d(0,0,0) rotateX(0deg);filter:blur(0); }
-  82% { opacity:1; transform:perspective(1200px) translate3d(0,0,0) rotateX(0deg);filter:blur(0); }
-  100% { opacity:.72; transform:perspective(1200px) translate3d(0,-22px,-30px) rotateX(-1deg);filter:blur(0); }
-}
-@supports (animation-timeline:view()) {
- @media (min-width:701px) and (prefers-reduced-motion:no-preference) {
-   /* Only read-only headings/cards, never editable widgets, buttons or tables. */
-   .section-heading,.feature-card,.metric-tile,.roadmap-row,
-   [data-testid="stHeading"] h2 {
-      animation:ara-reveal-1595 linear both;
-      animation-timeline:view(block);
-      animation-range:entry 0% exit 100%;
-   }
- }
-}
-@media (prefers-reduced-motion:reduce) {
-  .section-heading,.feature-card,.metric-tile,.roadmap-row,
-  [data-testid="stHeading"] h2{animation:none!important;filter:none!important;transform:none!important;opacity:1!important;}
-}
-
-
 /* Version 1.5.9.6 — TRUE seamless hero. The parent app supplies the sky.
    Treat the component's entire Streamlit layout chain as a clear window. */
 [data-testid="stIFrame"],
@@ -640,41 +610,6 @@ div[data-testid="stButton"] button:hover,div[data-testid="stFormSubmitButton"] b
   backdrop-filter:none!important;
   outline:0!important;
 }
-/* Scroll-driven depth for *reading-only* content, including first paragraph of
-   explanatory sections. Interactive widgets do not animate or lose focus. */
-@keyframes ara-cinematic-1596 {
-  0% {opacity:.36;transform:perspective(1350px) translate3d(0,64px,-110px) rotateX(5deg);filter:blur(3px)}
-  30% {opacity:1;transform:perspective(1350px) translate3d(0,0,0) rotateX(0);filter:blur(0)}
-  80% {opacity:1;transform:perspective(1350px) translate3d(0,0,0) rotateX(0);filter:blur(0)}
-  100% {opacity:.88;transform:perspective(1350px) translate3d(0,-18px,-30px) rotateX(-1deg);filter:blur(0)}
-}
-@supports (animation-timeline:view()) {
- @media (min-width:701px) and (prefers-reduced-motion:no-preference) {
-   /* Match only static text: no form elements, chart blocks or clickable cards. */
-   [data-testid="stHeading"] h1,
-   [data-testid="stHeading"] h2,
-   [data-testid="stHeading"] h3,
-   .section-heading,
-   .section-copy,
-   .uim2-header h1,
-   .uim2-header p,
-   .v10-footer {
-     animation:ara-cinematic-1596 linear both!important;
-     animation-timeline:view(block)!important;
-     animation-range:entry 0% exit 100%!important;
-     transform-origin:center 60%;
-     backface-visibility:hidden;
-   }
- }
-}
-@media(prefers-reduced-motion:reduce) {
- [data-testid="stHeading"] h1,[data-testid="stHeading"] h2,
- [data-testid="stHeading"] h3,.section-heading,.section-copy,
- .uim2-header h1,.uim2-header p,.v10-footer {
-   animation:none!important;opacity:1!important;transform:none!important;filter:none!important;
- }
-}
-
 /* 1.5.9.7 — same-document celestial hero. NO iframe = NO dark iframe rectangle. */
 .ara-native-hero {
   position:relative;display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);
@@ -703,20 +638,6 @@ div[data-testid="stButton"] button:hover,div[data-testid="stFormSubmitButton"] b
 @keyframes ara-orb-float{to{transform:translateY(-14px) rotate(2deg)}}
 @keyframes ara-orb-spin{to{transform:rotate(360deg)}}
 @keyframes ara-orb-pulse{to{opacity:.55}}
-/* Native headings and explanatory cards visibly reveal with the actual page scroll.
-   Use the element's own view timeline, independent of the iframe scroll context. */
-@keyframes ara-scroll-entry-1597{from{opacity:.12;filter:blur(8px);transform:perspective(1000px) translate3d(0,85px,-140px) rotateX(9deg)}to{opacity:1;filter:blur(0);transform:translate3d(0,0,0) rotateX(0)}}
-@supports (animation-timeline:view()) {
- @media (prefers-reduced-motion:no-preference) and (min-width:701px) {
-  .ara-native-copy, .section-heading, .section-copy, .eyebrow,
-  [data-testid="stHeading"] h2, .metric-tile, .feature-card {
-    animation-name:ara-scroll-entry-1597!important;
-    animation-duration:1s!important;animation-timing-function:linear!important;
-    animation-fill-mode:both!important;animation-timeline:view(block)!important;
-    animation-range:entry 0% cover 35%!important;
-  }
- }
-}
 /* Fallback for browsers without scroll timeline: never hide content. */
 @media(max-width:800px){.ara-native-hero{grid-template-columns:1fr;min-height:unset;gap:0;padding:35px 8px 25px}.ara-native-copy h1{font-size:clamp(2.7rem,8vw,4rem)}.ara-native-orb-shell{max-width:360px;margin-top:8px}}
 @media(prefers-reduced-motion:reduce){.ara-native-orb-shell,.ara-native-grid,.ara-native-dots,.ara-native-orbit-group,.ara-native-orbit-secondary{animation:none!important}.ara-native-copy,.section-heading,.section-copy,.eyebrow{animation:none!important;opacity:1!important;filter:none!important;transform:none!important}}
@@ -742,68 +663,83 @@ div[data-testid="stButton"] button:hover,div[data-testid="stFormSubmitButton"] b
 }
 
 
-/* v1.5.9.9.3 — Celestial Scroll: one consistent set of browser-native,
-   viewport-linked effects shared by public, student and administrator pages.
-   Scope motion to read-only content; widgets stay still and clickable. */
-@keyframes ara-celestial-heading {
-  0%   { opacity:.35; transform:perspective(1100px) translate3d(0,42px,-72px) rotateX(5deg); filter:blur(3px); }
-  30%  { opacity:1; transform:perspective(1100px) translate3d(0,0,0) rotateX(0); filter:blur(0); }
-  82%  { opacity:1; transform:perspective(1100px) translate3d(0,0,0) rotateX(0); filter:blur(0); }
-  100% { opacity:.88; transform:perspective(1100px) translate3d(0,-14px,-22px); filter:blur(0); }
+
+/* v1.5.9.9.4 — Celestial Spatial Journey.
+   Scroll-linked geometric movement, not opacity-based fade-ins.
+   NO global form/card transformations; native clickable Streamlit widgets remain still. */
+@keyframes ara-spatial-heading-159994 {
+  0%   {transform:perspective(1100px) translate3d(-24px,65px,-145px) rotateX(-17deg) rotateY(7deg);}
+  37%  {transform:perspective(1100px) translate3d(0,0,0) rotateX(0) rotateY(0);}
+  77%  {transform:perspective(1100px) translate3d(0,0,0) rotateX(0) rotateY(0);}
+  100% {transform:perspective(1100px) translate3d(18px,-28px,-85px) rotateX(8deg) rotateY(-5deg);}
 }
-@keyframes ara-celestial-card {
-  0%   { opacity:.55; transform:perspective(1250px) translate3d(0,34px,-58px) rotateX(3deg); }
-  32%  { opacity:1; transform:perspective(1250px) translate3d(0,0,0) rotateX(0); }
-  86%  { opacity:1; transform:perspective(1250px) translate3d(0,0,0); }
-  100% { opacity:.95; transform:perspective(1250px) translate3d(0,-8px,-10px); }
+@keyframes ara-spatial-card-159994 {
+  0%   {transform:perspective(1250px) translate3d(0,48px,-135px) rotateX(9deg) scale(.94);}
+  37%  {transform:perspective(1250px) translate3d(0,0,0) rotateX(0) scale(1);}
+  75%  {transform:perspective(1250px) translate3d(0,0,0) rotateX(0) scale(1);}
+  100% {transform:perspective(1250px) translate3d(0,-24px,-90px) rotateX(-7deg) scale(.965);}
 }
-@keyframes ara-celestial-orbit-depth {
-  0% { opacity:.86; transform:translate3d(0,24px,0) scale(.96); }
-  40% { opacity:1; transform:translate3d(0,0,0) scale(1); }
-  100% { opacity:1; transform:translate3d(0,-26px,0) scale(1.025); }
+@keyframes ara-spatial-journey-left-159994 {
+  0% {transform:perspective(1100px) translate3d(70px,32px,-90px) rotateY(-10deg);}
+  50% {transform:perspective(1100px) translate3d(0,0,0) rotateY(0);}
+  100% {transform:perspective(1100px) translate3d(-48px,-10px,-60px) rotateY(8deg);}
+}
+@keyframes ara-spatial-journey-right-159994 {
+  0% {transform:perspective(1100px) translate3d(-70px,32px,-90px) rotateY(10deg);}
+  50% {transform:perspective(1100px) translate3d(0,0,0) rotateY(0);}
+  100% {transform:perspective(1100px) translate3d(48px,-10px,-60px) rotateY(-8deg);}
+}
+@keyframes ara-spatial-orbit-159994 {
+  0% {transform:perspective(1400px) translate3d(0,36px,-110px) rotateY(-4deg) scale(.96);}
+  52% {transform:perspective(1400px) translate3d(0,0,0) rotateY(0) scale(1);}
+  100% {transform:perspective(1400px) translate3d(0,-28px,-80px) rotateY(4deg) scale(.98);}
 }
 @supports (animation-timeline: view(block)) {
  @media (min-width: 801px) and (prefers-reduced-motion: no-preference) {
-  /* Explicit animation shorthand cancels legacy conflicting scroll rules. */
-  [data-testid="stMain"] [data-testid="stHeading"] h1,
+  /* Foreground native text; preserve full opacity at every frame. */
   [data-testid="stMain"] [data-testid="stHeading"] h2,
   [data-testid="stMain"] [data-testid="stHeading"] h3,
   [data-testid="stMain"] .section-heading,
-  [data-testid="stMain"] .eyebrow,
-  [data-testid="stMain"] .section-copy {
-    animation: ara-celestial-heading 1s linear both !important;
-    animation-timeline: view(block) !important;
-    animation-range: entry 0% exit 100% !important;
-    transform-origin: center 65%;
+  [data-testid="stMain"] .eyebrow {
+    animation:ara-spatial-heading-159994 1s linear both !important;
+    animation-timeline:view(block) !important;
+    animation-range:entry 0% exit 100% !important;
+    transform-origin:center center; backface-visibility:hidden;
   }
+  /* Static informational cards only; excludes native Streamlit buttons and data grids. */
   [data-testid="stMain"] .feature-card,
-  [data-testid="stMain"] .metric-tile,
-  [data-testid="stMain"] .roadmap-row {
-    animation: ara-celestial-card 1s linear both !important;
-    animation-timeline: view(block) !important;
-    animation-range: entry 0% exit 100% !important;
+  [data-testid="stMain"] .metric-tile {
+    animation:ara-spatial-card-159994 1s linear both !important;
+    animation-timeline:view(block) !important;
+    animation-range:entry 0% exit 100% !important;
+    transform-origin:center center;
   }
-  [data-testid="stMain"] .ara-native-orb-shell {
-    /* Don't override orb's float animation: apply scroll depth to its outer hero instead. */
-    animation: ara-orb-float 6s ease-in-out infinite alternate;
+  /* Horizontal cinematic journey for informational roadmap rows. Native vertical scroll remains usable. */
+  [data-testid="stMain"] .roadmap-row:nth-of-type(odd) {
+    animation:ara-spatial-journey-left-159994 1s linear both !important;
+    animation-timeline:view(block) !important;
+    animation-range:entry 0% exit 100% !important;
+  }
+  [data-testid="stMain"] .roadmap-row:nth-of-type(even) {
+    animation:ara-spatial-journey-right-159994 1s linear both !important;
+    animation-timeline:view(block) !important;
+    animation-range:entry 0% exit 100% !important;
   }
   [data-testid="stMain"] .ara-native-hero {
-    animation:ara-celestial-orbit-depth 1s linear both !important;
+    animation:ara-spatial-orbit-159994 1s linear both !important;
     animation-timeline:view(block) !important;
     animation-range:entry 0% exit 100% !important;
   }
  }
 }
-/* Accessibility / browser fallback: static readable content, no forced hiding. */
+/* No content is hidden while unsupported or while reduced motion is enabled. */
 @media (prefers-reduced-motion: reduce) {
  [data-testid="stMain"] .section-heading,
- [data-testid="stMain"] .section-copy,
  [data-testid="stMain"] .eyebrow,
  [data-testid="stMain"] .feature-card,
  [data-testid="stMain"] .metric-tile,
  [data-testid="stMain"] .roadmap-row,
  [data-testid="stMain"] .ara-native-hero,
- [data-testid="stMain"] [data-testid="stHeading"] h1,
  [data-testid="stMain"] [data-testid="stHeading"] h2,
  [data-testid="stMain"] [data-testid="stHeading"] h3 {
    animation:none!important;animation-timeline:auto!important;
