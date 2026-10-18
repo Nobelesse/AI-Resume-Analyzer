@@ -4,9 +4,9 @@ from app.ui.sphere import HERO_PATH
 
 def test_cinematic_hero_source():
     html = HERO_PATH.read_text(encoding="utf-8")
-    assert APP_VERSION == "1.5.9.5"
+    assert APP_VERSION == "1.5.9.6"
     assert 'class="hero-copy"' in html
-    assert "linear-gradient(90deg" in html
+    assert '.scene::after{content:none!important}' in html
     assert "edges = []" in html
     assert "visibilitychange" in html
     assert "prefers-reduced-motion" in html

@@ -622,3 +622,55 @@ div[data-testid="stButton"] button:hover,div[data-testid="stFormSubmitButton"] b
   .section-heading,.feature-card,.metric-tile,.roadmap-row,
   [data-testid="stHeading"] h2{animation:none!important;filter:none!important;transform:none!important;opacity:1!important;}
 }
+
+
+/* Version 1.5.9.6 — TRUE seamless hero. The parent app supplies the sky.
+   Treat the component's entire Streamlit layout chain as a clear window. */
+[data-testid="stIFrame"],
+[data-testid="stIFrame"] > div,
+[data-testid="stIFrame"] iframe,
+[data-testid="stElementContainer"]:has(iframe),
+[data-testid="stElementContainer"]:has(iframe) > div {
+  background:transparent!important;
+  background-color:transparent!important;
+  background-image:none!important;
+  border:none!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  outline:0!important;
+}
+/* Scroll-driven depth for *reading-only* content, including first paragraph of
+   explanatory sections. Interactive widgets do not animate or lose focus. */
+@keyframes ara-cinematic-1596 {
+  0% {opacity:.36;transform:perspective(1350px) translate3d(0,64px,-110px) rotateX(5deg);filter:blur(3px)}
+  30% {opacity:1;transform:perspective(1350px) translate3d(0,0,0) rotateX(0);filter:blur(0)}
+  80% {opacity:1;transform:perspective(1350px) translate3d(0,0,0) rotateX(0);filter:blur(0)}
+  100% {opacity:.88;transform:perspective(1350px) translate3d(0,-18px,-30px) rotateX(-1deg);filter:blur(0)}
+}
+@supports (animation-timeline:view()) {
+ @media (min-width:701px) and (prefers-reduced-motion:no-preference) {
+   /* Match only static text: no form elements, chart blocks or clickable cards. */
+   [data-testid="stHeading"] h1,
+   [data-testid="stHeading"] h2,
+   [data-testid="stHeading"] h3,
+   .section-heading,
+   .section-copy,
+   .uim2-header h1,
+   .uim2-header p,
+   .v10-footer {
+     animation:ara-cinematic-1596 linear both!important;
+     animation-timeline:view(block)!important;
+     animation-range:entry 0% exit 100%!important;
+     transform-origin:center 60%;
+     backface-visibility:hidden;
+   }
+ }
+}
+@media(prefers-reduced-motion:reduce) {
+ [data-testid="stHeading"] h1,[data-testid="stHeading"] h2,
+ [data-testid="stHeading"] h3,.section-heading,.section-copy,
+ .uim2-header h1,.uim2-header p,.v10-footer {
+   animation:none!important;opacity:1!important;transform:none!important;filter:none!important;
+ }
+}

@@ -12,12 +12,12 @@ def test_platform_navigation_preserves_routes():
 
 def test_hero_feathered_and_background_translucent():
     source=(ROOT/'app/ui/web/intelligence_hero.html').read_text()
-    assert 'mask-composite:intersect' in source
-    assert 'mask-image:linear-gradient' in source
+    assert 'background:none!important' in source
+    assert '.scene::after{content:none!important}' in source
     assert 'rgba(2,5,13,.46)' not in source
 
 def test_scroll_reveal_is_accessible_and_noninteractive():
-    css=(ROOT/'app/assets/styles.css').read_text().split('/* 1.5.9.5')[1]
+    css=(ROOT/'app/assets/styles.css').read_text().split('/* Version 1.5.9.6')[1]
     assert 'animation-timeline:view(block)' in css
     assert 'prefers-reduced-motion:reduce' in css
     assert 'stButton' not in css

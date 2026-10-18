@@ -138,5 +138,5 @@ The shared theme injects a layered CSS starfield on every guest, user and admin 
 ### 1.5.9.4 UI refinement
 Borderless floating celestial layout throughout guest/user/admin pages. See `docs/VERSION_1_5_9_4_BORDERLESS_CELESTIAL_UI.md`.
 
-### v1.5.9.5 — Seamless professional UI
+### v1.5.9.6 — Seamless professional UI
 Feathered floating hero, PLATFORM navigation, up-to-date privacy/capability pages and accessible CSS scroll depth. See `docs/VERSION_1_5_9_5_PRESENTATION_UI.md`.

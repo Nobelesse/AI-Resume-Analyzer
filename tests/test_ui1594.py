@@ -13,11 +13,11 @@ def test_borderless_global_style():
 
 def test_hero_scene_is_translucent():
     source = (ROOT / "app/ui/web/intelligence_hero.html").read_text(encoding="utf-8")
-    assert 'mask-image:linear-gradient' in source
+    assert '.scene::after{content:none!important}' in source
 
 def test_version():
     from app.config import APP_VERSION
-    assert APP_VERSION == "1.5.9.5"
+    assert APP_VERSION == "1.5.9.6"
 
 def test_scroll_depth_is_native_and_accessible():
     css = (ROOT / "app/assets/styles.css").read_text(encoding="utf-8")
