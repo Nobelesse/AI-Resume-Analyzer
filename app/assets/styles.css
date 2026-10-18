@@ -740,3 +740,73 @@ div[data-testid="stButton"] button:hover,div[data-testid="stFormSubmitButton"] b
 @supports not (height: 100dvh) {
  [data-testid="stSidebarContent"] {height:100vh!important;max-height:100vh!important;}
 }
+
+
+/* v1.5.9.9.3 — Celestial Scroll: one consistent set of browser-native,
+   viewport-linked effects shared by public, student and administrator pages.
+   Scope motion to read-only content; widgets stay still and clickable. */
+@keyframes ara-celestial-heading {
+  0%   { opacity:.35; transform:perspective(1100px) translate3d(0,42px,-72px) rotateX(5deg); filter:blur(3px); }
+  30%  { opacity:1; transform:perspective(1100px) translate3d(0,0,0) rotateX(0); filter:blur(0); }
+  82%  { opacity:1; transform:perspective(1100px) translate3d(0,0,0) rotateX(0); filter:blur(0); }
+  100% { opacity:.88; transform:perspective(1100px) translate3d(0,-14px,-22px); filter:blur(0); }
+}
+@keyframes ara-celestial-card {
+  0%   { opacity:.55; transform:perspective(1250px) translate3d(0,34px,-58px) rotateX(3deg); }
+  32%  { opacity:1; transform:perspective(1250px) translate3d(0,0,0) rotateX(0); }
+  86%  { opacity:1; transform:perspective(1250px) translate3d(0,0,0); }
+  100% { opacity:.95; transform:perspective(1250px) translate3d(0,-8px,-10px); }
+}
+@keyframes ara-celestial-orbit-depth {
+  0% { opacity:.86; transform:translate3d(0,24px,0) scale(.96); }
+  40% { opacity:1; transform:translate3d(0,0,0) scale(1); }
+  100% { opacity:1; transform:translate3d(0,-26px,0) scale(1.025); }
+}
+@supports (animation-timeline: view(block)) {
+ @media (min-width: 801px) and (prefers-reduced-motion: no-preference) {
+  /* Explicit animation shorthand cancels legacy conflicting scroll rules. */
+  [data-testid="stMain"] [data-testid="stHeading"] h1,
+  [data-testid="stMain"] [data-testid="stHeading"] h2,
+  [data-testid="stMain"] [data-testid="stHeading"] h3,
+  [data-testid="stMain"] .section-heading,
+  [data-testid="stMain"] .eyebrow,
+  [data-testid="stMain"] .section-copy {
+    animation: ara-celestial-heading 1s linear both !important;
+    animation-timeline: view(block) !important;
+    animation-range: entry 0% exit 100% !important;
+    transform-origin: center 65%;
+  }
+  [data-testid="stMain"] .feature-card,
+  [data-testid="stMain"] .metric-tile,
+  [data-testid="stMain"] .roadmap-row {
+    animation: ara-celestial-card 1s linear both !important;
+    animation-timeline: view(block) !important;
+    animation-range: entry 0% exit 100% !important;
+  }
+  [data-testid="stMain"] .ara-native-orb-shell {
+    /* Don't override orb's float animation: apply scroll depth to its outer hero instead. */
+    animation: ara-orb-float 6s ease-in-out infinite alternate;
+  }
+  [data-testid="stMain"] .ara-native-hero {
+    animation:ara-celestial-orbit-depth 1s linear both !important;
+    animation-timeline:view(block) !important;
+    animation-range:entry 0% exit 100% !important;
+  }
+ }
+}
+/* Accessibility / browser fallback: static readable content, no forced hiding. */
+@media (prefers-reduced-motion: reduce) {
+ [data-testid="stMain"] .section-heading,
+ [data-testid="stMain"] .section-copy,
+ [data-testid="stMain"] .eyebrow,
+ [data-testid="stMain"] .feature-card,
+ [data-testid="stMain"] .metric-tile,
+ [data-testid="stMain"] .roadmap-row,
+ [data-testid="stMain"] .ara-native-hero,
+ [data-testid="stMain"] [data-testid="stHeading"] h1,
+ [data-testid="stMain"] [data-testid="stHeading"] h2,
+ [data-testid="stMain"] [data-testid="stHeading"] h3 {
+   animation:none!important;animation-timeline:auto!important;
+   opacity:1!important;filter:none!important;transform:none!important;
+ }
+}
