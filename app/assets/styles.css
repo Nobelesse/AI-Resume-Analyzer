@@ -772,3 +772,31 @@ div[data-testid="stButton"] button:hover,div[data-testid="stFormSubmitButton"] b
   transform-style: preserve-3d;
   will-change: transform;
 }
+
+/* v1.5.9.9.7 — Premium Cinematic UI: restrained movement and ambient gold.
+   The working main-document scroll observer drives these elements. */
+[data-testid="stMain"] .ara-scroll-live {
+  transform: var(--ara-scroll-transform, none) !important;
+  transform-origin: center center !important;
+  transform-style: flat !important;
+  transition: transform 240ms cubic-bezier(.22,1,.36,1);
+  backface-visibility: visible !important;
+  will-change: auto !important;
+}
+[data-testid="stMain"] .ara-scroll-live.ara-polished-visible:is(.section-heading, .eyebrow, h1, h2, h3) {
+  text-shadow: 0 0 20px rgba(228,191,124,.13),0 5px 18px rgba(5,11,30,.35);
+}
+/* Ambient edge lighting: keep the actual text and input layers stationary. */
+[data-testid="stMain"] .feature-card.ara-polished-visible,
+[data-testid="stMain"] .roadmap-row.ara-polished-visible {
+  filter: drop-shadow(0 9px 23px rgba(52,70,119,.12));
+}
+/* Native hero stays seamless, with a modest editorial sticky treatment on tall screens. */
+@media (min-width:1100px) and (min-height:740px) {
+  .ara-native-hero .ara-native-copy { align-self:center; }
+}
+@media (max-width:800px), (prefers-reduced-motion: reduce) {
+ [data-testid="stMain"] .ara-scroll-live {
+    transform:none!important; transition:none!important; filter:none!important;
+  }
+}

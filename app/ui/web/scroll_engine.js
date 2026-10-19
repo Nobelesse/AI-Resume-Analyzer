@@ -1,11 +1,11 @@
-/* Cinematic 3D Typography 1.5.9.9.6 — first-party, main-document code only.
+/* Premium Cinematic UI 1.5.9.9.7 — first-party, main-document code only.
    No data access, external requests or Streamlit state changes. */
 (() => {
   'use strict';
   const w = window;
   const d = document;
-  if (w.__araScrollEngine159996) {
-    w.__araScrollEngine159996.refresh();
+  if (w.__araScrollEngine159997) {
+    w.__araScrollEngine159997.refresh();
     return;
   }
 
@@ -47,7 +47,7 @@
     items = discovered;
     items.forEach((el, index) => {
       el.classList.add('ara-scroll-live');
-      if (!elState.has(el)) elState.set(el, {kind: el.matches('.feature-card,.metric-tile,.roadmap-row') ? 'card' : el.matches('.ara-native-orb-shell') ? 'orb' : 'text', direction: index % 2 ? 1 : -1});
+      if (!elState.has(el)) elState.set(el, {kind: el.matches('.feature-card,.metric-tile,.roadmap-row') ? 'card' : el.matches('.ara-native-orb-shell') ? 'orb' : 'text', direction: 0});
     });
     schedule();
   }
@@ -62,30 +62,25 @@
         continue;
       }
       const r = el.getBoundingClientRect();
-      // Travel is visible both entering and leaving the viewport, without hiding text.
-      const fromCenter = (r.top + r.height / 2 - viewport * 0.51) / Math.max(1, viewport * 0.55);
-      const offset = clamp(fromCenter, -1, 1);
+      // Premium restraint: preserve the text baseline and legibility.
+      // The heading settles once into view; no lateral or rotary motion.
+      const center = r.top + r.height / 2;
+      const entering = clamp((center - viewport * 0.52) / (viewport * 0.44), 0, 1);
+      const settled = 1 - entering;
       const state = elState.get(el);
       if (!state) continue;
-      // Scroll-relative motion: no hard spins, opacity changes, or blur.
-      // Clamp to keep titles readable even at the beginning and end of a page.
-      const proximity = Math.min(1, Math.abs(offset));
-      const eased = Math.sign(offset) * proximity * proximity * (3 - 2 * proximity);
       let transform;
       if (state.kind === 'orb') {
-        // A slow floating visual anchor, independent of the typography.
-        transform = `perspective(1400px) translate3d(${(-eased * 18).toFixed(1)}px,${(eased * 29).toFixed(1)}px,0) scale(${(1 - proximity * .035).toFixed(3)})`;
+        // Very gentle hero depth, no rotational scrolling.
+        transform = `translate3d(0,${(entering * 8).toFixed(1)}px,0)`;
       } else if (state.kind === 'card') {
-        // Magnetic card rise: slight diagonal drift and depth; no tilt stacking.
-        transform = `perspective(1350px) translate3d(${(eased * 21 * state.direction).toFixed(1)}px,${(eased * 29).toFixed(1)}px,0) scale(${(1 - proximity * .045).toFixed(3)})`;
+        transform = `translate3d(0,${(entering * 6).toFixed(1)}px,0)`;
       } else {
-        // Alternating heading directions create a split-line editorial rhythm.
-        // The heading zooms gently from depth without rotation, so it remains readable.
-        const x = eased * 48 * state.direction;
-        const y = eased * 28;
-        const scale = 1 - proximity * .075;
-        transform = `perspective(1400px) translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0) scale(${scale.toFixed(3)})`;
+        transform = `translate3d(0,${(entering * 7).toFixed(1)}px,0)`;
       }
+      el.style.setProperty('--ara-spotlight-progress', settled.toFixed(3));
+      if (settled >= 0.5) el.classList.add('ara-polished-visible');
+      else el.classList.remove('ara-polished-visible');
       el.style.setProperty('--ara-scroll-transform', transform);
     }
   }
@@ -106,6 +101,6 @@
   observer = new MutationObserver(onMutations);
   const main = d.querySelector('[data-testid="stMain"]');
   if (main) observer.observe(main, {childList:true,subtree:true});
-  w.__araScrollEngine159996 = {refresh, version:'1.5.9.9.6'};
+  w.__araScrollEngine159997 = {refresh, version:'1.5.9.9.7'};
   refresh();
 })();
