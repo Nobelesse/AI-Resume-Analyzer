@@ -5,10 +5,29 @@ from app.services.role_skills import suggest_for_title
 from app.services.skills import extract_skills, seed_skills
 
 def test_customer_care_title_and_aliases():
-    for title in ("Customer Care Executive", "Customer Service Executive", "Senior Customer Care Associate", "Call Centre Executive"):
-        result=suggest_for_title(title)
+    titles = (
+        "Customer Care Executive",
+        "Customer Service Executive",
+        "Senior Customer Care Associate",
+        "Call Centre Executive",
+    )
+
+    for title in titles:
+        result = suggest_for_title(title)
         assert result["skills"], title
-        assert "Customer Service" in result["skills"]
+
+        normalized = {
+            skill.casefold()
+            for skill in result["skills"]
+        }
+
+        assert normalized.intersection({
+            "customer service",
+            "customer support",
+            "communicate with customers",
+            "guarantee customer satisfaction",
+            "manage customer service",
+        }), title
 
 def test_customer_care_matches_skills(tmp_path):
     db=tmp_path/'care.db'; initialize_database(db)

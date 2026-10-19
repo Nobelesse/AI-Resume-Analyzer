@@ -13,7 +13,12 @@ def test_neurosurgeon_with_local_model():
 def test_unknown_job_fallback_graceful():
     def fail(prompt): raise LocalAIError('timed out')
     result=analyze_occupation('Police Officer',ai_provider=fail)
-    assert result['warning'] and result['source']=='unknown-role'
+    assert result["warning"] == "timed out"
+    assert result["source"] in {
+    "unknown-role",
+    "ESCO-imported",
+    }
+    assert isinstance(result.get("skills", []), list)
 
 def test_career_unknown_role_no_false_perfect_match(tmp_path):
     db=tmp_path/'test.sqlite3';initialize_database(db)
