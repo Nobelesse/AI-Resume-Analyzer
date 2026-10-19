@@ -195,3 +195,6 @@ The Overview now uses a prominent **Your Workspace** heading. The former Experie
 ### Version 1.5.9.9.9.5: Permanent administrator
 
 A single permanent admin is created with `python scripts/create_admin.py`; Account Management permits managing standard users only. Database triggers prevent admin modification/deletion or creating/promoting other admins. See `docs/PERMANENT_ADMIN_POLICY.md`.
+
+## Windows launch refinement (v1.5.9.9.9.6)
+The desktop shortcut uses `Launch-AI-Resume-Analyzer.bat`; install its custom icon with `powershell -ExecutionPolicy Bypass -File scripts\install_desktop_shortcut.ps1`. See `docs/VERSION_1_5_9_9_9_6_LAUNCHER.md`.

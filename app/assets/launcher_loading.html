@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Opening AI Resume Analyzer</title>
+<style>html,body{height:100%;margin:0;font-family:Segoe UI,Arial,sans-serif;color:#e5eaf4;background:radial-gradient(circle at 50% 43%,#112442 0,#080e1d 55%,#050914 100%)}body{display:grid;place-items:center;text-align:center}.panel{padding:40px 30px;max-width:420px}.brand{font-size:13px;letter-spacing:.3em;color:#ddc084;font-weight:750}h1{font-size:32px;margin:15px 0 12px;color:#e4cf9c}p{color:#a9bbd5;line-height:1.6}.spinner{width:38px;height:38px;margin:26px auto;border:3px solid #263d5d;border-top-color:#dfc183;border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}button{padding:10px 18px;border-radius:9px;background:#1d3351;color:white;border:1px solid #967b4b;cursor:pointer}</style>
+</head><body><main class="panel"><div class="brand">RESUME INTEL</div><h1>AI Resume Analyzer</h1><p id="status" role="status" aria-live="polite">Starting your private AI workspace…</p><div class="spinner" aria-hidden="true"></div><button id="retry" hidden>Try again</button></main>
+<script>
+(()=>{const url='http://localhost:8501/';let tries=0,active=true;const status=document.getElementById('status'),retry=document.getElementById('retry');
+async function ping(){if(!active)return;tries++;try{const r=await fetch(url+'_stcore/health',{mode:'no-cors',cache:'no-store',signal:AbortSignal.timeout(1200)});if(r){active=false;window.location.replace(url);return;}}catch(e){}if(tries<120){setTimeout(ping,500)}else{status.textContent='Startup is taking longer than expected. Check the minimized server window and try again.';retry.hidden=false}}
+retry.onclick=()=>{tries=0;active=true;retry.hidden=true;status.textContent='Checking local server…';ping()};ping()})();
+</script></body></html>
