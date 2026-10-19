@@ -818,3 +818,9 @@ div[data-testid="stButton"] button:hover,div[data-testid="stFormSubmitButton"] b
     transition: none !important;
   }
 }
+
+/* 1.5.9.9.9: Seamless, transparent, perspective-projected hero globe. */
+.ara-native-orb-shell { isolation:isolate; max-width:520px; aspect-ratio:1/1; animation:none!important; filter:none!important; background:transparent!important; border:0!important; box-shadow:none!important; }
+.ara-premium-globe { display:block; width:100%; height:100%; background:transparent!important; border:0!important; box-shadow:none!important; pointer-events:none; }
+.ara-native-copy h1, .ara-native-copy p, .ara-native-kicker, .ara-native-pills { transform-origin:50% 55%; }
+@media(prefers-reduced-motion:reduce){ .ara-native-orb-shell,.ara-premium-globe{animation:none!important} }

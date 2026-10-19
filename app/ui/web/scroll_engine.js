@@ -1,11 +1,11 @@
-/* Cinematic Depth Scroll 1.5.9.9.8 — first-party, main-document code only.
+/* Cinematic Depth Scroll 1.5.9.9.9 — first-party, main-document code only.
    No data access, external requests or Streamlit state changes. */
 (() => {
   'use strict';
   const w = window;
   const d = document;
-  if (w.__araScrollEngine159998) {
-    w.__araScrollEngine159998.refresh();
+  if (w.__araScrollEngine159999) {
+    w.__araScrollEngine159999.refresh();
     return;
   }
 
@@ -19,7 +19,10 @@
     '[data-testid="stMain"] .feature-card',
     '[data-testid="stMain"] .metric-tile',
     '[data-testid="stMain"] .roadmap-row',
-    '[data-testid="stMain"] .ara-native-copy',
+    '[data-testid="stMain"] .ara-native-kicker',
+    '[data-testid="stMain"] .ara-native-copy h1',
+    '[data-testid="stMain"] .ara-native-copy p',
+    '[data-testid="stMain"] .ara-native-copy .ara-native-pills',
     '[data-testid="stMain"] .ara-native-orb-shell'
   ].join(',');
   const media = w.matchMedia('(prefers-reduced-motion: reduce)');
@@ -47,7 +50,7 @@
     items = discovered;
     items.forEach((el, index) => {
       el.classList.add('ara-scroll-live');
-      if (!elState.has(el)) elState.set(el, {kind: el.matches('.feature-card,.metric-tile,.roadmap-row') ? 'card' : el.matches('.ara-native-orb-shell') ? 'orb' : 'text', direction: 0});
+      if (!elState.has(el)) elState.set(el, {kind: el.matches('.feature-card,.metric-tile,.roadmap-row') ? 'card' : el.matches('.ara-native-orb-shell') ? 'orb' : el.matches('.ara-native-copy h1') ? 'hero-title' : el.matches('.ara-native-copy p') ? 'hero-description' : el.matches('.ara-native-kicker') ? 'hero-kicker' : el.matches('.ara-native-pills') ? 'hero-pills' : 'text', direction: 0});
     });
     schedule();
   }
@@ -71,7 +74,15 @@
       if (!state) continue;
       let transform;
       if (state.kind === 'orb') {
-        transform = `translate3d(0,${(entering * 26).toFixed(1)}px,${(-entering * 65).toFixed(1)}px) scale(${(1 - entering * 0.035).toFixed(3)})`;
+        transform = `translate3d(0,${(entering * 46).toFixed(1)}px,${(-entering * 100).toFixed(1)}px) scale(${(1 - entering * 0.075).toFixed(3)})`;
+      } else if (state.kind === 'hero-title') {
+        transform = `translate3d(0,${(entering * 56).toFixed(1)}px,${(-entering * 105).toFixed(1)}px) scale(${(1 - entering * 0.095).toFixed(3)})`;
+      } else if (state.kind === 'hero-description') {
+        transform = `translate3d(0,${(entering * 35).toFixed(1)}px,${(-entering * 62).toFixed(1)}px) scale(${(1 - entering * 0.045).toFixed(3)})`;
+      } else if (state.kind === 'hero-kicker') {
+        transform = `translate3d(0,${(entering * 23).toFixed(1)}px,${(-entering * 32).toFixed(1)}px) scale(${(1 - entering * 0.025).toFixed(3)})`;
+      } else if (state.kind === 'hero-pills') {
+        transform = `translate3d(0,${(entering * 22).toFixed(1)}px,${(-entering * 40).toFixed(1)}px) scale(${(1 - entering * 0.02).toFixed(3)})`;
       } else if (state.kind === 'card') {
         transform = `translate3d(0,${(entering * 25).toFixed(1)}px,${(-entering * 55).toFixed(1)}px) scale(${(1 - entering * 0.035).toFixed(3)})`;
       } else {
@@ -100,6 +111,6 @@
   observer = new MutationObserver(onMutations);
   const main = d.querySelector('[data-testid="stMain"]');
   if (main) observer.observe(main, {childList:true,subtree:true});
-  w.__araScrollEngine159998 = {refresh, version:'1.5.9.9.8'};
+  w.__araScrollEngine159999 = {refresh, version:'1.5.9.9.9'};
   refresh();
 })();

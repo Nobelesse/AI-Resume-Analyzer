@@ -5,7 +5,7 @@ ROOT=Path(__file__).resolve().parents[1]
 def read(path):return (ROOT/path).read_text(encoding="utf-8")
 
 def test_ui12_version_and_interactive_sphere():
-    assert APP_VERSION == "1.5.9.9.8"
+    assert APP_VERSION == "1.5.9.9.9"
     hero = read("app/pages/home.py")
     sphere = read("app/ui/web/intelligence_sphere.html")
     assert "render_intelligence_hero(" in hero

@@ -1,3 +1,7 @@
+## Version 1.5.9.9.9 — Premium 3D globe and layered scroll motion
+
+Overview now uses a transparent same-document canvas globe with perspective-projected rotating mesh and independent scroll motion for the hero layers. See [release and manual visual checks](docs/VERSION_1_5_9_9_9_PREMIUM_GLOBE.md).
+
 ## v1.5.9.9.6 — Real 3D Scroll Engine
 Browser-driven 3D motion replaces invisible CSS view timelines. See `docs/VERSION_1_5_9_9_5_REAL_SCROLL_ENGINE.md`.
 

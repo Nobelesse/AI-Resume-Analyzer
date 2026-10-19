@@ -17,7 +17,7 @@ def test_hero_scene_is_translucent():
 
 def test_version():
     from app.config import APP_VERSION
-    assert APP_VERSION == "1.5.9.9.8"
+    assert APP_VERSION == "1.5.9.9.9"
 
 def test_scroll_depth_is_native_and_accessible():
     css = (ROOT / "app/assets/styles.css").read_text(encoding="utf-8")

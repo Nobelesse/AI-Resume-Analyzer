@@ -17,4 +17,4 @@ def test_scroll_reveal_is_read_only_and_accessible():
     assert 'prefers-reduced-motion:reduce' in css
     assert 'stTextInput' not in css and 'stButton' not in css
     assert 'background-image:none!important' in css
-    assert APP_VERSION == '1.5.9.9.8'
+    assert APP_VERSION == '1.5.9.9.9'

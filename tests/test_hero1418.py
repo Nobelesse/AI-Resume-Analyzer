@@ -4,7 +4,7 @@ from app.config import APP_VERSION
 HTML = Path("app/ui/web/intelligence_hero.html")
 
 def test_hero1418_version():
-    assert APP_VERSION == "1.5.9.9.8"
+    assert APP_VERSION == "1.5.9.9.9"
 
 def test_hero1418_spacing_and_stars():
     html = HTML.read_text()
