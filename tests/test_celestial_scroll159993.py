@@ -4,7 +4,7 @@ from app.config import APP_VERSION
 CSS = Path(__file__).resolve().parents[1] / "app" / "assets" / "styles.css"
 
 def test_global_scroll_release():
-    assert APP_VERSION == "1.5.9.9.5"
+    assert APP_VERSION == "1.5.9.9.6"
     text = CSS.read_text(encoding="utf-8")
     for token in ("ara-spatial-heading-159994", "ara-spatial-card-159994",
                   "ara-spatial-journey-left-159994", "ara-spatial-orbit-159994",

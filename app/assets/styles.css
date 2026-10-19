@@ -764,3 +764,11 @@ div[data-testid="stButton"] button:hover,div[data-testid="stFormSubmitButton"] b
     will-change: auto;
   }
 }
+
+/* v1.5.9.9.6 — Cinematic typography: stable, readable magnetic/depth movement.
+   Scroll-position transforms are written by the trusted main-document engine. */
+[data-testid="stMain"] .ara-scroll-live {
+  transform-origin: 50% 50%;
+  transform-style: preserve-3d;
+  will-change: transform;
+}

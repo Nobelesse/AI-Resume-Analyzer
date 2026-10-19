@@ -1,11 +1,11 @@
-/* Celestial Spatial Engine 1.5.9.9.5 — first-party, main-document code only.
+/* Cinematic 3D Typography 1.5.9.9.6 — first-party, main-document code only.
    No data access, external requests or Streamlit state changes. */
 (() => {
   'use strict';
   const w = window;
   const d = document;
-  if (w.__araScrollEngine159995) {
-    w.__araScrollEngine159995.refresh();
+  if (w.__araScrollEngine159996) {
+    w.__araScrollEngine159996.refresh();
     return;
   }
 
@@ -67,13 +67,24 @@
       const offset = clamp(fromCenter, -1, 1);
       const state = elState.get(el);
       if (!state) continue;
+      // Scroll-relative motion: no hard spins, opacity changes, or blur.
+      // Clamp to keep titles readable even at the beginning and end of a page.
+      const proximity = Math.min(1, Math.abs(offset));
+      const eased = Math.sign(offset) * proximity * proximity * (3 - 2 * proximity);
       let transform;
       if (state.kind === 'orb') {
-        transform = `perspective(1200px) translate3d(${(-offset * 22).toFixed(1)}px,${(offset * 24).toFixed(1)}px,0) rotateY(${(-offset * 10).toFixed(1)}deg) scale(${(1 - Math.abs(offset) * .055).toFixed(3)})`;
+        // A slow floating visual anchor, independent of the typography.
+        transform = `perspective(1400px) translate3d(${(-eased * 18).toFixed(1)}px,${(eased * 29).toFixed(1)}px,0) scale(${(1 - proximity * .035).toFixed(3)})`;
       } else if (state.kind === 'card') {
-        transform = `perspective(1100px) translate3d(${(offset * 40 * state.direction).toFixed(1)}px,${(offset * 28).toFixed(1)}px,0) rotateY(${(offset * 9 * state.direction).toFixed(1)}deg) rotateX(${(-offset * 6).toFixed(1)}deg)`;
+        // Magnetic card rise: slight diagonal drift and depth; no tilt stacking.
+        transform = `perspective(1350px) translate3d(${(eased * 21 * state.direction).toFixed(1)}px,${(eased * 29).toFixed(1)}px,0) scale(${(1 - proximity * .045).toFixed(3)})`;
       } else {
-        transform = `perspective(1050px) translate3d(${(offset * 17 * state.direction).toFixed(1)}px,${(offset * 30).toFixed(1)}px,0) rotateX(${(-offset * 15).toFixed(1)}deg) rotateY(${(offset * 7 * state.direction).toFixed(1)}deg)`;
+        // Alternating heading directions create a split-line editorial rhythm.
+        // The heading zooms gently from depth without rotation, so it remains readable.
+        const x = eased * 48 * state.direction;
+        const y = eased * 28;
+        const scale = 1 - proximity * .075;
+        transform = `perspective(1400px) translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0) scale(${scale.toFixed(3)})`;
       }
       el.style.setProperty('--ara-scroll-transform', transform);
     }
@@ -95,6 +106,6 @@
   observer = new MutationObserver(onMutations);
   const main = d.querySelector('[data-testid="stMain"]');
   if (main) observer.observe(main, {childList:true,subtree:true});
-  w.__araScrollEngine159995 = {refresh, version:'1.5.9.9.5'};
+  w.__araScrollEngine159996 = {refresh, version:'1.5.9.9.6'};
   refresh();
 })();

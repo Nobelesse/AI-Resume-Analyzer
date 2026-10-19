@@ -1,4 +1,4 @@
-## v1.5.9.9.5 — Real 3D Scroll Engine
+## v1.5.9.9.6 — Real 3D Scroll Engine
 Browser-driven 3D motion replaces invisible CSS view timelines. See `docs/VERSION_1_5_9_9_5_REAL_SCROLL_ENGINE.md`.
 
 ## UI 1.2.1 — Full-width interactive intelligence hero
