@@ -3,7 +3,7 @@ import sqlite3
 from pathlib import Path
 from app.config import DATABASE_PATH
 
-SCHEMA_VERSION = 6
+SCHEMA_VERSION = 7
 
 def connect(path=None):
     db_path = Path(path) if path is not None else DATABASE_PATH
@@ -82,6 +82,35 @@ def initialize_database(path=None):
           created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
         CREATE INDEX IF NOT EXISTS idx_matches_owner ON job_matches(owner_id,id DESC);
+        """)
+        # Preserve a minimal historical actor identity when users are deleted.
+        # Existing rows for accounts already deleted cannot be reconstructed.
+        columns = {row['name'] for row in conn.execute('PRAGMA table_info(activity_logs)').fetchall()}
+        if 'actor_email_snapshot' not in columns:
+            conn.execute('ALTER TABLE activity_logs ADD COLUMN actor_email_snapshot TEXT')
+        if 'actor_original_id' not in columns:
+            conn.execute('ALTER TABLE activity_logs ADD COLUMN actor_original_id INTEGER')
+        conn.execute("""UPDATE activity_logs
+            SET actor_email_snapshot=(SELECT email FROM users WHERE users.id=activity_logs.actor_id),
+                actor_original_id=actor_id
+            WHERE actor_id IS NOT NULL AND (actor_email_snapshot IS NULL OR actor_original_id IS NULL)""")
+        conn.executescript("""
+        CREATE TRIGGER IF NOT EXISTS ara_audit_actor_snapshot_insert
+        AFTER INSERT ON activity_logs WHEN NEW.actor_id IS NOT NULL
+        BEGIN
+          UPDATE activity_logs SET
+            actor_email_snapshot=(SELECT email FROM users WHERE id=NEW.actor_id),
+            actor_original_id=NEW.actor_id
+          WHERE id=NEW.id;
+        END;
+        CREATE TRIGGER IF NOT EXISTS ara_audit_snapshot_before_user_delete
+        BEFORE DELETE ON users
+        BEGIN
+          UPDATE activity_logs SET
+            actor_email_snapshot=COALESCE(actor_email_snapshot, OLD.email),
+            actor_original_id=COALESCE(actor_original_id, OLD.id)
+          WHERE actor_id=OLD.id;
+        END;
         """)
         from app.services.taxonomy import ensure_tables
         ensure_tables(conn)

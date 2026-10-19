@@ -121,7 +121,7 @@ def audit_page():
     section_heading('Recorded events', 'Up to 500 recent events, metadata only')
     st.dataframe(rows,hide_index=True,use_container_width=True)
     st.download_button('Export activity log (CSV)',csv_export(rows,['id','actor_id','actor_email','event','created_at']),'audit-events.csv','text/csv')
-    st.caption('Event log contains metadata only; no passwords or extracted resume text.')
+    st.caption('Historical actor emails are retained for audit accountability after account deletion. Accounts deleted before this feature may show identity unavailable. No passwords or extracted resume text are stored in audit records.')
 
 
 def my_record_management():

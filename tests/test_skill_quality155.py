@@ -2,7 +2,7 @@ from app.services.career_intelligence155 import evidence_weight, useful_gaps, oc
 from app.config import APP_VERSION
 
 def test_version():
-    assert APP_VERSION == '1.5.9.9.9.7'
+    assert APP_VERSION == '1.5.9.9.9.8'
 
 def test_technical_evidence_outweighs_generic():
     assert evidence_weight('PostgreSQL') > evidence_weight('Science')

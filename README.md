@@ -202,3 +202,8 @@ The desktop shortcut uses `Launch-AI-Resume-Analyzer.bat`; install its custom ic
 ### Administrator bulk resume management (v1.5.9.9.9.7)
 
 In Admin → Resume Management, select specific resumes via row checkboxes or select all displayed filtered records (up to 2,000 per view). Confirm with checkbox and typing DELETE. Database deletion is atomic and cascades to saved analyses and job comparisons; the selected upload files are unlinked after commit. Existing account records remain untouched. Make a backup before using permanent deletion.
+
+
+## v1.5.9.9.9.8 — Historical activity actor identity
+
+Activity Log now stores the minimal historical actor email and original account ID at event creation. Deleting a regular user removes the account and linked personal data but retains their email in existing audit events for administrative accountability. The audit record is separate from the deleted account and remains visible to the administrator. A migration backfills audit rows while their account records still exist; identities for accounts deleted **before** this update cannot be inferred and remain marked as unavailable. Back up the database before installing.

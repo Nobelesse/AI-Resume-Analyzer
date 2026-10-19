@@ -45,7 +45,8 @@ def admin_resumes(admin_id, *, db_path=None, search='', owner_id=None, file_type
 def admin_activity(admin_id, *, db_path=None, event=None, limit=200):
     require_role(admin_id,'admin',db_path=db_path)
     with connect(db_path) as db:
-        rows=db.execute('''SELECT a.id,a.actor_id,COALESCE(u.email,'[deleted account]') AS actor_email,
+        rows=db.execute('''SELECT a.id,COALESCE(a.actor_original_id,a.actor_id) AS actor_id,
+          COALESCE(a.actor_email_snapshot,u.email,'[historical identity unavailable]') AS actor_email,
           a.event,a.created_at FROM activity_logs a LEFT JOIN users u ON u.id=a.actor_id
           WHERE (? IS NULL OR a.event=?) ORDER BY a.id DESC LIMIT ?''',
           (event,event,min(max(int(limit),1),1000))).fetchall()
