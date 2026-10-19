@@ -190,3 +190,8 @@ The Overview hero now uses an original, locally bundled transparent globe artwor
 
 ## Version 1.5.9.9.9.3
 The Overview now uses a prominent **Your Workspace** heading. The former Experience Center link is renamed **Getting Started**, providing a real guide to the user and administrator workflows rather than a demonstration scene.
+
+
+### Version 1.5.9.9.9.4: Permanent administrator
+
+A single permanent admin is created with `python scripts/create_admin.py`; Account Management permits managing standard users only. Database triggers prevent admin modification/deletion or creating/promoting other admins. See `docs/PERMANENT_ADMIN_POLICY.md`.

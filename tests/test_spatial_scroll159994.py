@@ -4,7 +4,7 @@ from app.config import APP_VERSION
 CSS = (Path(__file__).resolve().parents[1] / "app/assets/styles.css").read_text(encoding="utf-8")
 
 def test_spatial_animations_are_geometric_not_fade():
-    assert APP_VERSION == "1.5.9.9.9.3"
+    assert APP_VERSION == "1.5.9.9.9.4"
     part = CSS.split("/* v1.5.9.9.4", 1)[1]
     assert "rotateY(" in part and "rotateX(" in part
     assert "translate3d(" in part and "scale(" in part

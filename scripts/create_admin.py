@@ -11,7 +11,7 @@ from app.auth.service import create_initial_admin
 def main():
     initialize_database()
     print("AI Resume Analyzer — first administrator setup")
-    print("This command works only if no administrator currently exists.")
+    print("One-time bootstrap only: the administrator is permanent and cannot be replaced from the application.")
     email=input("Admin email: ").strip()
     name=input("Admin display name: ").strip()
     password=getpass.getpass("Admin password (12+ characters): ")

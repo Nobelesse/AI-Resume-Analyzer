@@ -2,7 +2,7 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 
 def test_platform_navigation_preserves_routes():
-    source=(ROOT/'app/main.py').read_text(encoding="utf-8")
+    source=(ROOT/'app/main.py').read_text(encoding='utf-8')
     assert '"PLATFORM": project_pages' in source
     assert '"PROJECT": project_pages' not in source
     assert 'url_path="build-roadmap"' in source

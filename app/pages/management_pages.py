@@ -42,7 +42,8 @@ def account_management():
     page_header('ADMINISTRATOR / ACCESS', 'Account management', 'Manage user availability without exposing passwords or private documents.', '◈')
     accounts=admin_list_accounts(actor['id'])
     st.metric('Registered accounts',len(accounts))
-    section_heading('Account directory', 'Role and account status overview')
+    st.info('Permanent administrator: protected and read-only. Only standard user accounts can be activated or deactivated.')
+    section_heading('Account directory', 'Administrator is permanently protected; standard users are manageable')
     st.dataframe(accounts,use_container_width=True,hide_index=True)
     st.download_button('Export account directory (CSV)',csv_export(accounts,['id','display_name','email','role','is_active','created_at']),'accounts.csv','text/csv')
     eligible=[a for a in accounts if a['role']=='user']

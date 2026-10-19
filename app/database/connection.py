@@ -87,4 +87,28 @@ def initialize_database(path=None):
         ensure_tables(conn)
         from app.services.skills import seed_skills
         seed_skills(path)
+        # Enforce the single, permanent administrator at the SQLite layer.
+        # Fail closed if a pre-existing database already has multiple admins;
+        # do not silently remove, demote, or overwrite any account.
+        count = conn.execute("SELECT COUNT(*) FROM users WHERE role='admin'").fetchone()[0]
+        if count > 1:
+            raise RuntimeError("Multiple administrators detected. Manual review required; no accounts changed.")
+        conn.executescript("""
+        CREATE TRIGGER IF NOT EXISTS ara_one_admin_insert
+        BEFORE INSERT ON users WHEN NEW.role='admin'
+          AND EXISTS (SELECT 1 FROM users WHERE role='admin')
+        BEGIN SELECT RAISE(ABORT, 'Exactly one administrator is permitted'); END;
+
+        CREATE TRIGGER IF NOT EXISTS ara_one_admin_no_promotion
+        BEFORE UPDATE OF role ON users WHEN OLD.role!='admin' AND NEW.role='admin'
+        BEGIN SELECT RAISE(ABORT, 'Administrator promotion is disabled'); END;
+
+        CREATE TRIGGER IF NOT EXISTS ara_permanent_admin_no_update
+        BEFORE UPDATE ON users WHEN OLD.role='admin'
+        BEGIN SELECT RAISE(ABORT, 'Permanent administrator cannot be modified'); END;
+
+        CREATE TRIGGER IF NOT EXISTS ara_permanent_admin_no_delete
+        BEFORE DELETE ON users WHEN OLD.role='admin'
+        BEGIN SELECT RAISE(ABORT, 'Permanent administrator cannot be deleted'); END;
+        """)
         conn.execute(f'PRAGMA user_version={SCHEMA_VERSION}')
