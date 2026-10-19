@@ -19,6 +19,7 @@ from app.pages import architecture, auth_pages, design_lab, home, roadmap, secur
 from app.ui.components import sidebar_identity
 from app.ui.session import logout, session_user
 from app.ui.theme import inject_theme
+from app.ui.scroll_engine import inject_scroll_engine
 from app.ui.navigation import ROUTE_LABELS
 
 
@@ -41,6 +42,7 @@ def main() -> None:
     )
     initialize_database()
     inject_theme()
+    inject_scroll_engine()
     current = session_user()
 
     with st.sidebar:

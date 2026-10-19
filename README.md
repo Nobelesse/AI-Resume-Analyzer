@@ -1,3 +1,6 @@
+## v1.5.9.9.5 — Real 3D Scroll Engine
+Browser-driven 3D motion replaces invisible CSS view timelines. See `docs/VERSION_1_5_9_9_5_REAL_SCROLL_ENGINE.md`.
+
 ## UI 1.2.1 — Full-width interactive intelligence hero
 
 The home hero now puts text over a full-width interactive network-sphere canvas; see `docs/UI_1_2_1.md`.

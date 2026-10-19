@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 APP_NAME = "AI Resume Analyzer"
-APP_VERSION = "1.5.9.9.4"
+APP_VERSION = "1.5.9.9.5"
 MAX_RESUME_BYTES = 2_000_000
 SUPPORTED_EXTENSIONS = ("pdf", "docx", "txt", "rtf", "odt")
 GITHUB_URL = "https://github.com/Nobelesse/AI-Resume-Analyzer"

@@ -746,3 +746,21 @@ div[data-testid="stButton"] button:hover,div[data-testid="stFormSubmitButton"] b
    opacity:1!important;filter:none!important;transform:none!important;
  }
 }
+
+/* v1.5.9.9.5 — Real Spatial Scroll Engine, driven by DOM scroll position.
+   Replaces ALL older view-timeline animations on read-only content. */
+[data-testid="stMain"] .ara-scroll-live {
+  animation: none !important;
+  animation-timeline: auto !important;
+  transform: var(--ara-scroll-transform, none) !important;
+  transform-origin: 50% 50%;
+  backface-visibility: hidden;
+  will-change: transform;
+}
+/* Do not transform whole widgets, forms, charts or the navigation area. */
+@media (max-width: 800px), (prefers-reduced-motion: reduce) {
+  [data-testid="stMain"] .ara-scroll-live {
+    transform: none !important;
+    will-change: auto;
+  }
+}
