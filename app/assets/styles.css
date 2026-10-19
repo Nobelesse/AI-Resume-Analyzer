@@ -833,3 +833,31 @@ div[data-testid="stButton"] button:hover,div[data-testid="stFormSubmitButton"] b
 .ara-native-orb-shell.ara-canvas-ready .ara-premium-globe { opacity:1; }
 .ara-native-orb-shell.ara-canvas-ready .ara-orb-fallback { opacity:0; }
 @media(prefers-reduced-motion:reduce){.ara-orb-fallback,.ara-premium-globe{transition:none!important}}
+
+/* v1.5.9.9.9.2: The approved premium holographic globe artwork is rendered
+   in the native page, not an iframe; its alpha blends with the global stars. */
+.ara-native-orb-shell.ara-reference-globe {
+  position:relative; width:100%; max-width:640px; aspect-ratio:1/1;
+  overflow:visible!important; isolation:initial!important;
+  background:none!important; border:0!important;box-shadow:none!important;
+  filter:none!important; transform-style:preserve-3d;
+}
+.ara-reference-globe .ara-orb-fallback { opacity:0; pointer-events:none; }
+.ara-premium-artwork {
+  position:relative;z-index:3;display:block;width:112%;max-width:none;height:auto;
+  margin-left:-6%;object-fit:contain;pointer-events:none;user-select:none;
+  filter:drop-shadow(0 0 24px rgba(77,109,215,.27));
+  transform-origin:50% 50%;
+  animation:ara-premium-floating 9s ease-in-out infinite alternate;
+  will-change:transform;
+}
+.ara-art-glint {position:absolute;z-index:4;display:block;width:5px;height:5px;border-radius:50%;
+ background:#fff2c6;box-shadow:0 0 8px 3px #dec58c90,0 0 24px 9px #7a77df45;pointer-events:none;
+ animation:ara-premium-glimmer 3.5s ease-in-out infinite alternate;}
+.ara-art-glint-one {top:30%;left:74%;}
+.ara-art-glint-two {top:74%;left:31%;animation-delay:-1.8s;background:#b2e6ff;}
+@keyframes ara-premium-floating {from{transform:translate3d(0,7px,0) rotate(-1.6deg) scale(.985)}
+ to{transform:translate3d(0,-12px,0) rotate(1.6deg) scale(1.022)}}
+@keyframes ara-premium-glimmer {from{opacity:.28;transform:scale(.45)}to{opacity:1;transform:scale(1.65)}}
+@media(max-width:800px){.ara-native-orb-shell.ara-reference-globe{max-width:420px!important}.ara-premium-artwork{width:104%;margin-left:-2%}}
+@media(prefers-reduced-motion:reduce){.ara-premium-artwork,.ara-art-glint{animation:none!important;transform:none!important}}

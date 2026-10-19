@@ -7,7 +7,7 @@ SCRIPT_PATH = ROOT / "app/ui/web/scroll_engine.js"
 
 
 def test_premium_globe_renderer_is_local_and_transparent():
-    assert APP_VERSION == '1.5.9.9.9.1'
+    assert APP_VERSION == '1.5.9.9.9.2'
     js = GLOBE_SCRIPT_PATH.read_text(encoding='utf-8')
     assert "clearRect" in js and "getContext('2d',{alpha:true})" in js
     assert "requestAnimationFrame" in js
@@ -20,7 +20,7 @@ def test_premium_globe_renderer_is_local_and_transparent():
 def test_native_globe_has_no_iframe():
     import inspect
     source = inspect.getsource(render_native_hero)
-    assert 'ara-premium-globe' in source
+    assert 'ara-premium-artwork' in source
     assert 'components.html' not in source
     assert 'iframe' not in source.split('st.markdown(')[-1]
 

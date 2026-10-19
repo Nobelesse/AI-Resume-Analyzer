@@ -11,7 +11,7 @@ def test_globe_has_visible_svg_fallback(monkeypatch):
     render_native_hero()
     assert 'ara-orb-fallback' in captured[0]
     assert '<svg' in captured[0]
-    assert 'ara-premium-globe' in captured[0]
+    assert 'ara-premium-artwork' in captured[0]
 
 def test_canvas_only_hides_fallback_after_draw():
     root=Path(__file__).resolve().parents[1]
@@ -22,4 +22,4 @@ def test_canvas_only_hides_fallback_after_draw():
     assert '.ara-native-orb-shell.ara-canvas-ready .ara-orb-fallback' in style
 
 def test_patch_version():
-    assert APP_VERSION == '1.5.9.9.9.1'
+    assert APP_VERSION == '1.5.9.9.9.2'

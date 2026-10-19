@@ -1,4 +1,4 @@
-## Version 1.5.9.9.9.1 — Premium 3D globe and layered scroll motion
+## Version 1.5.9.9.9.2 — Premium 3D globe and layered scroll motion
 
 Overview now uses a transparent same-document canvas globe with perspective-projected rotating mesh and independent scroll motion for the hero layers. See [release and manual visual checks](docs/VERSION_1_5_9_9_9_PREMIUM_GLOBE.md).
 
@@ -180,5 +180,9 @@ Geometric 3D scroll transformations replace fade reveals. See `docs/VERSION_1_5_
 Cinematic Depth Scroll refines the working scroll engine with visible upright 3D motion; see docs/VERSION_1_5_9_9_8_CINEMATIC_DEPTH.md.
 
 
-## 1.5.9.9.9.1 globe visibility repair
+## 1.5.9.9.9.2 globe visibility repair
 The Overview hero has a built-in animated SVG fallback. Canvas replaces it only after a successful frame, avoiding an empty hero if JavaScript initialization fails.
+
+
+## Premium Reference Globe (v1.5.9.9.9.2)
+The Overview hero now uses an original, locally bundled transparent globe artwork that matches the approved design reference. It floats and features animated light accents without external requests. This is animated 2.5D artwork, not a true volumetric rotating Earth model. The working scrolling engine and offline datasets are unchanged.

@@ -13,6 +13,10 @@ ORB_SVG = r'''<svg class="ara-native-orb" viewBox="0 0 440 440" role="img" aria-
 
 def render_native_hero(height: int = 650) -> None:
     import streamlit as st
+    import base64
+    from pathlib import Path
+    image_bytes = (Path(__file__).resolve().parents[1] / "assets" / "premium_globe_art.webp").read_bytes()
+    image_uri = "data:image/webp;base64," + base64.b64encode(image_bytes).decode("ascii")
     # No inner sky, no iframe, no dark component rectangle.
     st.markdown(
         '<section class="ara-native-hero" aria-label="AI Resume Analyzer introduction">'
@@ -21,6 +25,6 @@ def render_native_hero(height: int = 650) -> None:
         '<h1>A sharper view<br>of <span>your potential.</span></h1>'
         '<p>Intelligent resume analysis, role matching and career discovery in one focused workspace.</p>'
         '<div class="ara-native-pills"><span>✧ Resume intelligence</span><span>◈ Skill matching</span><span>↗ Career discovery</span></div>'
-        '</div><div class="ara-native-orb-shell">' + '<div class="ara-orb-fallback" aria-hidden="true">' + ORB_SVG + '</div>' + '<canvas id="ara-premium-globe" class="ara-premium-globe" role="img" aria-label="Rotating three-dimensional wireframe intelligence globe"></canvas>' + '</div></section>',
+        '</div><div class="ara-native-orb-shell ara-reference-globe">' + '<div class="ara-orb-fallback" aria-hidden="true">' + ORB_SVG + '</div>' + '<img class="ara-premium-artwork" alt="Luminous holographic data globe with illuminated continents and orbiting lights" decoding="async" src="' + image_uri + '">' + '<span class="ara-art-glint ara-art-glint-one" aria-hidden="true"></span><span class="ara-art-glint ara-art-glint-two" aria-hidden="true"></span>' + '</div></section>',
         unsafe_allow_html=True,
     )
