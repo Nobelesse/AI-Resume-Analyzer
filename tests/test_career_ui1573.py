@@ -6,7 +6,7 @@ CAREER = UI.split('def career_finder():', 1)[1]
 
 
 def test_version_1573():
-    assert APP_VERSION == '1.5.9.9.9.4'
+    assert APP_VERSION == '1.5.9.9.9.5'
 
 
 def test_student_ui_has_no_diagnostic_panel_or_provider_branding():

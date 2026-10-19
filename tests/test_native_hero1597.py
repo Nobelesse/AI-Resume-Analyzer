@@ -4,7 +4,7 @@ from app.ui.native_hero import ORB_SVG
 from app.ui import sphere
 
 def test_no_iframe_for_overview_hero():
-    assert APP_VERSION == "1.5.9.9.9.4"
+    assert APP_VERSION == "1.5.9.9.9.5"
     assert "render_native_hero(height=height)" in Path(sphere.__file__).read_text()
     assert "<svg" in ORB_SVG and "ara-native-orb" in ORB_SVG
 

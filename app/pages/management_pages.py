@@ -2,7 +2,7 @@
 import streamlit as st
 from app.auth.permissions import require_role, AccessDenied, admin_list_accounts
 from app.database.dashboard import (admin_resumes, admin_activity, admin_set_user_active,
-                                    delete_resume, csv_export, user_overview)
+                                    delete_resume, admin_delete_user, csv_export, user_overview)
 from app.database.resumes import list_user_resumes
 from app.ui.session import session_user
 from app.ui.workspace import page_header, section_heading, step_label
@@ -42,19 +42,33 @@ def account_management():
     page_header('ADMINISTRATOR / ACCESS', 'Account management', 'Manage user availability without exposing passwords or private documents.', '◈')
     accounts=admin_list_accounts(actor['id'])
     st.metric('Registered accounts',len(accounts))
-    st.info('Permanent administrator: protected and read-only. Only standard user accounts can be activated or deactivated.')
+    st.info('Permanent administrator: protected and read-only. Only standard user accounts can be activated, deactivated, or permanently deleted.')
     section_heading('Account directory', 'Administrator is permanently protected; standard users are manageable')
     st.dataframe(accounts,use_container_width=True,hide_index=True)
     st.download_button('Export account directory (CSV)',csv_export(accounts,['id','display_name','email','role','is_active','created_at']),'accounts.csv','text/csv')
     eligible=[a for a in accounts if a['role']=='user']
     if eligible:
-        section_heading('Standard-user access', 'Deactivate or reactivate a selected standard account')
+        section_heading('Standard-user access', 'Activate, deactivate, or permanently delete a standard account')
         selected=st.selectbox('Select standard user',[a['id'] for a in eligible],format_func=lambda uid:next(a['email'] for a in eligible if a['id']==uid))
         record=next(a for a in eligible if a['id']==selected)
         st.caption('Deactivated users cannot authenticate or access records. Their information is preserved.')
         if st.button('Deactivate account' if record['is_active'] else 'Reactivate account',type='primary'):
             admin_set_user_active(actor['id'],selected,not bool(record['is_active']))
             st.success('Account status updated.');st.rerun()
+        st.divider()
+        st.warning('Permanent deletion cannot be undone. The selected account, resumes, saved ATS analyses and job comparisons will be removed.')
+        with st.form('admin_permanent_delete_user'):
+            typed=st.text_input('Type the selected user email to confirm permanent deletion', key=f'confirm_delete_{selected}')
+            acknowledged=st.checkbox('I understand that this permanently removes this standard user and their saved data.')
+            submitted=st.form_submit_button('Permanently delete user', type='secondary')
+            if submitted:
+                if not acknowledged or typed.strip() != record['email']:
+                    st.error('Deletion not confirmed. Enter the exact user email and check the confirmation box.')
+                else:
+                    admin_delete_user(actor['id'], selected)
+                    st.success('Standard user account permanently deleted.')
+                    st.rerun()
+
 
 
 def audit_page():

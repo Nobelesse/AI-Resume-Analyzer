@@ -4,7 +4,7 @@ STYLE_PATH = Path(__file__).resolve().parents[1] / "app/assets/styles.css"
 
 
 def test_version_and_global_theme():
-    assert APP_VERSION == "1.5.9.9.9.4"
+    assert APP_VERSION == "1.5.9.9.9.5"
     css = STYLE_PATH.read_text(encoding="utf-8")
     assert '[data-testid="stAppViewContainer"]::before' in css
     assert '[data-testid="stAppViewContainer"]::after' in css

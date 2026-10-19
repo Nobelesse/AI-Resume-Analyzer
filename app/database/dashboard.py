@@ -64,6 +64,37 @@ def admin_set_user_active(admin_id, target_id, enabled, *, db_path=None):
         _audit(db,admin_id,'admin.user.activate' if enabled else 'admin.user.deactivate')
 
 
+
+def admin_delete_user(admin_id, target_id, *, db_path=None, uploads_dir=None):
+    """Permanently delete a standard user and their dependent records.
+
+    The administrator, including the acting account, cannot be deleted.
+    Auditing happens inside the same transaction; documents are removed after
+    the database commit, and only generated upload basenames are considered.
+    """
+    require_role(admin_id, 'admin', db_path=db_path)
+    if int(admin_id) == int(target_id):
+        raise AccessDenied('The permanent administrator cannot be deleted.')
+    upload_names = []
+    with connect(db_path) as db:
+        db.execute('BEGIN IMMEDIATE')
+        row = db.execute('SELECT role FROM users WHERE id=?', (target_id,)).fetchone()
+        if row is None:
+            raise ValueError('Account not found.')
+        if row['role'] != 'user':
+            raise AccessDenied('Only standard user accounts can be deleted.')
+        upload_names = [r['storage_name'] for r in db.execute(
+            'SELECT storage_name FROM resumes WHERE owner_id=?', (target_id,)).fetchall()]
+        # Foreign keys cascade through resumes, analyses and job matches.
+        db.execute("DELETE FROM users WHERE id=? AND role='user'", (target_id,))
+        _audit(db, admin_id, 'admin.user.delete')
+    directory = Path(uploads_dir) if uploads_dir is not None else UPLOADS_DIR
+    for name in upload_names:
+        if isinstance(name, str) and name not in ('', '.', '..') and Path(name).name == name:
+            (directory / name).unlink(missing_ok=True)
+    return True
+
+
 def delete_resume(actor_id,resume_id,*,db_path=None,uploads_dir=None):
     """Users delete their own resumes; admins can delete any; dependent analyses cascade."""
     from app.auth.service import get_user

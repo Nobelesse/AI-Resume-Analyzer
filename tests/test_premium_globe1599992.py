@@ -5,7 +5,7 @@ from app.config import APP_VERSION
 def test_reference_globe_artwork():
     path=Path(native_hero.__file__).resolve().parents[1]/'assets'/'premium_globe_art.webp'
     assert path.is_file() and path.stat().st_size>10000
-    assert APP_VERSION=='1.5.9.9.9.4'
+    assert APP_VERSION=='1.5.9.9.9.5'
 
 def test_native_render_no_iframe():
     import inspect
