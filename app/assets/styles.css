@@ -824,3 +824,12 @@ div[data-testid="stButton"] button:hover,div[data-testid="stFormSubmitButton"] b
 .ara-premium-globe { display:block; width:100%; height:100%; background:transparent!important; border:0!important; box-shadow:none!important; pointer-events:none; }
 .ara-native-copy h1, .ara-native-copy p, .ara-native-kicker, .ara-native-pills { transform-origin:50% 55%; }
 @media(prefers-reduced-motion:reduce){ .ara-native-orb-shell,.ara-premium-globe{animation:none!important} }
+
+/* 1.5.9.9.9.1: Fail-safe globe. The SVG is visible immediately; Canvas replaces it only after a successful draw. */
+.ara-native-orb-shell { position:relative; }
+.ara-orb-fallback { position:absolute; inset:0; z-index:1; pointer-events:none; transition:opacity .28s ease; }
+.ara-orb-fallback .ara-native-orb { width:100%;height:100%; }
+.ara-premium-globe { position:relative;z-index:2; opacity:0; transition:opacity .28s ease; }
+.ara-native-orb-shell.ara-canvas-ready .ara-premium-globe { opacity:1; }
+.ara-native-orb-shell.ara-canvas-ready .ara-orb-fallback { opacity:0; }
+@media(prefers-reduced-motion:reduce){.ara-orb-fallback,.ara-premium-globe{transition:none!important}}

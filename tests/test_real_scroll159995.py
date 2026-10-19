@@ -26,7 +26,7 @@ def test_scroll_engine_tracks_actual_scroll_and_skips_interactive_controls():
 
 def test_current_version_and_css_override():
     from app.config import APP_VERSION
-    assert APP_VERSION == '1.5.9.9.9'
+    assert APP_VERSION == '1.5.9.9.9.1'
     css = (ROOT / 'app/assets/styles.css').read_text(encoding='utf8')
     assert 'v1.5.9.9.5 — Real Spatial Scroll Engine' in css
     assert 'transform: var(--ara-scroll-transform, none) !important;' in css

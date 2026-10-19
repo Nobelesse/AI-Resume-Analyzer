@@ -96,6 +96,8 @@
     orbital(1.08,radius*1.20,radius*.52,'rgba(162,140,244,.80)',rotation*.11);
     c.beginPath();c.arc(mid,mid,radius,0,THREE_D);
     c.strokeStyle='rgba(173,201,255,.35)';c.lineWidth=1.5;c.stroke();
+    // Switch to Canvas only when its first frame has actually rendered.
+    if (canvas.parentElement) canvas.parentElement.classList.add('ara-canvas-ready');
   }
   function frame(time) {
     raf=0;
@@ -110,7 +112,9 @@
     const next=d.getElementById('ara-premium-globe');
     if(next!==canvas) {
       if(observer)observer.disconnect();
-      canvas=next;ctx=next?next.getContext('2d',{alpha:true}):null;
+      canvas=next;
+      if (next && next.parentElement) next.parentElement.classList.remove('ara-canvas-ready');
+      ctx=next?next.getContext('2d',{alpha:true}):null;
       if(canvas && w.IntersectionObserver) {
         observer=new IntersectionObserver(entries => {visible=entries.some(e=>e.isIntersecting);if(visible){last=0;schedule();}}, {rootMargin:'60px'});
         observer.observe(canvas);

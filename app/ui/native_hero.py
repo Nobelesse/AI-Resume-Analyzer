@@ -21,6 +21,6 @@ def render_native_hero(height: int = 650) -> None:
         '<h1>A sharper view<br>of <span>your potential.</span></h1>'
         '<p>Intelligent resume analysis, role matching and career discovery in one focused workspace.</p>'
         '<div class="ara-native-pills"><span>✧ Resume intelligence</span><span>◈ Skill matching</span><span>↗ Career discovery</span></div>'
-        '</div><div class="ara-native-orb-shell">' + '<canvas id="ara-premium-globe" class="ara-premium-globe" role="img" aria-label="Rotating three-dimensional wireframe intelligence globe"></canvas>' + '</div></section>',
+        '</div><div class="ara-native-orb-shell">' + '<div class="ara-orb-fallback" aria-hidden="true">' + ORB_SVG + '</div>' + '<canvas id="ara-premium-globe" class="ara-premium-globe" role="img" aria-label="Rotating three-dimensional wireframe intelligence globe"></canvas>' + '</div></section>',
         unsafe_allow_html=True,
     )
