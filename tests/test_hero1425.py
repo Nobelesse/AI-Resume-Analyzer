@@ -5,7 +5,7 @@ HTML = Path("app/ui/web/intelligence_hero.html")
 
 
 def test_hero1425_version():
-    assert APP_VERSION == "1.5.9.9.7"
+    assert APP_VERSION == "1.5.9.9.8"
 
 
 def test_hero1425_continuous_orbit_fix_present():

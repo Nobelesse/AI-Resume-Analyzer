@@ -6,7 +6,7 @@ from app.config import APP_VERSION
 ROOT = Path(__file__).resolve().parents[1]
 
 def test_version_and_no_gemini_runtime():
-    assert APP_VERSION == '1.5.9.9.7'
+    assert APP_VERSION == '1.5.9.9.8'
     for filename in ('app/services/hybrid_intelligence.py', 'app/pages/job_pages.py', '.env.example'):
         source = (ROOT / filename).read_text(encoding='utf-8')
         assert 'ARA_GEMINI_API_KEY' not in source

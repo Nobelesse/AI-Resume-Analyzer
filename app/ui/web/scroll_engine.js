@@ -1,11 +1,11 @@
-/* Premium Cinematic UI 1.5.9.9.7 — first-party, main-document code only.
+/* Cinematic Depth Scroll 1.5.9.9.8 — first-party, main-document code only.
    No data access, external requests or Streamlit state changes. */
 (() => {
   'use strict';
   const w = window;
   const d = document;
-  if (w.__araScrollEngine159997) {
-    w.__araScrollEngine159997.refresh();
+  if (w.__araScrollEngine159998) {
+    w.__araScrollEngine159998.refresh();
     return;
   }
 
@@ -62,21 +62,20 @@
         continue;
       }
       const r = el.getBoundingClientRect();
-      // Premium restraint: preserve the text baseline and legibility.
-      // The heading settles once into view; no lateral or rotary motion.
+      // Scroll-linked depth that is clearly visible while remaining typographically straight.
+      // Compute progress from the untransformed layout rectangle so changes remain reversible.
       const center = r.top + r.height / 2;
-      const entering = clamp((center - viewport * 0.52) / (viewport * 0.44), 0, 1);
+      const entering = clamp((center - viewport * 0.45) / (viewport * 0.48), 0, 1);
       const settled = 1 - entering;
       const state = elState.get(el);
       if (!state) continue;
       let transform;
       if (state.kind === 'orb') {
-        // Very gentle hero depth, no rotational scrolling.
-        transform = `translate3d(0,${(entering * 8).toFixed(1)}px,0)`;
+        transform = `translate3d(0,${(entering * 26).toFixed(1)}px,${(-entering * 65).toFixed(1)}px) scale(${(1 - entering * 0.035).toFixed(3)})`;
       } else if (state.kind === 'card') {
-        transform = `translate3d(0,${(entering * 6).toFixed(1)}px,0)`;
+        transform = `translate3d(0,${(entering * 25).toFixed(1)}px,${(-entering * 55).toFixed(1)}px) scale(${(1 - entering * 0.035).toFixed(3)})`;
       } else {
-        transform = `translate3d(0,${(entering * 7).toFixed(1)}px,0)`;
+        transform = `translate3d(0,${(entering * 34).toFixed(1)}px,${(-entering * 75).toFixed(1)}px) scale(${(1 - entering * 0.04).toFixed(3)})`;
       }
       el.style.setProperty('--ara-spotlight-progress', settled.toFixed(3));
       if (settled >= 0.5) el.classList.add('ara-polished-visible');
@@ -101,6 +100,6 @@
   observer = new MutationObserver(onMutations);
   const main = d.querySelector('[data-testid="stMain"]');
   if (main) observer.observe(main, {childList:true,subtree:true});
-  w.__araScrollEngine159997 = {refresh, version:'1.5.9.9.7'};
+  w.__araScrollEngine159998 = {refresh, version:'1.5.9.9.8'};
   refresh();
 })();

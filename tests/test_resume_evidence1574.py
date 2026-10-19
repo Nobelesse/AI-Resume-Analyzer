@@ -20,7 +20,7 @@ Travelling by Train
 """
 
 def test_version():
-    assert APP_VERSION == '1.5.9.9.7'
+    assert APP_VERSION == '1.5.9.9.8'
 
 def test_fresher_resume_evidence():
     p = extract_resume_evidence(SAMPLE)

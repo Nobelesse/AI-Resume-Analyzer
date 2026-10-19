@@ -8,9 +8,9 @@ def test_professional_scroll_motion_and_safety():
     assert '[data-testid="stSidebar"]' in js
     assert 'translate3d(' in js
     assert 'rotateX(' not in js and 'rotateY(' not in js
-    assert 'scale(' not in js
+    assert 'scale(' in js
     assert 'ara-polished-visible' in js
 
 def test_version():
     from app.config import APP_VERSION
-    assert APP_VERSION == '1.5.9.9.7'
+    assert APP_VERSION == '1.5.9.9.8'

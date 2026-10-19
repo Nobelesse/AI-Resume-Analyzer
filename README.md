@@ -170,3 +170,7 @@ Unified lightweight 3D-style scroll reveals for static content across guest, use
 
 ## v1.5.9.9.4 — Celestial Spatial Journey
 Geometric 3D scroll transformations replace fade reveals. See `docs/VERSION_1_5_9_9_4_SPATIAL_JOURNEY.md`.
+
+
+### Version 1.5.9.9.8
+Cinematic Depth Scroll refines the working scroll engine with visible upright 3D motion; see docs/VERSION_1_5_9_9_8_CINEMATIC_DEPTH.md.
