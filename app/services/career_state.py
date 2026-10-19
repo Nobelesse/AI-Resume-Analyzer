@@ -6,7 +6,7 @@ def _career_selection_changed(state, user_id, resume_id):
     """
     identity = (str(user_id), str(resume_id))
     if state.get('career_active_identity') != identity:
-        for key in ('career_results', 'career_gemini_guidance', 'career_result_identity'):
+        for key in ('career_results', 'career_result_identity'):
             state.pop(key, None)
         state['career_active_identity'] = identity
         return True
