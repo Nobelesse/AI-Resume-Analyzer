@@ -186,3 +186,7 @@ The Overview hero has a built-in animated SVG fallback. Canvas replaces it only 
 
 ## Premium Reference Globe (v1.5.9.9.9.2)
 The Overview hero now uses an original, locally bundled transparent globe artwork that matches the approved design reference. It floats and features animated light accents without external requests. This is animated 2.5D artwork, not a true volumetric rotating Earth model. The working scrolling engine and offline datasets are unchanged.
+
+
+## Version 1.5.9.9.9.3
+The Overview now uses a prominent **Your Workspace** heading. The former Experience Center link is renamed **Getting Started**, providing a real guide to the user and administrator workflows rather than a demonstration scene.

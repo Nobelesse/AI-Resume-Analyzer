@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_release_version_ui12():
-    assert APP_VERSION == "1.5.9.9.9.2"
+    assert APP_VERSION == "1.5.9.9.9.3"
 
 
 def test_sphere_component_asset_exists():
@@ -22,5 +22,5 @@ def test_home_and_experience_center_use_sphere():
     home = (ROOT / "app/pages/home.py").read_text(encoding="utf-8")
     design = (ROOT / "app/pages/design_lab.py").read_text(encoding="utf-8")
     assert "render_intelligence_hero(" in home
-    assert "intelligence_sphere(" in design
+    assert "Getting Started" in design and "AI Career Finder" in design
     assert "v10-orb" not in home

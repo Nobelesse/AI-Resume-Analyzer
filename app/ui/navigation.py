@@ -16,7 +16,7 @@ ROUTE_LABELS = {
     "audit-log": "Activity Log",
     "architecture": "Privacy & Technology",
     "build-roadmap": "Platform Capabilities",
-    "interaction-studio": "Experience Center",
+    "interaction-studio": "Getting Started",
 }
 
 def navigate(route: str) -> None:

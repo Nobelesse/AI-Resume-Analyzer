@@ -31,7 +31,7 @@ def render() -> None:
     render_intelligence_hero(650)
 
     if role in ("user", "admin"):
-        section_heading("YOUR WORKSPACE", "Choose your next move", "Every card opens its actual workspace page.")
+        section_heading("YOUR TOOLS", "Your Workspace", "Choose your next move. Every option opens a working application feature.")
         cards = USER_CARDS if role == "user" else ADMIN_CARDS
         with st.container(key="workspace_cards"):
             for idx in range(0, len(cards), 2):
@@ -40,7 +40,7 @@ def render() -> None:
                     with col:
                         navigation_card(*card)
     else:
-        section_heading("YOUR WORKSPACE", "Everything your next opportunity needs", "Sign in to access your private documents and career tools.")
+        section_heading("PLATFORM OVERVIEW", "Your Workspace", "Everything your next opportunity needs. Sign in to access your private documents and career tools.")
         a, b, c = st.columns(3, gap="medium")
         with a:
             metric_tile("UPLOAD LIMIT", "2 MB", f"{MAX_RESUME_BYTES:,} bytes per resume", "violet")
