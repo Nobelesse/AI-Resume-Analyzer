@@ -23,3 +23,6 @@ data/*
 !data/uploads/
 data/uploads/*
 !data/uploads/.gitkeep
+
+# Local O*NET, ESCO and imported datasets
+/datasets/
