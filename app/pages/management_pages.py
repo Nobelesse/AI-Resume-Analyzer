@@ -2,7 +2,7 @@
 import streamlit as st
 from app.auth.permissions import require_role, AccessDenied, admin_list_accounts
 from app.database.dashboard import (admin_resumes, admin_activity, admin_set_user_active,
-                                    delete_resume, admin_delete_user, csv_export, user_overview)
+                                    delete_resume, admin_delete_resumes, admin_delete_user, csv_export, user_overview)
 from app.database.resumes import list_user_resumes
 from app.ui.session import session_user
 from app.ui.workspace import page_header, section_heading, step_label
@@ -21,20 +21,59 @@ def admin_resume_management():
     col1,col2=st.columns([3,1])
     search=col1.text_input('Search filename or account email')
     kind=col2.selectbox('File type',['All','pdf','docx','txt','rtf','odt'])
-    rows=admin_resumes(actor['id'],search=search,file_type=None if kind=='All' else kind)
-    st.metric('Matching documents',len(rows))
-    section_heading('Matching applicant records', 'Results are limited to the current filters')
+    rows=admin_resumes(actor['id'],search=search,file_type=None if kind=='All' else kind,limit=2000)
+    st.metric('Matching documents displayed',len(rows))
+    section_heading('Applicant records', 'Select particular documents or all matching records currently displayed')
     if rows:
-        st.dataframe(rows,hide_index=True,use_container_width=True)
+        import pandas as pd
+        # Preserve selections through normal Streamlit reruns, but never retain
+        # stale IDs outside the current search/filter result.
+        available={int(r['id']) for r in rows}
+        prior=set(st.session_state.get('admin_resume_selected_ids', [])) & available
+        # A changed Select All control overrides prior row selections; otherwise
+        # the editable grid remains the source of truth for individual picks.
+        select_all=st.checkbox('Select all displayed resumes',value=False,key='admin_resume_select_all')
+        previous_toggle=st.session_state.get('admin_resume_select_all_previous',False)
+        if select_all != previous_toggle:
+            prior=available if select_all else set()
+            st.session_state['admin_resume_selected_ids']=sorted(prior)
+            st.session_state['admin_resume_grid_revision']=st.session_state.get('admin_resume_grid_revision',0)+1
+        st.session_state['admin_resume_select_all_previous']=select_all
+        selection_rows=[{'Select':int(r['id']) in prior, **r} for r in rows]
+        edited=st.data_editor(
+            pd.DataFrame(selection_rows),hide_index=True,use_container_width=True,
+            disabled=[col for col in selection_rows[0] if col!='Select'],
+            column_config={'Select':st.column_config.CheckboxColumn('Select',help='Include this resume in deletion')},
+            key=f'admin_resume_bulk_grid_{kind}_{search}_{st.session_state.get("admin_resume_grid_revision",0)}',
+        )
+        selected_ids=[int(rid) for rid in edited.loc[edited['Select'],'id'].tolist()]
+        st.session_state['admin_resume_selected_ids']=selected_ids
+        st.caption(f'{len(selected_ids)} of {len(rows)} displayed resumes selected. Search and file-type filters apply to Select All.')
         fields=['id','owner_id','owner_email','original_filename','file_type','file_size','created_at']
         st.download_button('Export current records (CSV)',csv_export(rows,fields),'resume-records.csv','text/csv')
-        section_heading('Delete a resume', 'Permanent deletion also removes linked analysis and job comparisons')
-        selected=st.selectbox('Choose resume ID for removal',[r['id'] for r in rows],format_func=lambda rid: f'#{rid} — '+next(r['original_filename'] for r in rows if r['id']==rid))
-        with st.form('admin_delete_resume'):
-            confirmation=st.checkbox('I understand this permanently removes the resume and its saved analyses/job comparisons.')
-            if st.form_submit_button('Permanently delete selected resume',disabled=not confirmation):
-                delete_resume(actor['id'],selected);st.success('Resume removed.');st.rerun()
-    else:st.info('No matching records.')
+        if len(rows)==2000:
+            st.warning('The view is limited to 2,000 records. Select All affects these displayed records only; filter to manage additional records.')
+        section_heading('Permanent resume deletion','Also deletes associated analyses, job comparisons and stored resume files')
+        st.warning('This cannot be undone. Use a database backup if you may need these records later.')
+        with st.form('admin_delete_resume_bulk'):
+            confirmed=st.checkbox('I understand the selected resumes and linked results will be permanently deleted.')
+            typed=st.text_input('Type DELETE to confirm')
+            submitted=st.form_submit_button(f'Permanently delete {len(selected_ids)} selected resume(s)',type='secondary',disabled=not selected_ids)
+            if submitted:
+                if not confirmed or typed.strip()!='DELETE':
+                    st.error('Check the confirmation box and type DELETE exactly.')
+                else:
+                    try:
+                        count=admin_delete_resumes(actor['id'],selected_ids)
+                    except (ValueError,AccessDenied) as exc:
+                        st.error(str(exc))
+                    else:
+                        st.session_state.pop('admin_resume_selected_ids',None)
+                        st.success(f'Permanently deleted {count} resume(s).')
+                        st.rerun()
+    else:
+        st.session_state.pop('admin_resume_selected_ids',None)
+        st.info('No matching records.')
 
 
 def account_management():

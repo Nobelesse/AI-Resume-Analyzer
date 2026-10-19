@@ -196,5 +196,9 @@ The Overview now uses a prominent **Your Workspace** heading. The former Experie
 
 A single permanent admin is created with `python scripts/create_admin.py`; Account Management permits managing standard users only. Database triggers prevent admin modification/deletion or creating/promoting other admins. See `docs/PERMANENT_ADMIN_POLICY.md`.
 
-## Windows launch refinement (v1.5.9.9.9.6)
+## Windows launch refinement (v1.5.9.9.9.7)
 The desktop shortcut uses `Launch-AI-Resume-Analyzer.bat`; install its custom icon with `powershell -ExecutionPolicy Bypass -File scripts\install_desktop_shortcut.ps1`. See `docs/VERSION_1_5_9_9_9_6_LAUNCHER.md`.
+
+### Administrator bulk resume management (v1.5.9.9.9.7)
+
+In Admin → Resume Management, select specific resumes via row checkboxes or select all displayed filtered records (up to 2,000 per view). Confirm with checkbox and typing DELETE. Database deletion is atomic and cascades to saved analyses and job comparisons; the selected upload files are unlinked after commit. Existing account records remain untouched. Make a backup before using permanent deletion.

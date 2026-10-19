@@ -7,7 +7,9 @@ def test_admin_views_keep_server_side_guards():
     text=(ROOT/'app/pages/management_pages.py').read_text(encoding='utf-8')
     assert "_actor('admin')" in text
     assert 'page_header(' in text
-    assert 'confirmation=st.checkbox(' in text
+    assert 'admin_resume_select_all' in text
+    assert 'admin_delete_resume_bulk' in text
+    assert 'admin_delete_resumes(' in text
 
 def test_dashboard_role_and_navigation_stay_protected():
     text=(ROOT/'app/pages/secure_pages.py').read_text(encoding='utf-8')

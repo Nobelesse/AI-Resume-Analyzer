@@ -22,4 +22,4 @@ def test_canvas_only_hides_fallback_after_draw():
     assert '.ara-native-orb-shell.ara-canvas-ready .ara-orb-fallback' in style
 
 def test_patch_version():
-    assert APP_VERSION == '1.5.9.9.9.6'
+    assert APP_VERSION == '1.5.9.9.9.7'

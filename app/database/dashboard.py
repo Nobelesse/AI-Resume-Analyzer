@@ -115,6 +115,51 @@ def delete_resume(actor_id,resume_id,*,db_path=None,uploads_dir=None):
     return True
 
 
+def admin_delete_resumes(admin_id, resume_ids, *, db_path=None, uploads_dir=None):
+    """Atomically remove a selected set of resumes and dependent DB records.
+
+    Admin-only. IDs are validated and deduplicated. File removal happens only
+    after a successful commit, using validated generated storage basenames.
+    """
+    require_role(admin_id, 'admin', db_path=db_path)
+    if isinstance(resume_ids, (str, bytes)):
+        raise ValueError('Resume IDs must be a collection of integers.')
+    try:
+        ids = sorted({int(value) for value in resume_ids})
+    except (TypeError, ValueError) as exc:
+        raise ValueError('Invalid resume selection.') from exc
+    if not ids:
+        raise ValueError('Select at least one resume.')
+    if any(value <= 0 for value in ids) or len(ids) > 2000:
+        raise ValueError('Invalid resume selection or more than 2000 resumes selected.')
+
+    names = []
+    with connect(db_path) as db:
+        db.execute('BEGIN IMMEDIATE')
+        # Query in chunks to remain below older SQLite parameter limits.
+        found = []
+        for start in range(0, len(ids), 400):
+            part = ids[start:start + 400]
+            placeholders = ','.join('?' for _ in part)
+            found.extend(db.execute(
+                f'SELECT id,storage_name FROM resumes WHERE id IN ({placeholders})', part
+            ).fetchall())
+        if len(found) != len(ids):
+            raise ValueError('Some selected resumes no longer exist. Refresh the list.')
+        for start in range(0, len(ids), 400):
+            part = ids[start:start + 400]
+            placeholders = ','.join('?' for _ in part)
+            db.execute(f'DELETE FROM resumes WHERE id IN ({placeholders})', part)
+        names = [row['storage_name'] for row in found]
+        _audit(db, admin_id, 'admin.resume.bulk_delete')
+
+    directory = Path(uploads_dir) if uploads_dir is not None else UPLOADS_DIR
+    for name in names:
+        if isinstance(name, str) and name not in ('', '.', '..') and Path(name).name == name:
+            (directory / name).unlink(missing_ok=True)
+    return len(ids)
+
+
 def user_overview(user_id,*,db_path=None):
     require_role(user_id,'user',db_path=db_path)
     with connect(db_path) as db:
