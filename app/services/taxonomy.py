@@ -40,6 +40,8 @@ def ensure_tables(db):
       skill_id INTEGER NOT NULL REFERENCES tax_skills(id) ON DELETE CASCADE,
       relation TEXT NOT NULL, PRIMARY KEY(occupation_id,skill_id,relation));
     CREATE INDEX IF NOT EXISTS idx_tax_links_occ ON tax_links(occupation_id);
+    -- Career Finder retrieves linked occupations by detected skill_id.
+    CREATE INDEX IF NOT EXISTS idx_tax_links_skill_occ ON tax_links(skill_id, occupation_id);
     CREATE TABLE IF NOT EXISTS tax_imports (
       source TEXT PRIMARY KEY, version TEXT NOT NULL, imported_at TEXT DEFAULT CURRENT_TIMESTAMP);
     ''')

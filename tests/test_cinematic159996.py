@@ -13,4 +13,4 @@ def test_professional_scroll_motion_and_safety():
 
 def test_version():
     from app.config import APP_VERSION
-    assert APP_VERSION == '1.5.9.9.9.8'
+    assert APP_VERSION == '1.5.9.9.9.9'

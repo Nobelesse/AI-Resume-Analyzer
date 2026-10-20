@@ -207,3 +207,8 @@ In Admin → Resume Management, select specific resumes via row checkboxes or se
 ## v1.5.9.9.9.8 — Historical activity actor identity
 
 Activity Log now stores the minimal historical actor email and original account ID at event creation. Deleting a regular user removes the account and linked personal data but retains their email in existing audit events for administrative accountability. The audit record is separate from the deleted account and remains visible to the administrator. A migration backfills audit rows while their account records still exist; identities for accounts deleted **before** this update cannot be inferred and remain marked as unavailable. Back up the database before installing.
+
+
+## v1.5.9.9.9.9 — Career Finder lookup speed
+
+The local O*NET/ESCO occupation-link table now has an index on `(skill_id, occupation_id)`. The **Find suitable careers** workflow can find linked occupations from detected skills using indexed searches rather than repeatedly scanning the entire relationship table. The index is created idempotently on normal database initialization, including existing imported catalogs, without reimporting O*NET/ESCO. No change to ranking logic, skill-coverage formula, eligibility disclaimer, local Ollama settings or UI. Actual response time depends on the user's SQLite file, disk, skill extraction and resume contents; this change does not promise a subsecond full calculation.
