@@ -19,6 +19,8 @@ Write-Host "Desktop shortcut updated: $path" -ForegroundColor Green
 $stop = $shell.CreateShortcut((Join-Path $desktop "Stop AI Resume Analyzer.lnk"))
 $stop.TargetPath = (Join-Path $project "Stop-AI-Resume-Analyzer.bat")
 $stop.WorkingDirectory = $project
-$stop.IconLocation = "$icon,0"
+$stopIcon = Join-Path $project "app\assets\stop_app_icon.ico"
+if (-not (Test-Path $stopIcon)) { throw "Stop shortcut icon missing." }
+$stop.IconLocation = "$stopIcon,0"
 $stop.Description = "Stop this project's server and launcher-managed Ollama"
 $stop.Save()
