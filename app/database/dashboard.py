@@ -37,7 +37,7 @@ def admin_resumes(admin_id, *, db_path=None, search='', owner_id=None, file_type
     clause=(' WHERE '+' AND '.join(where)) if where else ''
     with connect(db_path) as db:
         rows=db.execute('''SELECT r.id,r.owner_id,u.email AS owner_email,r.original_filename,
-          r.file_type,r.file_size,r.created_at FROM resumes r JOIN users u ON u.id=r.owner_id'''+clause+
+          r.document_type,r.file_type,r.file_size,r.created_at FROM resumes r JOIN users u ON u.id=r.owner_id'''+clause+
           ' ORDER BY r.id DESC LIMIT ?',(*params,min(max(int(limit),1),2000))).fetchall()
     return [dict(row) for row in rows]
 

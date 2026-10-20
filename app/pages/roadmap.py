@@ -6,7 +6,7 @@ PHASES = [
     ("01", "Foundation", "Streamlit project, configuration and version control"),
     ("02", "Interactive experience", "Responsive interface, motion and accessibility"),
     ("03", "Authentication & database", "Admin/User permissions and local SQLite"),
-    ("04", "Document processing", "2 MB PDF, DOCX, TXT, RTF and ODT uploads"),
+    ("04", "Document processing", "Resume (2 MB) and CV (10 MB) PDF, DOCX, TXT, RTF and ODT uploads"),
     ("05", "Resume intelligence", "ATS-readiness review and skill extraction"),
     ("06", "Career matching", "Evidence-ranked career matching and Career Finder"),
     ("07", "Workspace dashboards", "Admin management, analytics and audit logs"),

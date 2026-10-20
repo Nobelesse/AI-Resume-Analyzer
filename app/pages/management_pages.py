@@ -17,7 +17,7 @@ def _actor(role):
 
 def admin_resume_management():
     actor=_actor('admin')
-    page_header('ADMINISTRATOR / DOCUMENTS', 'Applicant resume library', 'Search, filter and securely manage documents submitted to your private workspace.', '▣')
+    page_header('ADMINISTRATOR / DOCUMENTS', 'Resume & CV Management', 'Search, filter and securely manage documents submitted to your private workspace.', '▣')
     col1,col2=st.columns([3,1])
     search=col1.text_input('Search filename or account email')
     kind=col2.selectbox('File type',['All','pdf','docx','txt','rtf','odt'])
@@ -49,11 +49,11 @@ def admin_resume_management():
         selected_ids=[int(rid) for rid in edited.loc[edited['Select'],'id'].tolist()]
         st.session_state['admin_resume_selected_ids']=selected_ids
         st.caption(f'{len(selected_ids)} of {len(rows)} displayed resumes selected. Search and file-type filters apply to Select All.')
-        fields=['id','owner_id','owner_email','original_filename','file_type','file_size','created_at']
+        fields=['id','owner_id','owner_email','original_filename','document_type','file_type','file_size','created_at']
         st.download_button('Export current records (CSV)',csv_export(rows,fields),'resume-records.csv','text/csv')
         if len(rows)==2000:
             st.warning('The view is limited to 2,000 records. Select All affects these displayed records only; filter to manage additional records.')
-        section_heading('Permanent resume deletion','Also deletes associated analyses, job comparisons and stored resume files')
+        section_heading('Permanent document deletion','Also deletes associated analyses, job comparisons and stored resume files')
         st.warning('This cannot be undone. Use a database backup if you may need these records later.')
         with st.form('admin_delete_resume_bulk'):
             confirmed=st.checkbox('I understand the selected resumes and linked results will be permanently deleted.')

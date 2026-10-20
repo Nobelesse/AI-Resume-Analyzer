@@ -7,7 +7,7 @@ from xml.etree import ElementTree as ET
 from html import unescape
 from pypdf import PdfReader
 from docx import Document
-from app.config import MAX_RESUME_BYTES, SUPPORTED_EXTENSIONS
+from app.config import MAX_RESUME_BYTES, MAX_CV_BYTES, SUPPORTED_EXTENSIONS, DOCUMENT_TYPES
 
 class ResumeValidationError(ValueError):
     """Invalid, unsupported, or unsafe document."""
@@ -62,9 +62,12 @@ def _odt_text(data: bytes) -> str:
     uri='{urn:oasis:names:tc:opendocument:xmlns:text:1.0}'
     return '\n'.join(''.join(node.itertext()) for node in root.iter() if node.tag in (uri+'p',uri+'h'))
 
-def extract_resume(filename: str, data: bytes) -> str:
-    if not isinstance(data,bytes) or not data or len(data)>MAX_RESUME_BYTES:
-        raise ResumeValidationError('Resume must be non-empty and at most 2 MB (2,000,000 bytes).')
+def extract_resume(filename: str, data: bytes, *, document_type: str = 'resume') -> str:
+    if document_type not in DOCUMENT_TYPES:
+        raise ResumeValidationError('Document type must be Resume or CV.')
+    limit = MAX_CV_BYTES if document_type == 'cv' else MAX_RESUME_BYTES
+    if not isinstance(data,bytes) or not data or len(data)>limit:
+        raise ResumeValidationError(f'{document_type.upper() if document_type == "cv" else "Resume"} must be non-empty and at most {limit // 1_000_000} MB ({limit:,} bytes).')
     if not isinstance(filename,str) or not filename.strip() or len(filename)>255:
         raise ResumeValidationError('Invalid filename.')
     ext=filename.rsplit('.',1)[-1].lower() if '.' in filename else ''

@@ -19,7 +19,7 @@ def render() -> None:
             "**1. Create an account or sign in.** Your resumes and analysis history "
             "are protected by account-based access.\n\n"
             "**2. Upload your resume.** Supported formats: PDF, DOCX, TXT, RTF and ODT "
-            "(maximum 2 MB).\n\n"
+            "(2 MB for resumes, 10 MB for CVs).\n\n"
             "**3. Analyze your profile.** Run resume-readiness checks, compare against "
             "a job posting, or explore suitable career paths.\n\n"
             "**4. Review and export.** Inspect the results, download available reports "
@@ -40,7 +40,7 @@ def render() -> None:
             navigation_card("Skills Catalog", "Review imported taxonomy", "skills-catalog", "▤")
     else:
         st.markdown(
-            "**1. Upload a resume.** Select a supported file up to 2 MB.\n\n"
+            "**1. Upload a resume or CV.** Select a supported file (2 MB resume, 10 MB CV).\n\n"
             "**2. Review ATS Intelligence.** Inspect resume readiness and, optionally, "
             "job compatibility. Scores are estimates, not employer ATS decisions.\n\n"
             "**3. Match a job description.** Compare skills against an actual posting "

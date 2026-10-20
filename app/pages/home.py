@@ -48,7 +48,7 @@ def render() -> None:
         section_heading("PLATFORM OVERVIEW", "Your Workspace", "Everything your next opportunity needs. Sign in to access your private documents and career tools.")
         a, b, c = st.columns(3, gap="medium")
         with a:
-            metric_tile("UPLOAD LIMIT", "2 MB", f"{MAX_RESUME_BYTES:,} bytes per resume", "violet")
+            metric_tile("UPLOAD LIMIT", "2 MB / 10 MB", "Resume: 2 MB · CV: 10 MB", "violet")
         with b:
             metric_tile("SUPPORTED FORMATS", str(len(SUPPORTED_EXTENSIONS)), "PDF · DOCX · TXT · RTF · ODT", "cyan")
         with c:

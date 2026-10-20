@@ -39,8 +39,8 @@ def resume_analysis():
     step_label('01', 'Select a saved resume')
     resumes=list_user_resumes(user['id'])
     if not resumes:
-        st.warning('Upload a resume in Upload Resume first.');return
-    selected=st.selectbox('Choose one of your resumes',[r['id'] for r in resumes],format_func=lambda key:next(f"#{r['id']} · {r['original_filename']}" for r in resumes if r['id']==key))
+        st.warning('Upload a resume or CV first.');return
+    selected=st.selectbox('Choose one of your resumes or CVs',[r['id'] for r in resumes],format_func=lambda key:next(f"#{r['id']} · {r['original_filename']}" for r in resumes if r['id']==key))
     step_label('02', 'Run secure local analysis')
     if st.button('Analyze and save results',type='primary'):
         try:st.session_state['phase5_current_result']=analyze_resume(user['id'],selected)
@@ -55,8 +55,8 @@ def advanced_ats_intelligence():
     st.caption('Two independent, evidence-based assessments. No score can guarantee employer ATS outcomes.')
     resumes=list_user_resumes(user['id'])
     if not resumes:
-        st.warning('Upload a resume first.');return
-    selected=st.selectbox('Choose your resume',[r['id'] for r in resumes],
+        st.warning('Upload a resume or CV first.');return
+    selected=st.selectbox('Choose your resume or CV',[r['id'] for r in resumes],
             format_func=lambda ident:next(r['original_filename'] for r in resumes if r['id']==ident),
             key='ats158_resume')
     resume=get_resume(user['id'],selected)
@@ -65,7 +65,7 @@ def advanced_ats_intelligence():
                               placeholder='Paste required and preferred skills, experience, and qualifications from a real job posting.',
                               key='ats158_description')
     analysis_key=(user['id'],selected,description)
-    if st.button('Analyze resume',type='primary',key='ats158_analyze'):
+    if st.button('Analyze resume / CV',type='primary',key='ats158_analyze'):
         try:
             readiness=resume_readiness(text)
             compatibility=job_compatibility(text,description) if description.strip() else None
@@ -93,7 +93,7 @@ def advanced_ats_intelligence():
             st.write(f'**{label}** — {points:g} of {maximum} points')
             st.progress(max(0.0, min(1.0, points / maximum)))
     st.download_button('Download full ATS assessment (PDF)',
-        data=build_ats_pdf_report(readiness, compatibility, resume_filename=resume['original_filename']),
+        data=build_ats_pdf_report(readiness, compatibility, resume_filename=f"{resume['document_type'].upper() if resume['document_type']=='cv' else 'Resume'}: {resume['original_filename']}"),
         file_name='resume-ats-assessment.pdf', mime='application/pdf',
         key='ats158_pdf_download')
     if readiness['recommendations']:

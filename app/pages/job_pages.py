@@ -79,10 +79,10 @@ def job_match():
     user=_user();page_header('OCCUPATION INTELLIGENCE', 'Job Match Studio', 'Compare resume evidence to explicit job requirements with offline, explainable matching.', '◎')
     st.caption('Offline career and job comparisons · Estimates are not hiring decisions')
     resumes=list_user_resumes(user['id'])
-    if not resumes:st.warning('Upload your resume first.');return
+    if not resumes:st.warning('Upload your resume or CV first.');return
     ids=[r['id'] for r in resumes]
-    step_label('01', 'Select your resume')
-    selected=st.selectbox('Select your resume',ids,format_func=lambda k:next(r['original_filename'] for r in resumes if r['id']==k))
+    step_label('01', 'Select your resume or CV')
+    selected=st.selectbox('Select your resume or CV',ids,format_func=lambda k:next(r['original_filename'] for r in resumes if r['id']==k))
     step_label('02', 'Describe the role you want to explore')
     with st.form('job_compare_form'):
         title=st.text_input('Job title (optional if you paste a job description)',max_chars=150,placeholder='e.g. Customer Care Executive')

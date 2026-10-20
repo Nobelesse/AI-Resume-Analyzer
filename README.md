@@ -222,3 +222,10 @@ Curated and O*NET/ESCO skill extraction use fast substring rejection before exis
 Run `scripts/install_desktop_shortcut.ps1` to install two desktop shortcuts: **AI Resume Analyzer** and **Stop AI Resume Analyzer**. The start shortcut opens the loading screen immediately, starts Ollama if it is not running (and on PATH), and starts the local Streamlit application if port 8501 is free. The stop shortcut stops only process IDs that the launcher recorded and can identify by their commands. It never stops an Ollama process already running before the launcher started. Closing the browser tab alone cannot reliably shut down Streamlit or Ollama. Open the Stop shortcut to end the managed session.
 
 Overview's **Local intelligence status** expander reports Ollama reachability and local occupation/skills totals. These are read-only checks.
+
+
+Desktop shortcut refinement: Start keeps `app/assets/app_icon.ico`; Stop uses `app/assets/stop_app_icon.ico`. Run `scripts/install_desktop_shortcut.ps1` to refresh both shortcuts.
+
+## Resume and CV (v1.5.9.9.12)
+
+Choose **Resume** (2 MB) or **CV** (10 MB) on upload. Existing resume records are preserved by an automatic database migration. See `docs/VERSION_1_5_9_9_12_RESUME_CV.md`. Back up SQLite before upgrading.

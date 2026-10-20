@@ -2,8 +2,8 @@
 import streamlit as st
 
 ROUTE_LABELS = {
-    "upload-resume": "Upload Resume",
-    "my-resumes": "My Resumes",
+    "upload-resume": "Upload Resume / CV",
+    "my-resumes": "My Resumes & CVs",
     "resume-analysis": "AI Resume Analysis",
     "analysis-history": "Analysis History",
     "job-match": "Job Match Studio",
@@ -11,7 +11,7 @@ ROUTE_LABELS = {
     "job-history": "Job Match History",
     "user-dashboard": "User Dashboard",
     "admin-dashboard": "Admin Dashboard",
-    "admin-resume-management": "Resume Management",
+    "admin-resume-management": "Resume & CV Management",
     "account-management": "Account Management",
     "audit-log": "Activity Log",
     "architecture": "Privacy & Technology",

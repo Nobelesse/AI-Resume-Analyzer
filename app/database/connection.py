@@ -3,7 +3,7 @@ import sqlite3
 from pathlib import Path
 from app.config import DATABASE_PATH
 
-SCHEMA_VERSION = 7
+SCHEMA_VERSION = 8
 
 def connect(path=None):
     db_path = Path(path) if path is not None else DATABASE_PATH
@@ -14,7 +14,61 @@ def connect(path=None):
     connection.execute('PRAGMA busy_timeout=10000')
     return connection
 
+def _migrate_documents(path=None):
+    """Upgrade legacy resume storage while preserving IDs and dependent rows.
+
+    Runs before schema initialization with foreign keys disabled only for the
+    duration of the table rebuild. SQLite checks the resulting references.
+    """
+    db_path = Path(path) if path is not None else DATABASE_PATH
+    if not db_path.exists():
+        return
+    db = sqlite3.connect(str(db_path), timeout=10)
+    try:
+        db.execute('PRAGMA busy_timeout=10000')
+        has_table = db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='resumes'").fetchone()
+        if not has_table:
+            return
+        columns = [row[1] for row in db.execute('PRAGMA table_info(resumes)').fetchall()]
+        if 'document_type' in columns:
+            return
+        db.execute('PRAGMA foreign_keys=OFF')
+        db.execute('BEGIN IMMEDIATE')
+        try:
+            db.execute("""CREATE TABLE resumes_cv_new (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              owner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+              original_filename TEXT NOT NULL,
+              storage_name TEXT NOT NULL UNIQUE,
+              file_type TEXT NOT NULL CHECK(file_type IN ('pdf','docx','txt','rtf','odt')),
+              file_size INTEGER NOT NULL CHECK(file_size > 0 AND
+                ((document_type='resume' AND file_size<=2000000) OR
+                 (document_type='cv' AND file_size<=10000000))),
+              document_type TEXT NOT NULL DEFAULT 'resume' CHECK(document_type IN ('resume','cv')),
+              sha256 TEXT NOT NULL,
+              extracted_text TEXT NOT NULL,
+              created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )""")
+            db.execute("""INSERT INTO resumes_cv_new
+              (id,owner_id,original_filename,storage_name,file_type,file_size,
+               document_type,sha256,extracted_text,created_at)
+              SELECT id,owner_id,original_filename,storage_name,file_type,file_size,
+                     'resume',sha256,extracted_text,created_at FROM resumes""")
+            db.execute('DROP TABLE resumes')
+            db.execute('ALTER TABLE resumes_cv_new RENAME TO resumes')
+            db.execute('CREATE INDEX IF NOT EXISTS idx_resumes_owner ON resumes(owner_id,id DESC)')
+            invalid = db.execute('PRAGMA foreign_key_check').fetchall()
+            if invalid:
+                raise RuntimeError('Document migration rejected: foreign-key validation failed')
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+    finally:
+        db.close()
+
 def initialize_database(path=None):
+    _migrate_documents(path)
     with connect(path) as conn:
         conn.executescript("""
         CREATE TABLE IF NOT EXISTS users (
@@ -44,7 +98,8 @@ def initialize_database(path=None):
           original_filename TEXT NOT NULL,
           storage_name TEXT NOT NULL UNIQUE,
           file_type TEXT NOT NULL CHECK(file_type IN ('pdf','docx','txt','rtf','odt')),
-          file_size INTEGER NOT NULL CHECK(file_size > 0 AND file_size <= 2097152),
+          file_size INTEGER NOT NULL CHECK(file_size > 0 AND ((document_type='resume' AND file_size<=2000000) OR (document_type='cv' AND file_size<=10000000))),
+          document_type TEXT NOT NULL DEFAULT 'resume' CHECK(document_type IN ('resume','cv')),
           sha256 TEXT NOT NULL,
           extracted_text TEXT NOT NULL,
           created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP

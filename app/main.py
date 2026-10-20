@@ -74,7 +74,7 @@ def main() -> None:
     elif current["role"] == "admin":
         account_pages = [
             st.Page(secure_pages.admin_dashboard, title="Admin Dashboard", icon="🛡️", url_path="admin-dashboard"),
-            st.Page(management_pages.admin_resume_management, title="Resume Management", icon="📚", url_path="admin-resume-management"),
+            st.Page(management_pages.admin_resume_management, title="Resume & CV Management", icon="📚", url_path="admin-resume-management"),
             st.Page(management_pages.account_management, title="Account Management", icon="👥", url_path="account-management"),
             st.Page(management_pages.audit_page, title="Activity Log", icon="📋", url_path="audit-log"),
             st.Page(management_pages.taxonomy_management, title="Skills Catalog", icon="📚", url_path="skills-catalog"),
@@ -83,7 +83,7 @@ def main() -> None:
         account_pages = [
             st.Page(secure_pages.user_dashboard, title="User Dashboard", icon="👤", url_path="user-dashboard"),
             st.Page(management_pages.my_record_management, title="Manage My Records", icon="🗂️", url_path="manage-my-records"),
-            st.Page(resume_pages.upload_resume, title="Upload Resume", icon="📤", url_path="upload-resume"),
+            st.Page(resume_pages.upload_resume, title="Upload Resume / CV", icon="📤", url_path="upload-resume"),
             st.Page(resume_pages.user_library, title="My Resumes", icon="📄", url_path="my-resumes"),
             st.Page(analysis_pages.advanced_ats_intelligence, title="Advanced ATS Intelligence", icon="🧠", url_path="resume-analysis"),
             st.Page(analysis_pages.analysis_history, title="Analysis History", icon="📊", url_path="analysis-history"),

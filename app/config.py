@@ -3,8 +3,10 @@ import os
 from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 APP_NAME = "AI Resume Analyzer"
-APP_VERSION = "1.5.9.9.11"
+APP_VERSION = "1.5.9.9.12"
 MAX_RESUME_BYTES = 2_000_000
+MAX_CV_BYTES = 10_000_000
+DOCUMENT_TYPES = ("resume", "cv")
 SUPPORTED_EXTENSIONS = ("pdf", "docx", "txt", "rtf", "odt")
 GITHUB_URL = "https://github.com/Nobelesse/AI-Resume-Analyzer"
 DATABASE_PATH = Path(os.environ.get("ARA_DATABASE_PATH", str(PROJECT_ROOT / "data" / "resume_analyzer.sqlite3"))).resolve()
