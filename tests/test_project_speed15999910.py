@@ -4,7 +4,7 @@ from app.services.taxonomy import detect_catalog_skills
 from app.database.connection import initialize_database
 
 def test_release_version():
-    assert APP_VERSION == '1.5.9.9.10'
+    assert APP_VERSION == '1.5.9.9.11'
 
 def test_regex_boundary_remains_conservative(tmp_path):
     db = tmp_path / 'fast.sqlite3'

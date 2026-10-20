@@ -216,3 +216,9 @@ The local O*NET/ESCO occupation-link table now has an index on `(skill_id, occup
 ## v1.5.9.9.10 — Project-wide skill matching performance
 
 Curated and O*NET/ESCO skill extraction use fast substring rejection before existing boundary-safe regex validation. This applies to ATS, Job Matching and Career Finder without altering skill detection semantics. See `docs/PROJECT_WIDE_PERFORMANCE_15999910.md`.
+
+
+### Managed desktop launch and stop (v1.5.9.9.11)
+Run `scripts/install_desktop_shortcut.ps1` to install two desktop shortcuts: **AI Resume Analyzer** and **Stop AI Resume Analyzer**. The start shortcut opens the loading screen immediately, starts Ollama if it is not running (and on PATH), and starts the local Streamlit application if port 8501 is free. The stop shortcut stops only process IDs that the launcher recorded and can identify by their commands. It never stops an Ollama process already running before the launcher started. Closing the browser tab alone cannot reliably shut down Streamlit or Ollama. Open the Stop shortcut to end the managed session.
+
+Overview's **Local intelligence status** expander reports Ollama reachability and local occupation/skills totals. These are read-only checks.

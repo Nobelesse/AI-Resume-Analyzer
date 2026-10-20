@@ -4,7 +4,9 @@ ROOT=Path(__file__).resolve().parents[1]
 def test_launcher_opens_splash_without_fixed_wait():
     s=(ROOT/'Launch-AI-Resume-Analyzer.bat').read_text(encoding='ascii').lower()
     assert 'launcher_loading.html' in s and 'start "" "%splash%"' in s
-    assert 'timeout /t 5' not in s and '--server.headless true' in s
+    assert 'timeout /t 5' not in s and 'manage_local_services.ps1' in s
+    manager=(ROOT/'scripts/manage_local_services.ps1').read_text(encoding='utf-8').lower()
+    assert '--server.headless true' in manager
 
 def test_launcher_uses_brand_icon_and_safe_shortcut():
     s=(ROOT/'scripts/install_desktop_shortcut.ps1').read_text(encoding='utf-8')

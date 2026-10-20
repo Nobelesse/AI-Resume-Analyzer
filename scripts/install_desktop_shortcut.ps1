@@ -14,3 +14,11 @@ $shortcut.IconLocation = "$icon,0"
 $shortcut.Description = "Open AI Resume Analyzer"
 $shortcut.Save()
 Write-Host "Desktop shortcut updated: $path" -ForegroundColor Green
+
+# Separate stop shortcut; closing a Streamlit browser tab does not stop its server.
+$stop = $shell.CreateShortcut((Join-Path $desktop "Stop AI Resume Analyzer.lnk"))
+$stop.TargetPath = (Join-Path $project "Stop-AI-Resume-Analyzer.bat")
+$stop.WorkingDirectory = $project
+$stop.IconLocation = "$icon,0"
+$stop.Description = "Stop this project's server and launcher-managed Ollama"
+$stop.Save()

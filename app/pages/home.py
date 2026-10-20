@@ -5,6 +5,7 @@ from app.ui.components import section_heading, metric_tile
 from app.ui.sphere import render_intelligence_hero
 from app.ui.navigation import navigation_card
 from app.ui.session import session_user
+from app.services.local_status import ollama_status, catalog_status
 
 USER_CARDS = [
     ("Upload Resume", "Securely submit your resume", "upload-resume", "📤"),
@@ -23,6 +24,10 @@ ADMIN_CARDS = [
     ("Activity Log", "Review recorded administrative events", "audit-log", "📋"),
 ]
 
+
+@st.cache_data(ttl=15, show_spinner=False)
+def _runtime_health():
+    return ollama_status(), catalog_status()
 
 def render() -> None:
     current = session_user()
@@ -51,6 +56,13 @@ def render() -> None:
         st.markdown('<div class="guest-card-info-gap" aria-hidden="true"></div>', unsafe_allow_html=True)
         st.info("Open User Login or Admin Login in the sidebar to get started.")
 
+    # Real availability, not a marketing "Hybrid" label.
+    ai_health, catalog_health = _runtime_health()
+    with st.expander("Local intelligence status", expanded=False):
+        left, right = st.columns(2)
+        left.metric("Ollama", "Connected" if ai_health["connected"] else "Offline")
+        right.metric("O*NET / ESCO catalog", "Ready" if catalog_health["ready"] else "Unavailable")
+        st.caption(f"Catalog: {catalog_health['occupations']:,} occupations · {catalog_health['skills']:,} skills. Ollama models: {', '.join(ai_health['models']) or 'none detected'}")
     st.markdown(
         '<p class="v10-footer">AI-guided insights are estimates, not hiring decisions. Your workspace remains local to your computer.</p>',
         unsafe_allow_html=True,
