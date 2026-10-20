@@ -177,7 +177,7 @@ def detect_catalog_skills(text, *,db_path=None, max_chars=30000):
     for row in list(rows)+list(aliases):
         term=row['term']
         if len(term)<3 or len(term)>100:continue
-        if re.search(r'(?<!\w)'+re.escape(term)+r'(?!\w)',content): detected[row['id']]=row['name']
+        if term in content and re.search(r'(?<!\w)'+re.escape(term)+r'(?!\w)',content): detected[row['id']]=row['name']
     return sorted(detected.values(),key=str.casefold)
 
 

@@ -212,3 +212,7 @@ Activity Log now stores the minimal historical actor email and original account 
 ## v1.5.9.9.9.9 — Career Finder lookup speed
 
 The local O*NET/ESCO occupation-link table now has an index on `(skill_id, occupation_id)`. The **Find suitable careers** workflow can find linked occupations from detected skills using indexed searches rather than repeatedly scanning the entire relationship table. The index is created idempotently on normal database initialization, including existing imported catalogs, without reimporting O*NET/ESCO. No change to ranking logic, skill-coverage formula, eligibility disclaimer, local Ollama settings or UI. Actual response time depends on the user's SQLite file, disk, skill extraction and resume contents; this change does not promise a subsecond full calculation.
+
+## v1.5.9.9.10 — Project-wide skill matching performance
+
+Curated and O*NET/ESCO skill extraction use fast substring rejection before existing boundary-safe regex validation. This applies to ATS, Job Matching and Career Finder without altering skill detection semantics. See `docs/PROJECT_WIDE_PERFORMANCE_15999910.md`.

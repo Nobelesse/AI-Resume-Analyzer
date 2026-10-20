@@ -7,7 +7,7 @@ SCRIPT_PATH = ROOT / "app/ui/web/scroll_engine.js"
 
 
 def test_premium_globe_renderer_is_local_and_transparent():
-    assert APP_VERSION == '1.5.9.9.9.9'
+    assert APP_VERSION == '1.5.9.9.10'
     js = GLOBE_SCRIPT_PATH.read_text(encoding='utf-8')
     assert "clearRect" in js and "getContext('2d',{alpha:true})" in js
     assert "requestAnimationFrame" in js

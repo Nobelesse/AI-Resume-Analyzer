@@ -75,7 +75,7 @@ def extract_skills(text, *, db_path=None):
     for term,identifier in candidates:
         if len(term)<2:continue
         pattern=r'(?<![\w])'+re.escape(term)+r'(?![\w])'
-        if re.search(pattern,content):found.add(by_id[identifier])
+        if term in content and re.search(pattern,content):found.add(by_id[identifier])
     from app.services.taxonomy import detect_catalog_skills
     found.update(detect_catalog_skills(text,db_path=db_path))
     return sorted(found,key=str.casefold)
