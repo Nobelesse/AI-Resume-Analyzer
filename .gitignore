@@ -25,4 +25,8 @@ data/uploads/*
 !data/uploads/.gitkeep
 
 # Local O*NET, ESCO and imported datasets
-/datasets/
+# Exclude downloaded datasets by default
+/datasets/*
+
+# Include the small curated skills resource
+!/datasets/curated_skills_1598.csv
