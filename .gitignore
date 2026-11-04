@@ -26,3 +26,7 @@ data/uploads/*
 
 # Local O*NET, ESCO and imported datasets
 /datasets/
+# Local development backups
+*.bak
+*.backup
+*.pre_account_ids.bak
