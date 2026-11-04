@@ -3,7 +3,7 @@ import streamlit as st
 from app.auth.permissions import require_role,AccessDenied
 from app.ui.session import session_user
 from app.database.resumes import list_user_resumes
-from app.database.analyses import analyze_resume,list_analyses,get_analysis
+from app.database.analyses import analyze_resume,analyze_advanced_ats,list_analyses,get_analysis
 from app.services.skills import skill_count
 from app.services.ats_intelligence import resume_readiness, job_compatibility
 from app.database.resumes import get_resume
@@ -59,23 +59,27 @@ def advanced_ats_intelligence():
     selected=st.selectbox('Choose your resume or CV',[r['id'] for r in resumes],
             format_func=lambda ident:next(r['original_filename'] for r in resumes if r['id']==ident),
             key='ats158_resume')
-    resume=get_resume(user['id'],selected)
-    text=resume['extracted_text']
     description=st.text_area('Paste a job description (optional)',height=160,
                               placeholder='Paste required and preferred skills, experience, and qualifications from a real job posting.',
                               key='ats158_description')
     analysis_key=(user['id'],selected,description)
     if st.button('Analyze resume / CV',type='primary',key='ats158_analyze'):
         try:
-            readiness=resume_readiness(text)
-            compatibility=job_compatibility(text,description) if description.strip() else None
-            st.session_state['ats158_result']=(analysis_key,readiness,compatibility)
+            saved=analyze_advanced_ats(user['id'],selected,description)
+            st.session_state['ats158_result']=(analysis_key,saved)
+            st.success(f"Assessment saved to Analysis History (#{saved['analysis_id']}).")
         except ValueError as error:
             st.error(str(error));return
     result=st.session_state.get('ats158_result')
     if not result or result[0]!=analysis_key:
-        st.info('Run the analysis to view results for this resume and job description.');return
-    _,readiness,compatibility=result
+        st.info('Run the analysis to view and save results for this resume and job description.');return
+    _show_advanced_ats(result[1])
+
+
+def _show_advanced_ats(record):
+    """Render a stored or freshly evaluated Advanced ATS record identically."""
+    readiness = record['readiness']
+    compatibility = record.get('compatibility')
     left,right=st.columns(2)
     left.metric('Resume readiness',f"{readiness['score']}/100")
     right.metric('Job compatibility',
@@ -93,7 +97,7 @@ def advanced_ats_intelligence():
             st.write(f'**{label}** — {points:g} of {maximum} points')
             st.progress(max(0.0, min(1.0, points / maximum)))
     st.download_button('Download full ATS assessment (PDF)',
-        data=build_ats_pdf_report(readiness, compatibility, resume_filename=f"{resume['document_type'].upper() if resume['document_type']=='cv' else 'Resume'}: {resume['original_filename']}"),
+        data=build_ats_pdf_report(readiness, compatibility, resume_filename=f"{record['document_type'].upper() if record['document_type']=='cv' else 'Resume'}: {record['resume_filename']}"),
         file_name='resume-ats-assessment.pdf', mime='application/pdf',
         key='ats158_pdf_download')
     if readiness['recommendations']:
@@ -112,11 +116,21 @@ def advanced_ats_intelligence():
         st.caption('Detailed requirement assessment, manual-review items and scoring methodology are in the downloaded PDF.')
 
 
+
 def analysis_history():
     user=_user();page_header('SAVED INTELLIGENCE', 'Analysis History', 'Revisit earlier ATS reports without losing your progress.', '◷')
     rows=list_analyses(user['id'])
     if not rows:st.info('You have no saved analyses yet.');return
     st.dataframe(rows,hide_index=True,use_container_width=True)
-    chosen=st.selectbox('Open previous result',[r['id'] for r in rows],format_func=lambda ident:f'Analysis #{ident}')
+    chosen=st.selectbox('Open previous result',[r['id'] for r in rows],
+                        format_func=lambda ident:next(
+                            f"Analysis #{r['id']} · {r['original_filename']} · {r['created_at']}"
+                            for r in rows if r['id']==ident))
     result=get_analysis(user['id'],chosen)
-    if result:_show(result)
+    if not result:return
+    if result.get('format') == 'advanced_ats_v1':
+        st.caption(f"Saved Advanced ATS assessment · {result['created_at']}")
+        _show_advanced_ats(result)
+    else:
+        st.caption('Saved legacy Resume Intelligence assessment')
+        _show(result)

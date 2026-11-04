@@ -1,5 +1,23 @@
 {
   "python.defaultInterpreterPath": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
   "python.analysis.typeCheckingMode": "basic",
-  "files.exclude": {"**/__pycache__": true, "**/.pytest_cache": true}
+  "python.terminal.activateEnvironment": true,
+  "python-envs.terminal.autoActivationType": "command",
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.pytest_cache": true
+  },
+  "r.lsp.promptToInstall": false,
+  "python-envs.defaultEnvManager": "ms-python.python:system",
+  "terminal.integrated.profiles.windows": {
+    "PowerShell (Python 3.11)": {
+      "source": "PowerShell",
+      "args": [
+        "-NoExit",
+        "-Command",
+        "& '${workspaceFolder}\\.venv\\Scripts\\Activate.ps1'"
+      ]
+    }
+  },
+  "terminal.integrated.defaultProfile.windows": "PowerShell (Python 3.11)"
 }

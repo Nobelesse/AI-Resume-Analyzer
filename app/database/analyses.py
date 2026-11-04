@@ -16,6 +16,44 @@ def analyze_resume(actor_id,resume_id,*,db_path=None):
         result['analysis_id']=cursor.lastrowid
     return result
 
+def analyze_advanced_ats(actor_id, resume_id, description='', *, db_path=None):
+    """Evaluate and persist a versioned Advanced ATS result for its owning user.
+
+    The scores are computed server-side from the stored resume; clients cannot
+    supply scores, ownership, or another user's source text.
+    """
+    from app.services.ats_intelligence import resume_readiness, job_compatibility
+
+    require_role(actor_id, 'user', db_path=db_path)
+    if not isinstance(description, str):
+        raise ValueError('Job description must be text.')
+    if len(description) > 30000:
+        raise ValueError('Job description cannot exceed 30,000 characters.')
+    resume = get_resume(actor_id, resume_id, db_path=db_path)
+    if resume is None:
+        raise ValueError('Resume does not exist')
+    text = resume['extracted_text']
+    readiness = resume_readiness(text, db_path=db_path)
+    compatibility = job_compatibility(text, description, db_path=db_path) if description.strip() else None
+    payload = {
+        'format': 'advanced_ats_v1',
+        'readiness': readiness,
+        'compatibility': compatibility,
+        'resume_filename': resume['original_filename'],
+        'document_type': resume['document_type'],
+        'job_description_provided': bool(description.strip()),
+    }
+    with connect(db_path) as db:
+        cursor = db.execute(
+            'INSERT INTO analyses(resume_id,owner_id,score,result_json) VALUES(?,?,?,?)',
+            (resume_id, actor_id, int(readiness['score']), json.dumps(payload, ensure_ascii=False)),
+        )
+        db.execute('INSERT INTO activity_logs(actor_id,event) VALUES(?,?)',
+                   (actor_id, 'resume.advanced_ats_analyze'))
+        payload['analysis_id'] = cursor.lastrowid
+    return payload
+
+
 def list_analyses(actor_id,*,db_path=None):
     require_role(actor_id,'user',db_path=db_path)
     with connect(db_path) as db:
