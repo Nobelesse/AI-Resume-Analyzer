@@ -28,7 +28,7 @@ def list_job_matches(actor_id,*,db_path=None):
     return [dict(row) for row in rows]
 
 def get_job_match(actor_id,match_id,*,db_path=None):
-    actor=get_user(actor_id,db_path=db_path) if actor_id else None
+    actor=get_user(actor_id,db_path=db_path) if actor_id is not None else None
     if not actor:raise AccessDenied('Sign in required')
     with connect(db_path) as db:
         row=db.execute('SELECT * FROM job_matches WHERE id=?',(match_id,)).fetchone()

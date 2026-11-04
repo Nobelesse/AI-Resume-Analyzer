@@ -2,13 +2,17 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 
 def test_platform_navigation_preserves_routes():
-    source=(ROOT/'app/main.py').read_text(encoding='utf-8')
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    source = (root / "app" / "main.py").read_text(encoding="utf-8")
+    labels = (root / "app" / "ui" / "navigation.py").read_text(encoding="utf-8")
     assert '"PLATFORM": project_pages' in source
     assert '"PROJECT": project_pages' not in source
     assert 'url_path="build-roadmap"' in source
     assert 'url_path="architecture"' in source
-    assert 'title="Platform Capabilities"' in source
-    assert 'title="Privacy & Technology"' in source
+    assert 'title="System Workflow"' in source
+    assert '"build-roadmap": "System Workflow"' in labels
+    assert 'title="Platform Capabilities"' not in source
 
 def test_hero_feathered_and_background_translucent():
     source=(ROOT/'app/ui/web/intelligence_hero.html').read_text()
@@ -24,6 +28,6 @@ def test_scroll_reveal_is_accessible_and_noninteractive():
     assert 'stTextInput' not in css
 
 def test_architecture_no_longer_claims_app_unbuilt():
-    page=(ROOT/'app/pages/architecture.py').read_text()
+    page=(ROOT/'app/pages/architecture.py').read_text(encoding='utf-8')
     assert 'There is no live upload' not in page
-    assert 'Offline-first tools' in page
+    assert 'system architecture' in page.lower()

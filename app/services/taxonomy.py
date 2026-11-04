@@ -150,6 +150,17 @@ def lookup_occupation(title, *, db_path=None, limit=5):
           WHERE o.normalized=? OR o.id IN (SELECT occupation_id FROM tax_occupation_aliases WHERE alias=?)
           GROUP BY o.id ORDER BY n DESC LIMIT ?''',(target,target,limit)).fetchall()
         if not rows:
+            # Reviewed common occupation aliases; preserve official title and
+            # only use this on exact alias queries, never broad fuzzy matches.
+            from app.services.occupation_aliases import occupation_title_variants
+            variants = occupation_title_variants(target)
+            if variants:
+                placeholders = ','.join('?' for _ in variants)
+                rows=db.execute(f'''SELECT o.id,o.name,o.source,COUNT(l.skill_id) as n
+                    FROM tax_occupations o LEFT JOIN tax_links l ON l.occupation_id=o.id
+                    WHERE o.normalized IN ({placeholders})
+                    GROUP BY o.id ORDER BY n DESC LIMIT ?''', (*variants, limit)).fetchall()
+        if not rows:
             rows=db.execute('''SELECT o.id,o.name,o.source,COUNT(l.skill_id) as n FROM tax_occupations o
               LEFT JOIN tax_links l ON l.occupation_id=o.id
               WHERE o.normalized LIKE ? GROUP BY o.id ORDER BY n DESC LIMIT ?''',('%'+target+'%',limit)).fetchall()

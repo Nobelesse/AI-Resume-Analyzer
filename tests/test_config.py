@@ -11,13 +11,16 @@ def test_foundation_settings():
     assert {"pdf", "docx", "txt", "rtf", "odt"}.issubset(SUPPORTED_EXTENSIONS)
 
 
-def test_eight_milestones():
-    roadmap = Path(__file__).resolve().parents[1] / "app" / "pages" / "roadmap.py"
-    module = ast.parse(roadmap.read_text(encoding="utf-8"))
-    phases = next(
-        ast.literal_eval(node.value)
-        for node in module.body
-        if isinstance(node, ast.Assign)
-        and any(isinstance(target, ast.Name) and target.id == "PHASES" for target in node.targets)
-    )
-    assert len(phases) == 8
+def test_system_workflow_has_six_real_user_steps():
+    import ast
+    from pathlib import Path
+    source = (Path(__file__).resolve().parents[1] / "app" / "pages" / "roadmap.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    render = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "render")
+    steps = next(ast.literal_eval(n.value) for n in ast.walk(render)
+                 if isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id == "stages" for t in n.targets))
+    assert len(steps) == 6
+    assert [step[0] for step in steps] == ["01", "02", "03", "04", "05", "06"]
+    labels = " ".join(step[1] for step in steps).lower()
+    for keyword in ("upload", "extract", "skills", "job", "career", "results"):
+        assert keyword in labels

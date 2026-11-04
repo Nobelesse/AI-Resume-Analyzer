@@ -38,6 +38,7 @@ ROLE_MAP = {
  'product manager': ('Product Management','Market Research','Stakeholder Management','Agile','Scrum','Roadmapping','Communication'),
  'project manager': ('Project Management','Budgeting','Leadership','Risk Management','Stakeholder Management','Agile','Jira'),
  'digital marketer': ('Digital Marketing','Search Engine Optimization','Google Analytics','Google Ads','Content Marketing','Social Media Marketing'),
+ 'marketing coordinator': ('Content Marketing','Social Media Marketing','Copywriting','Email Marketing','Google Analytics','Search Engine Optimization','Campaign Planning','Canva','CRM','Communication'),
  'seo specialist': ('Search Engine Optimization','Google Analytics','Content Marketing','Keyword Research','Search Engine Marketing'),
  'content writer': ('Copywriting','Content Marketing','Research Methods','Search Engine Optimization','Communication','Editing'),
  'social media manager': ('Social Media Marketing','Content Marketing','Branding','Marketing Analytics','Communication'),
@@ -93,6 +94,7 @@ ALIASED_ROLES = {
  'customer care':'customer care executive','customer service executive':'customer care executive','customer care associate':'customer care executive','customer care representative':'customer care executive','customer service representative':'customer care executive','customer support executive':'customer care executive','customer support agent':'customer care executive','call centre executive':'call center agent','call center executive':'call center agent','bpo executive':'call center agent','contact center agent':'call center agent','technical support representative':'technical support executive',
  'talent acquisition specialist':'recruiter','marketing executive':'digital marketer',
  'ux designer':'ui ux designer','ui designer':'ui ux designer','accounting specialist':'accountant',
+ 'marketing coordinators':'marketing coordinator','marketing coordination executive':'marketing coordinator',
  'registered nurse':'nurse','physician':'doctor','software quality assurance engineer':'qa engineer',
 }
 
@@ -107,6 +109,24 @@ def suggest_for_title(title: str, *, db_path=None) -> dict:
     from app.services.taxonomy import role_skills
     catalog = role_skills(title, db_path=db_path)
     if catalog and catalog["skills"]:
+        # Some imported occupations include hundreds of broad technology or
+        # knowledge entries. The first 35 alphabetical entries can omit the
+        # role's defining skills, making a title-only match misleading.
+        # For recognized customer-facing titles only, retain the audited
+        # curated baseline if the imported shortlist has no service anchor.
+        normalized = normalize_title(title)
+        normalized = ALIASED_ROLES.get(normalized, normalized)
+        customer_roles = {"customer care executive", "call center agent",
+                          "customer support representative", "customer success manager",
+                          "technical support executive"}
+        if normalized in customer_roles and normalized in ROLE_MAP:
+            from app.services.alias_matching import canonical_key
+            anchors = {canonical_key("Customer Service"),
+                       canonical_key("Customer Support")}
+            imported = {canonical_key(skill) for skill in catalog["skills"]}
+            if not (anchors & imported):
+                return {"skills": list(ROLE_MAP[normalized]), "role": normalized,
+                        "source": "curated-role-library", "confidence": "high"}
         return {k: catalog[k] for k in ("skills", "role", "source", "confidence")}
     normalized = normalize_title(title)
     normalized = ALIASED_ROLES.get(normalized, normalized)

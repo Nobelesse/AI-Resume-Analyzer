@@ -8,3 +8,5 @@ STYLE_PATH = Path(__file__).resolve().parents[1] / "assets" / "styles.css"
 def inject_theme() -> None:
     css = STYLE_PATH.read_text(encoding="utf-8")
     st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
+    depth_css = STYLE_PATH.with_name("ara_text_depth.css").read_text(encoding="utf-8")
+    st.markdown(f"<style>{depth_css}</style>", unsafe_allow_html=True)

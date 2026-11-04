@@ -3,6 +3,7 @@ import json
 import re
 from app.services.ollama_client import clean_strings, LocalAIError
 from app.services.hybrid_intelligence import rank_careers
+from app.services.alias_matching import canonical_key
 from app.services.role_skills import ROLE_MAP
 from app.services.skills import extract_skills, seed_skills
 from app.services.taxonomy import role_skills as catalog_role_skills
@@ -41,7 +42,7 @@ def recommend_careers(resume_text, *, db_path=None, ai_provider=None, max_jobs=8
         role_skills=(catalog["skills"] if catalog and catalog["skills"] else ROLE_MAP.get(key,()) or proposed_skills)
         if key not in ROLE_MAP and not catalog:
             reason=(reason+' | Skills are model suggestions, not verified employer requirements.').strip(' |')
-        matched=[s for s in role_skills if any(s.casefold()==v.casefold() for v in known) or _present(s,resume_text)]
+        matched=[s for s in role_skills if any(canonical_key(s)==canonical_key(v) for v in known) or _present(s,resume_text)]
         absent=[s for s in role_skills if s not in matched]
         percentage=round(100*len(matched)/len(role_skills)) if role_skills else None
         output.append({'title':title,'reason':reason,'skills_detected':matched,'skills_not_detected':absent,

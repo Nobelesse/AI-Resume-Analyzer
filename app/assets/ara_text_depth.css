@@ -1,0 +1,90 @@
+/* AI Resume Analyzer — Cinematic Typography v2.
+   A progressive enhancement scoped to the Streamlit main content area.
+   Motion never hides content before JavaScript has opted an element in. */
+:root { --ara-type-lavender: rgba(174, 139, 255, .63); --ara-type-gold: rgba(233, 191, 112, .56); }
+@media (prefers-reduced-motion: no-preference) {
+  @supports (transform-style: preserve-3d) {
+    [data-testid="stMainBlockContainer"] {
+      perspective: 1050px;
+      perspective-origin: 50% 42%;
+    }
+    [data-testid="stMainBlockContainer"] .ara-cine-heading,
+    [data-testid="stMainBlockContainer"] .ara-cine-subtext,
+    [data-testid="stMainBlockContainer"] .ara-cine-kicker {
+      backface-visibility: hidden;
+      transform-style: preserve-3d;
+      transform-origin: 20% 52%;
+      will-change: auto;
+    }
+    [data-testid="stMainBlockContainer"] .ara-cine-heading {
+      position: relative;
+      text-shadow: 0 2px 0 rgba(255,255,255,.09), 0 13px 34px rgba(0,0,0,.43), 0 0 28px rgba(166,127,255,.12);
+      transition: text-shadow 360ms ease, filter 360ms ease;
+    }
+    /* Entrance: much more pronounced tilt and z-depth than v1. */
+    [data-testid="stMainBlockContainer"] .ara-cine-heading.ara-cine-enter {
+      animation: ara-cine-heading-entrance 1080ms cubic-bezier(.16,1,.26,1) both;
+    }
+    [data-testid="stMainBlockContainer"] .ara-cine-subtext.ara-cine-enter {
+      animation: ara-cine-subtext-entrance 860ms cubic-bezier(.19,1,.24,1) both;
+    }
+    [data-testid="stMainBlockContainer"] .ara-cine-kicker.ara-cine-enter {
+      animation: ara-cine-kicker-entrance 780ms cubic-bezier(.16,1,.3,1) both;
+    }
+    /* Light sweep is positioned behind typography using a text shadow, never masks letters. */
+    [data-testid="stMainBlockContainer"] .ara-cine-heading.ara-cine-lit {
+      text-shadow: 0 2px 0 rgba(255,255,255,.13), 0 14px 32px rgba(0,0,0,.37),
+         -3px -2px 20px var(--ara-type-gold), 3px 3px 30px var(--ara-type-lavender);
+    }
+    [data-testid="stMainBlockContainer"] .ara-cine-heading.ara-cine-settled {
+      transform: translate3d(0, var(--ara-cine-scroll-y, 0px), var(--ara-cine-scroll-z, 0px))
+          rotateX(var(--ara-cine-scroll-rx, 0deg)) rotateY(var(--ara-cine-scroll-ry, 0deg));
+      transition: text-shadow 360ms ease;
+    }
+    [data-testid="stMainBlockContainer"] .ara-cine-subtext.ara-cine-settled,
+    [data-testid="stMainBlockContainer"] .ara-cine-kicker.ara-cine-settled {
+      transform: translate3d(0, var(--ara-cine-scroll-y, 0px), 0);
+    }
+    @keyframes ara-cine-heading-entrance {
+      0% { opacity: .08; transform: translate3d(-10px, 74px, -210px) rotateX(24deg) rotateY(-9deg) skewX(-1.3deg); filter: blur(9px); letter-spacing: .045em; }
+      52% { opacity: 1; filter: blur(.6px); }
+      78% { transform: translate3d(1px, -5px, 14px) rotateX(-2deg) rotateY(1deg); filter: blur(0); letter-spacing: normal; }
+      100% { opacity: 1; transform: translate3d(0, var(--ara-cine-scroll-y, 0px), var(--ara-cine-scroll-z, 0px)) rotateX(var(--ara-cine-scroll-rx, 0deg)) rotateY(var(--ara-cine-scroll-ry, 0deg)); filter: blur(0); letter-spacing: normal; }
+    }
+    @keyframes ara-cine-subtext-entrance {
+      0% { opacity: .08; transform: translate3d(-12px, 33px, -90px) rotateX(11deg); filter: blur(5px); }
+      70% { opacity: 1; filter: blur(0); }
+      100% { opacity: 1; transform: translate3d(0, var(--ara-cine-scroll-y, 0px), 0); filter: blur(0); }
+    }
+    @keyframes ara-cine-kicker-entrance {
+      from { opacity: .1; transform: translate3d(-18px, 17px, -80px) rotateY(-14deg); filter: blur(3px); }
+      to { opacity: 1; transform: translate3d(0, var(--ara-cine-scroll-y, 0px), 0); filter: blur(0); }
+    }
+    /* Balanced mode is intentionally still more visible than v1. */
+    html[data-ara-type-intensity="balanced"] [data-testid="stMainBlockContainer"] .ara-cine-heading.ara-cine-enter { animation-duration: 820ms; }
+    html[data-ara-type-intensity="balanced"] [data-testid="stMainBlockContainer"] .ara-cine-subtext.ara-cine-enter { animation-duration: 620ms; }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-testid="stMainBlockContainer"] .ara-cine-heading,
+  [data-testid="stMainBlockContainer"] .ara-cine-subtext,
+  [data-testid="stMainBlockContainer"] .ara-cine-kicker {
+    animation: none !important; transition: none !important;
+    transform: none !important; filter: none !important; opacity: 1 !important;
+  }
+}
+
+/* FIX: Streamlit expander summaries are interactive UI, never cinematic text.
+   Keep labels visible even if the DOM retains a previously assigned animation class. */
+[data-testid="stMain"] [data-testid="stExpander"] summary,
+[data-testid="stMain"] [data-testid="stExpander"] summary *,
+[data-testid="stMain"] details > summary,
+[data-testid="stMain"] details > summary * {
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+  visibility: visible !important;
+  backface-visibility: visible !important;
+}

@@ -14,9 +14,16 @@ def test_version_and_contract():
     assert MAX_RESUME_BYTES == 2_000_000
     assert len(SUPPORTED_EXTENSIONS) == 5
 
-def test_roadmap_has_eight_milestones():
-    assert len(get_phases()) == 8
-    assert [x[0] for x in get_phases()] == [f"{i:02}" for i in range(1, 9)]
+def test_system_workflow_is_not_a_development_roadmap():
+    import ast
+    from pathlib import Path
+    source = (Path(__file__).resolve().parents[1] / "app" / "pages" / "roadmap.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    assert any(isinstance(n, ast.FunctionDef) and n.name == "render" for n in tree.body)
+    assert not any(isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id == "PHASES" for t in n.targets) for n in tree.body)
+    assert "SYSTEM WORKFLOW" in source
+    assert "How AI-Resume-Analyzer Works" in source
+    assert "AVAILABLE" not in source
 
 def test_scene_is_local_and_accessible():
     html = SCENE_PATH.read_text(encoding="utf-8")

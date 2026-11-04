@@ -4,6 +4,7 @@ import re
 from pathlib import Path
 from app.database.connection import connect
 from app.services.skill_intelligence import ADDITIONAL_SKILLS, REVIEWED_ALIASES
+from app.services.alias_matching import EQUIVALENT_NAMES
 
 SEED = {
 'Programming': 'Python, Java, JavaScript, TypeScript, C, C++, C#, Go, Rust, Kotlin, Swift, PHP, Ruby, R, MATLAB, Scala, Dart, Bash, PowerShell, SQL, HTML, CSS, Solidity, Perl, Lua, Haskell, Julia, Objective-C, Visual Basic, Assembly, VBA',
@@ -24,6 +25,10 @@ ALIASES = {'js':'JavaScript','ts':'TypeScript','py':'Python','postgres':'Postgre
 
 SEED.update(ADDITIONAL_SKILLS)
 ALIASES.update(REVIEWED_ALIASES)
+# Every reviewed variant is indexed at seed time when the canonical seed exists.
+for _group in EQUIVALENT_NAMES:
+    for _alternative in _group[1:]:
+        ALIASES.setdefault(_alternative.casefold(), _group[0])
 
 def normalize(value):
     return ' '.join(value.casefold().strip().split())

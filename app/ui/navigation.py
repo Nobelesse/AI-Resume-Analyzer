@@ -14,8 +14,8 @@ ROUTE_LABELS = {
     "admin-resume-management": "Resume & CV Management",
     "account-management": "Account Management",
     "audit-log": "Activity Log",
-    "architecture": "Privacy & Technology",
-    "build-roadmap": "Platform Capabilities",
+    "architecture": "System Architecture",
+    "build-roadmap": "System Workflow",
     "interaction-studio": "Getting Started",
 }
 

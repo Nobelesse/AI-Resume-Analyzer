@@ -5,6 +5,10 @@ import re
 from collections import Counter
 from app.services.skills import extract_skills, seed_skills
 from app.services.role_skills import suggest_for_title, suggest_with_ollama
+from app.services.alias_matching import matched_labels, absent_labels, canonical_key
+from app.services.role_profiles import core_skills
+from app.services.skill_evidence_v4 import (unique_skill_labels, observable_task_evidence,
+    explicit_jd_tasks, requirement_coverage, match_evidence_snippets)
 
 STOP = set('the and for are with from this that you your our have will work team experience years year job role in on of a an to is as or be by at it we they can using required preferred plus must should ability knowledge skills strong excellent good including such related'.split())
 
@@ -43,7 +47,37 @@ def split_requirements(description: str) -> tuple[str,str]:
 # "Not found" means missing document evidence, not missing candidate competence.
 REQUIRED_CUES = re.compile(r"\b(must have|required|essential|minimum|mandatory|need to|you will need)\b", re.I)
 PREFERRED_CUES = re.compile(r"\b(preferred|nice[ -]to[ -]have|bonus|desirable|plus|advantageous)\b", re.I)
-SECTION_HEADER = re.compile(r"^(?:required|requirements|minimum qualifications|must.have|essential|preferred|preferred qualifications|nice.to.have|bonus|desirable|optional)(?: skills?| qualifications?| experience)?\s*:?$", re.I)
+SECTION_HEADER = re.compile(
+    r"^(?:required|requirements|minimum qualifications|must.have|essential|preferred|preferred qualifications|nice.to.have|bonus|desirable|optional)(?: skills?| qualifications?| experience)?\s*:?$",
+    re.I,
+)
+# Format-only JD headings are not evidence or skills. The title may change
+# section state, but must never become an unverifiable qualification.
+OTHER_SECTION_HEADERS = re.compile(
+    r"^(?:responsibilities|key responsibilities|duties|job responsibilities|"
+    r"job description|about the role|role overview|what you will do|"
+    r"professional skills|technical skills|skills|requirements and qualifications|"
+    r"experience|education|qualifications|benefits|about us)\s*:?$", re.I
+)
+
+
+def _clean_requirement_line(raw: str) -> str:
+    """Strip bullets and markdown headings without altering actual skill names."""
+    line = re.sub(r'^\s*(?:[-*•]|\d+[.)])\s*', '', raw).strip()
+    line = re.sub(r'^#{1,6}\s*', '', line)
+    # Markdown formatting: **Required Skills:** and Responsibilities:*
+    line = re.sub(r'^\*{1,2}(.*?)\*{1,2}$', r'\1', line).strip()
+    return line.rstrip(' *').strip()
+
+
+def _heading_kind(line: str) -> str | None:
+    """Headings are structural labels, never skills or missing requirements."""
+    clean = _clean_requirement_line(line).strip().rstrip(':').strip()
+    if SECTION_HEADER.fullmatch(clean) or SECTION_HEADER.fullmatch(clean + ':'):
+        return 'preferred' if PREFERRED_CUES.search(clean) else 'required'
+    if OTHER_SECTION_HEADERS.fullmatch(clean) or OTHER_SECTION_HEADERS.fullmatch(clean + ':'):
+        return 'other'
+    return None
 
 
 def requirement_evidence(description: str, candidate: set[str], *, db_path=None) -> list[dict]:
@@ -55,18 +89,22 @@ def requirement_evidence(description: str, candidate: set[str], *, db_path=None)
     results=[]
     section='required'
     for raw in description.splitlines():
-        line=re.sub(r'^\s*(?:[-*•]|\d+[.)])\s*', '', raw).strip()
+        line=_clean_requirement_line(raw)
         if not line:continue
-        header=SECTION_HEADER.fullmatch(line)
-        if header:
-            section='preferred' if PREFERRED_CUES.search(line) else 'required'
+        header=_heading_kind(line)
+        if header in ('required', 'preferred'):
+            section=header
+            continue
+        if header == 'other':
+            # Skills under an unlabeled section remain required unless a
+            # later explicit Preferred heading says otherwise.
             continue
         inline_required=bool(REQUIRED_CUES.search(line))
         inline_preferred=bool(PREFERRED_CUES.search(line))
         priority='required' if inline_required else 'preferred' if inline_preferred else section
-        detected=sorted(set(extract_skills(line,db_path=db_path)))
-        matched=sorted(set(detected)&candidate)
-        missing=sorted(set(detected)-candidate)
+        detected=unique_skill_labels(set(extract_skills(line,db_path=db_path)) | explicit_jd_tasks(line))
+        matched=matched_labels(set(detected), candidate)
+        missing=absent_labels(set(detected), candidate)
         if re.search(r'\b(certificat(?:e|ion)|licen[sc]e|\d+\+?\s*years?|degree|bachelor|master|diploma)\b',line,re.I):
             state='unverified'
         elif not detected:
@@ -85,8 +123,9 @@ def truthful_improvements(rows: list[dict], *, max_items:int=6) -> list[str]:
     suggestions=[]
     for row in sorted(rows,key=lambda r:0 if r['priority']=='required' else 1):
         if row['status'] in ('not-found','partial'):
-            topic=', '.join(row['not_found'][:3])
-            suggestions.append(f"If you have experience with {topic}, describe a specific project or result that demonstrates it. Otherwise consider learning it.")
+            topic=', '.join(skill for skill in row['not_found'] if canonical_key(skill) not in {'analyze', 'monitoring', 'make decisions', 'plan', 'google'})[:200]
+            if topic:
+                suggestions.append(f"If you have experience with {topic}, describe a specific project or result that demonstrates it. Otherwise consider learning it.")
         elif row['status']=='unverified' and len(row['text'])>12:
             suggestions.append('Review this requirement manually and add only verifiable evidence: '+row['text'][:95])
         if len(suggestions)>=max_items:break
@@ -106,15 +145,32 @@ def compare_resume_to_job(resume_text: str, description: str, *,db_path=None,req
     if use_local_ai:
         role=suggest_with_ollama(job_title.strip() or description.strip().splitlines()[0][:150],model=ollama_model)
 
-    required=set(extract_skills(required_text,db_path=db_path))
-    preferred=set(extract_skills(preferred_text,db_path=db_path))-required
+    required=set(unique_skill_labels(set(extract_skills(required_text,db_path=db_path)) | explicit_jd_tasks(required_text)))
+    preferred=set(unique_skill_labels(set(extract_skills(preferred_text,db_path=db_path)) | explicit_jd_tasks(preferred_text)))
+    preferred={skill for skill in preferred if canonical_key(skill) not in {canonical_key(s) for s in required}}
     # If there are no explicitly stated skills, provide *suggestions*, never
     # falsely label generic role-based suggestions as employer requirements.
     catalog_preferred = role.get('source', '').endswith('-imported') and bool(role.get('skills'))
     suggested = set(role['skills']) if catalog_preferred else (set(occupation_profile['skills']) if occupation_profile is not None else set(role['skills']))
-    candidate=set(extract_skills(resume_text,db_path=db_path))
-    suggested_matched=sorted(suggested & candidate)
-    suggested_missing=sorted(suggested - candidate)
+    # A title alone is not a real job description. For known roles use the
+    # maintained *core* skills, not the first 35 alphabetically ordered O*NET
+    # software/knowledge entries (which may yield absurd 3/100 estimates).
+    # Unknown occupations retain their imported catalog requirements as before.
+    title_only = not bool(description.strip())
+    core = core_skills(job_title) if title_only and not use_local_ai else ()
+    if core:
+        suggested = set(core)
+        role_source = 'curated-role-core'
+        role_confidence = 'reviewed-profile'
+    else:
+        role_source = role['source'] if catalog_preferred else (occupation_profile['source'] if occupation_profile else role['source'])
+        role_confidence = role['confidence']
+    candidate=set(unique_skill_labels(extract_skills(resume_text,db_path=db_path)))
+    candidate.update(observable_task_evidence(resume_text, requested_skills=required | preferred))
+    candidate=set(unique_skill_labels(candidate))
+    suggested=set(unique_skill_labels(suggested))
+    suggested_matched=matched_labels(suggested, candidate)
+    suggested_missing=absent_labels(suggested, candidate)
     if not required and not preferred and not suggested:
         status='unrecognized-role'
     elif required or preferred:
@@ -122,10 +178,10 @@ def compare_resume_to_job(resume_text: str, description: str, *,db_path=None,req
     else:
         status='title-suggestions'
 
-    matched_required=sorted(required&candidate)
-    missing_required=sorted(required-candidate)
-    matched_preferred=sorted(preferred&candidate)
-    missing_preferred=sorted(preferred-candidate)
+    matched_required=matched_labels(required, candidate)
+    missing_required=absent_labels(required, candidate)
+    matched_preferred=matched_labels(preferred, candidate)
+    missing_preferred=absent_labels(preferred, candidate)
     req_score=len(matched_required)/len(required) if required else None
     pref_score=len(matched_preferred)/len(preferred) if preferred else None
     if req_score is None and pref_score is None:skill_score=(len(suggested_matched)/len(suggested) if suggested else None)
@@ -133,16 +189,20 @@ def compare_resume_to_job(resume_text: str, description: str, *,db_path=None,req
     elif pref_score is None:skill_score=req_score
     else:skill_score=required_weight*req_score+(1-required_weight)*pref_score
     evidence=requirement_evidence(description,candidate,db_path=db_path)
+    evidence_snippets = match_evidence_snippets(resume_text, matched_required + matched_preferred)
     # Title-only mode must not compare a full resume to a two-word title.
     # Explicit JD mode compares resume against the supplied requirements.
-    title_only = not bool(description.strip())
     similarity = None if title_only else cosine_similarity(resume_text, description)
     if title_only:
         overall = round(100 * skill_score) if skill_score is not None else None
-        scoring_method = 'Role alignment is the proportion of typical role skills explicitly found in the resume. No employer requirements or text similarity were assessed.'
+        scoring_method = 'Title-only estimate: fraction of reviewed core role skills evidenced in the resume (or imported catalog skills if no reviewed profile exists). No employer JD, experience verification, or skill proficiency assessed.'
     else:
-        overall = round(100 * (0.7 * skill_score + 0.3 * similarity)) if skill_score is not None else None
-        scoring_method = '70% stated skill overlap / 30% JD text similarity. Unverifiable non-skill requirements are listed for manual review; not a certified ATS score.'
+        coverage = requirement_coverage(evidence)
+        # Semantic requirement coverage, not sparse whole-document cosine,
+        # supplies the second evidence-based component of the estimate.
+        # When no JD line is assessable, use the same skill coverage only.
+        overall = round(100 * (0.7 * skill_score + 0.3 * (coverage if coverage is not None else skill_score))) if skill_score is not None else None
+        scoring_method = '70% distinct stated skill overlap / 30% assessable JD requirement-line evidence. Raw JD text similarity is a separate diagnostic; unverified requirements need manual review. Not a certified ATS score.'
     explanations=[]
     if title_only:
         explanations.append('No employer job description provided: required and preferred requirements were not assessed.')
@@ -156,11 +216,12 @@ def compare_resume_to_job(resume_text: str, description: str, *,db_path=None,req
     explanations.append('Missing skills mean not detected in the document, not proof the candidate lacks them.')
     return {'match_score':overall,'similarity_score':round(similarity*100) if similarity is not None else None, 'skill_match_score':round(skill_score*100) if skill_score is not None else None,
       'scoring_methodology':scoring_method,'analysis_mode':'role-alignment' if title_only else 'job-description', 'scoring_basis':'employer-stated' if status=='explicit-description' else 'occupation-suggestions',
+      'requirement_coverage_score':round(100 * requirement_coverage(evidence)) if description.strip() and requirement_coverage(evidence) is not None else None,
       'required_weight':required_weight,'resume_skills':sorted(candidate),'required_skills':sorted(required),'preferred_skills':sorted(preferred),
       'matched_required':matched_required,'missing_required':missing_required,'matched_preferred':matched_preferred,'missing_preferred':missing_preferred,
       'suggested_role_skills':sorted(suggested),'matched_suggested':suggested_matched,'missing_suggested':suggested_missing,
-      'inference_source':role['source'] if catalog_preferred else (occupation_profile['source'] if occupation_profile else role['source']),'inference_confidence':role['confidence'],'requirements_status':status,
+      'inference_source':role_source,'inference_confidence':role_confidence,'requirements_status':status,
       'occupation_profile':occupation_profile or {},'explanations':explanations,
-      'requirement_evidence':evidence,'improvement_suggestions':truthful_improvements(evidence),
+      'requirement_evidence':evidence,'matched_skill_evidence':evidence_snippets,'improvement_suggestions':truthful_improvements(evidence),
       'required_requirements_count':sum(r['priority']=='required' for r in evidence),
       'preferred_requirements_count':sum(r['priority']=='preferred' for r in evidence),'disclaimer':'Heuristic estimate. Suggested role skills are not employer-confirmed requirements; not a hiring decision or certified ATS score.'}

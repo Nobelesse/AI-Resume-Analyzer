@@ -36,6 +36,13 @@ def _display(result):
     if title_only:
         matched = result.get('matched_suggested', [])
     st.write(' · '.join(matched) if matched else 'No skills detected for this comparison.')
+    if not title_only and result.get('matched_skill_evidence'):
+        with st.expander('Why these skills matched — resume excerpts', expanded=False):
+            st.caption('Verbatim resume evidence; a mention is not proof of proficiency.')
+            for skill, excerpt in sorted(result['matched_skill_evidence'].items(), key=lambda x: x[0].casefold()):
+                st.markdown('**' + skill + '**')
+                st.write(excerpt)
+
     st.subheader('Skills to improve')
     missing = sorted(set(result.get('missing_required', []) + result.get('missing_preferred', [])))
     if title_only:
@@ -50,7 +57,9 @@ def _display(result):
         st.info('These are typical skills suggested for this role, NOT confirmed requirements from an employer.')
     elif result.get('requirements_status') == 'unrecognized-role':
         st.warning('Role not found in the offline catalog. Paste a detailed job description for better matching.')
-    with st.expander('Suggested role skills ('+str(len(result.get('suggested_role_skills',[])))+')', expanded=True):
+    if not title_only:
+        st.caption('The occupation catalog below is supplemental reference material; it does not define or override the employer job description.')
+    with st.expander(('Suggested role skills (' if title_only else 'Supplemental occupation catalog (')+str(len(result.get('suggested_role_skills',[])))+')', expanded=title_only):
         st.write(', '.join(result.get('suggested_role_skills',[])) or 'No occupation suggestions available')
         st.caption('Matched in your resume: '+(', '.join(result.get('matched_suggested',[])) or 'None'))
         st.caption('Not detected in your resume: '+(', '.join(result.get('missing_suggested',[])) or 'None'))
@@ -68,8 +77,10 @@ def _display(result):
     if result.get('skill_match_score') is not None:
         st.caption(f"Recognized skills: {result['skill_match_score']}%")
         st.progress(max(0,min(100,result['skill_match_score']))/100)
+    if not title_only and result.get('requirement_coverage_score') is not None:
+        st.caption(f"Assessable requirement coverage: {result['requirement_coverage_score']}%")
     if not title_only and result.get('similarity_score') is not None:
-        st.caption(f"Job description text similarity: {result['similarity_score']}%")
+        st.caption(f"Raw JD text similarity (diagnostic only): {result['similarity_score']}%")
         st.progress(max(0,min(100,result['similarity_score']))/100)
     # Detailed requirement status and source explanations are available in reports.
     st.download_button('Download PDF report',render_pdf_report(result),file_name='job-match-report.pdf',mime='application/pdf',key=f"pdf_{result.get('match_id', 'new')}")
@@ -173,6 +184,18 @@ def career_finder():
                 st.markdown('**Education mentioned**')
                 st.write(' · '.join(support['education']))
                 st.caption('Education is background context, not proof of role-specific proficiency.')
+            # The reviewed role core profile is shared with title-only Job
+            # Match Studio. Show it separately from the heuristic career rank.
+            if job.get('core_skill_coverage') is not None:
+                st.markdown('**Core skill evidence (title-only comparison)**')
+                core_hits = job.get('core_skills_matched', [])
+                core_gaps = job.get('core_skills_not_detected', [])
+                st.write(f"{len(core_hits)} of {len(core_hits) + len(core_gaps)} typical core skills evidenced ({job['core_skill_coverage']}%).")
+                if core_hits:
+                    st.caption('Evidence in resume: ' + ', '.join(core_hits))
+                if core_gaps:
+                    st.caption('Not evidenced in resume: ' + ', '.join(core_gaps[:7]))
+                st.caption('This is skill coverage, not a hiring probability or proof of proficiency.')
             st.markdown('**Experience level**')
             st.write(support['experience_level'])
             topics = job.get('skills_not_detected', [])

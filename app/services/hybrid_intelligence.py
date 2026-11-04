@@ -4,8 +4,10 @@ import re
 from app.database.connection import connect
 from app.services.skills import extract_skills, seed_skills
 from app.services.skill_intelligence import phrase_present
+from app.services.alias_matching import catalogue_query_keys, canonical_key
 from app.services.taxonomy import ensure_tables
 from app.services.role_skills import ROLE_MAP
+from app.services.role_profiles import core_evidence, core_skills
 from app.services.career_intelligence155 import evidence_weight, occupation_focus, useful_gaps, occupation_learning_topics
 
 DISCLAIMER = 'Evidence-based skill coverage, not a hiring probability or a verified qualification.'
@@ -38,7 +40,7 @@ DOMAIN_PROFILES = {
         'titles': ('office clerk','administrative assistant','administrative support','data entry','secretar','office assistant','receptionist','information clerk'),
     },
     'it_support': {
-        'signals': ('computer knowledge','basic computer','computer support','technical support','it support','troubleshooting','computer applications','computer hardware','bca','mca'),
+        'signals': ('computer support','technical support','it support','troubleshooting','computer hardware','help desk','ticketing systems','technical troubleshooting'),
         'titles': ('computer user support','computer network support','help desk','technical support','computer support','information technology support'),
     },
     'web_entry': {
@@ -104,36 +106,103 @@ def _ranking_score(title, skills, matched, strengths):
     return round(min(100, raw * misalignment_multiplier), 1), domains, alignment, score_parts
 
 
+# Only aliases that describe the SAME O*NET-level role belong here.
+# Related specialties (medical receptionist, executive assistant, web designer,
+# webmaster, data analyst/BI analyst) intentionally remain distinct.
+_EQUIVALENT_OCCUPATION_TITLES = {
+    'receptionist': 'receptionists and information clerk',
+    'receptionists': 'receptionists and information clerk',
+    'receptionist and information clerk': 'receptionists and information clerk',
+    'general office clerk': 'office clerks general',
+    'general office clerks': 'office clerks general',
+    'office clerk general': 'office clerks general',
+    'office clerks general': 'office clerks general',
+}
+
+_TITLE_ACRONYMS = frozenset({'it', 'qa', 'ui', 'ux', 'hr', 'seo', 'sql', 'api', 'crm', 'erp', 'gis'})
+
+
+def _professional_occupation_title(title):
+    """Repair fully lowercase imported titles; preserve official title casing.
+
+    Never invent or rewrite the catalog occupation's identity, evidence, or
+    score. This function changes only the name presented to the user.
+    """
+    title = str(title).strip()
+    if not title or title != title.lower():
+        return title
+    return re.sub(r"[A-Za-z]+(?:'[A-Za-z]+)?", lambda match: (
+        match.group().upper() if match.group().casefold() in _TITLE_ACRONYMS
+        else match.group()[0].upper() + match.group()[1:]
+    ), title)
+
+
+def _occupation_identity(title):
+    """Conservative role identity for deduplicating equivalent occupation names.
+
+    Publisher IDs remain distinct in the catalog; this collapses only identical
+    title forms and a small, reviewed set of equivalent labels in the results.
+    Broad occupation-title synonym tables MUST NOT be used as identities.
+    """
+    normalized = re.sub(r'[^\w\s]+', ' ', str(title).casefold())
+    words = normalized.split()
+    if not words:
+        return ''
+    # Normalize only final-word singular/plural (do not stem the whole title).
+    if words[-1].endswith('ies') and len(words[-1]) > 5:
+        words[-1] = words[-1][:-3] + 'y'
+    elif words[-1].endswith('s') and not words[-1].endswith(('ss', 'us')) and len(words[-1]) > 4:
+        words[-1] = words[-1][:-1]
+    key = ' '.join(words)
+    return _EQUIVALENT_OCCUPATION_TITLES.get(key, key)
+
+
+def _deduplicate_career_candidates(candidates):
+    """Pick one real catalog candidate per conservative identity.
+
+    Keep the original candidate's score, skill list, evidence, and source;
+    never combine claims from two occupation records. Prefer professionally
+    formatted publisher titles for near-equal scores.
+    """
+    grouped = {}
+    for candidate in candidates:
+        score, matched_count, name, job = candidate
+        identity = _occupation_identity(job['title'])
+        old = grouped.get(identity)
+        if old is None:
+            grouped[identity] = candidate
+            continue
+        old_score, old_count, _, old_job = old
+        close = abs(score - old_score) <= 2
+        old_presentation = old_job['title'] != old_job['title'].lower()
+        presentation = job['title'] != job['title'].lower()
+        if ((close and presentation and not old_presentation)
+                or (not close and (score, matched_count) > (old_score, old_count))
+                or (close and presentation == old_presentation
+                    and (score, matched_count) > (old_score, old_count))):
+            grouped[identity] = candidate
+    return list(grouped.values())
+
+
 def _skill_keys(text, db_path=None):
     seed_skills(db_path)
     return {s.casefold() for s in extract_skills(text, db_path=db_path)}
 
 
-# Explicit, reviewed equivalences for named applications and web languages.
-# Never equate a person's soft skill with proficiency in a software product.
-ONET_VERIFIED_ALIASES = {
-    'html': 'hypertext markup language html',
-    'css': 'cascading style sheets css',
-    'ms word': 'microsoft word',
-    'ms excel': 'microsoft excel',
-    'excel': 'microsoft excel',
-    'microsoft word': 'microsoft word',
-    'ms powerpoint': 'microsoft powerpoint',
-    'powerbi': 'microsoft power bi',
-    'power bi': 'microsoft power bi',
-    'postgres': 'postgresql',
-}
-
-
-
+# Generate catalog lookup variants from the same reviewed alias library as
+# Job Matching; no separate, divergent shortlist of eight synonyms.
 def _onet_query_keys(text, extracted):
-    keys = set(extracted)
-    corpus = text.casefold()
-    # Map only explicitly present shorthand, never implied experience.
-    for shorthand, official in ONET_VERIFIED_ALIASES.items():
-        if phrase_present(corpus, shorthand) or shorthand in extracted:
-            keys.add(official)
-    return keys
+    # Preserve direct mentions of reviewed brand shorthands even when a caller
+    # passes a partial extracted set (legacy integration contract).
+    observed = set(extracted)
+    for short, official in (('ms word', 'microsoft word'),
+                            ('ms excel', 'microsoft excel'),
+                            ('powerbi', 'power bi'), ('power bi', 'power bi'),
+                            ('postgres', 'postgresql'), ('html', 'html'),
+                            ('css', 'css')):
+        if phrase_present(text, short):
+            observed.add(official)
+    return catalogue_query_keys(observed)
 
 
 def rank_careers(resume_text: str, *, db_path=None, limit=8):
@@ -163,17 +232,27 @@ def rank_careers(resume_text: str, *, db_path=None, limit=8):
             for pos in range(0, len(keys), 400):
                 batch = keys[pos:pos+400]
                 marks = ','.join('?' for _ in batch)
-                rows = db.execute(f"""SELECT o.id, o.name, o.source,
-                    s.name AS skill, s.normalized AS skill_key
+                # Publisher names and publisher-provided alternate labels both
+                # resolve to one catalog skill ID. A returned occupation counts
+                # each linked skill only once, even if multiple aliases match.
+                base = f"""SELECT o.id, o.name, o.source,
+                    s.name AS skill, s.id AS skill_id
                     FROM tax_skills s
                     JOIN tax_links l ON l.skill_id = s.id
                     JOIN tax_occupations o ON o.id = l.occupation_id
-                    WHERE s.normalized IN ({marks})""", batch).fetchall()
-                for row in rows:
-                    record = found.setdefault(row['id'], {
-                        'title': row['name'], 'source': row['source'], 'matched': set()})
-                    record['matched'].add(row['skill'])
-                    matched_skill_ids.add(row['skill_key'])
+                    WHERE {{condition}}"""
+                for condition, values in (
+                    (f's.normalized IN ({marks})', batch),
+                    (f's.id IN (SELECT skill_id FROM tax_skill_aliases WHERE alias IN ({marks}))', batch),
+                ):
+                    rows = db.execute(base.format(condition=condition), values).fetchall()
+                    for row in rows:
+                        record = found.setdefault(row['id'], {
+                            'title': row['name'], 'source': row['source'],
+                            'matched': set(), 'matched_ids': set()})
+                        record['matched'].add(row['skill'])
+                        record['matched_ids'].add(row['skill_id'])
+                        matched_skill_ids.add(row['skill_id'])
             diagnostics['catalog_skill_matches'] = len(matched_skill_ids)
             diagnostics['occupations_retrieved'] = len(found)
             if found:
@@ -198,7 +277,23 @@ def rank_careers(resume_text: str, *, db_path=None, limit=8):
                 # distinct resume skills. Still show observed coverage separately.
                 breadth = min(len(matched)/5, 1.0)
                 score, domains, alignment, breakdown = _ranking_score(group['title'], skills, matched, strengths)
-                # An intentionally modest tie-breaker; evidence still determines the main rank.
+                # The same reviewed core profile used by title-only Job Studio
+                # supplies a small *evidence-backed* tie-breaker here. Do not
+                # award points for a role title alone or for generic keywords.
+                core_matched, core_missing = core_evidence(group['title'], known)
+                core_total = len(core_matched) + len(core_missing)
+                # Use the same reviewed *core evidence* as title-only Job Studio
+                # without presenting the resulting career rank as a hiring score.
+                # This also avoids generic, long imported software lists diluting
+                # essential role coverage. Unrecognized jobs use catalog ranking.
+                if core_total:
+                    core_pct = 100 * len(core_matched) / core_total
+                    score = round(0.55 * score + 0.45 * core_pct, 1)
+                    breakdown['reviewed_role_core_evidence'] = round(0.45 * core_pct, 2)
+                    breakdown['reviewed_role_core_coverage'] = round(core_pct)
+                else:
+                    breakdown['reviewed_role_core_evidence'] = 0.0
+                # A weak, stated-role context tie-breaker; never a qualification.
                 focus = occupation_focus(group['title'], resume_text)
                 score = round(min(100, score + 2.0 * focus), 1)
                 breakdown['resume_role_context'] = round(2.0 * focus, 2)
@@ -219,11 +314,16 @@ def rank_careers(resume_text: str, *, db_path=None, limit=8):
                     'domain_alignment': alignment, 'occupation_domains': domains,
                     'matched_skill_count': len(matched),
                     'catalog_skill_count': total,
+                    'core_skills_matched': core_matched,
+                    'core_skills_not_detected': core_missing,
+                    'core_skill_coverage': round(100 * len(core_matched) / core_total) if core_total else None,
                     'learning_topic_basis': 'Optional topics are selected from occupation-catalog skills and curated field priorities; not verified requirements.',
                     'eligibility': 'Education, experience and licensing not assessed.',
                     'evidence_source': group['source'],
                 }))
     diagnostics['occupations_after_filter'] = len(candidates)
+    candidates = _deduplicate_career_candidates(candidates)
+    diagnostics['unique_occupations'] = len(candidates)
     candidates.sort(key=lambda item: (-item[0], -item[1], item[2]))
     source = 'ONET/ESCO-imported-catalog' if candidates else 'curated-offline-catalog'
     if not candidates:
@@ -233,7 +333,7 @@ def rank_careers(resume_text: str, *, db_path=None, limit=8):
             'O*NET occupations were retrieved but none passed the minimum evidence checks'
         )
         for title, skills in ROLE_MAP.items():
-            matched = [skill for skill in skills if skill.casefold() in known]
+            matched = [skill for skill in skills if canonical_key(skill) in {canonical_key(k) for k in known}]
             if len(matched) >= 2:
                 coverage = len(matched)/len(skills)
                 score, domains, alignment, breakdown = _ranking_score(title, skills, matched, strengths)
@@ -245,9 +345,11 @@ def rank_careers(resume_text: str, *, db_path=None, limit=8):
                     'domain_alignment':alignment, 'occupation_domains':domains,
                     'eligibility':'Education, experience and licensing not assessed.',
                     'evidence_source':'curated-role-library'}))
+        candidates = _deduplicate_career_candidates(candidates)
+        diagnostics['unique_occupations'] = len(candidates)
         candidates.sort(key=lambda item:(-item[0],-item[1],item[2]))
-    return {'jobs':[item[3] for item in candidates[:bounded_limit]],
+    return {'jobs':[{**item[3], 'title': _professional_occupation_title(item[3]['title'])} for item in candidates[:bounded_limit]],
             'resume_skills': sorted(known), 'source':source, 'diagnostics': diagnostics,
             'warning':'' if candidates else 'Insufficient occupation-specific evidence for reliable career recommendations. Add relevant skills, projects, or experience; no unrelated careers will be suggested.',
-            'methodology':'Low-evidence and unrelated occupations are filtered. Occupation catalog coverage (48%), matched skill breadth (30%), specificity-weighted evidence (10%), career-family alignment (up to 12 points), and a bounded 2-point stated-role tie-break. Learning topics use field-specific priorities when listed in the occupation catalog; absence from a resume does not prove missing proficiency. No education or seniority inference. Heuristic ranking, not a hiring probability.',
+            'methodology':'Low-evidence and unrelated occupations are filtered. Base ranking combines occupation catalog coverage (48%), matched skill breadth (30%), specificity-weighted evidence (10%) and career-family alignment (up to 12 points). Recognized roles then blend 55% of that base ranking with 45% reviewed core skill coverage; unknown roles retain catalog scoring. A bounded 2-point stated-role tie-break is applied. Learning topics use field-specific priorities when listed in the occupation catalog; absence from a resume does not prove missing proficiency. No education or seniority inference. Heuristic ranking, not a hiring probability.',
             'disclaimer':DISCLAIMER}

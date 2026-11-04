@@ -25,7 +25,7 @@ def list_analyses(actor_id,*,db_path=None):
 
 def get_analysis(actor_id,analysis_id,*,db_path=None):
     from app.auth.service import get_user
-    actor=get_user(actor_id,db_path=db_path) if actor_id else None
+    actor=get_user(actor_id,db_path=db_path) if actor_id is not None else None
     if not actor:raise PermissionError('Login required')
     with connect(db_path) as db:
         row=db.execute('SELECT * FROM analyses WHERE id=?',(analysis_id,)).fetchone()

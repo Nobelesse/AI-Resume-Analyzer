@@ -26,9 +26,23 @@ def register_user(email, display_name, password, *, db_path=None):
     hashed = hash_password(password)
     try:
         with connect(db_path) as conn:
-            cursor = conn.execute("INSERT INTO users(email,display_name,password_hash,role) VALUES(?,?,?,'user')", (email, name, hashed))
-            conn.execute("INSERT INTO activity_logs(actor_id,event) VALUES(?,?)", (cursor.lastrowid, "registered"))
-            return int(cursor.lastrowid)
+            # Serialize ID selection and insertion so concurrent registrations cannot collide.
+            conn.execute("BEGIN IMMEDIATE")
+            occupied = [row[0] for row in conn.execute(
+                "SELECT id FROM users WHERE id > 0 ORDER BY id"
+            ).fetchall()]
+            user_id = 1
+            for occupied_id in occupied:
+                if occupied_id > user_id:
+                    break
+                if occupied_id == user_id:
+                    user_id += 1
+            conn.execute(
+                "INSERT INTO users(id,email,display_name,password_hash,role) VALUES(?,?,?,?,'user')",
+                (user_id, email, name, hashed),
+            )
+            conn.execute("INSERT INTO activity_logs(actor_id,event) VALUES(?,?)", (user_id, "registered"))
+            return user_id
     except sqlite3.IntegrityError:
         raise ValueError("This email address is already registered.") from None
 
@@ -43,7 +57,7 @@ def create_initial_admin(email, display_name, password, *, db_path=None):
         if conn.execute("SELECT COUNT(*) FROM users WHERE role='admin'").fetchone()[0]:
             raise ValueError("An administrator already exists; bootstrap is disabled.")
         try:
-            cur = conn.execute("INSERT INTO users(email,display_name,password_hash,role) VALUES(?,?,?,'admin')", (email,name,hashed))
+            cur = conn.execute("INSERT INTO users(id,email,display_name,password_hash,role) VALUES(0,?,?,?,'admin')", (email,name,hashed))
         except sqlite3.IntegrityError:
             raise ValueError("Email is already in use.") from None
         conn.execute("INSERT INTO activity_logs(actor_id,event) VALUES(?,?)", (cur.lastrowid,"admin_bootstrap"))
@@ -80,12 +94,19 @@ def authenticate(email, password, expected_role, *, db_path=None, now=None):
         raise AuthError("Invalid credentials or unavailable account.")
     return result
 
-def get_user(user_id, *, db_path=None):
+def get_user(user_id, *, db_path=None, include_session_guard=False):
+    # A guard derived from the salted password hash changes whenever an ID is
+    # reused. It is never returned to ordinary account/authorization callers.
+    columns = "id,email,display_name,role,is_active,password_hash" if include_session_guard else "id,email,display_name,role,is_active"
     with connect(db_path) as conn:
-        row=conn.execute("SELECT id,email,display_name,role,is_active FROM users WHERE id=?", (user_id,)).fetchone()
+        row = conn.execute(f"SELECT {columns} FROM users WHERE id=?", (user_id,)).fetchone()
     if not row or not row["is_active"]:
         return None
-    return {key:row[key] for key in ("id","email","display_name","role")}
+    result = {key:row[key] for key in ("id","email","display_name","role")}
+    if include_session_guard:
+        import hashlib
+        result["_session_guard"] = hashlib.sha256(row["password_hash"].encode("utf-8")).hexdigest()
+    return result
 
 def audit_logout(user_id, *, db_path=None):
     with connect(db_path) as conn:

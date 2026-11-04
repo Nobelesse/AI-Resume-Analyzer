@@ -14,3 +14,5 @@ def inject_scroll_engine() -> None:
     """Run the trusted scroll observer in the main document, not an iframe."""
     script = SCRIPT_PATH.read_text(encoding="utf-8")
     st.html("<script>\n" + script + "\n</script>", unsafe_allow_javascript=True)
+    depth_js = (SCRIPT_PATH.parent / "ara_text_depth.js").read_text(encoding="utf-8")
+    st.html("<script>\n" + depth_js + "\n</script>", unsafe_allow_javascript=True)

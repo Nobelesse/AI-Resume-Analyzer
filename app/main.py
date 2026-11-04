@@ -96,8 +96,8 @@ def main() -> None:
         account_pages = []
 
     project_pages = [
-        st.Page(roadmap.render, title="Platform Capabilities", icon="✨", url_path="build-roadmap"),
-        st.Page(architecture.render, title="Privacy & Technology", icon="🔐", url_path="architecture"),
+        st.Page(roadmap.render, title="System Workflow", icon="✨", url_path="build-roadmap"),
+        st.Page(architecture.render, title="System Architecture", icon="🧩", url_path="architecture"),
     ]
 
     pages = {"WORKSPACE": workspace_pages, "PLATFORM": project_pages}

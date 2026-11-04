@@ -59,7 +59,7 @@ def list_all_resumes(admin_id: int, *, db_path=None):
 def get_resume(actor_id: int, resume_id: int, *, db_path=None):
     """Admins can view any resume; users may view only their own."""
     from app.auth.service import get_user
-    actor=get_user(actor_id,db_path=db_path) if actor_id else None
+    actor=get_user(actor_id,db_path=db_path) if actor_id is not None else None
     if actor is None or actor['role'] not in ('admin','user'):
         raise AccessDenied('Sign in to access resume records.')
     with connect(db_path) as conn:
